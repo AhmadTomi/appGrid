@@ -15,6 +15,7 @@ import 'app_grid_footer.dart';
 import '../models/data_fetch_mode.dart';
 import 'app_grid_pagination_bar.dart';
 import 'app_grid_loading_overlay.dart';
+import 'app_grid_scrollbar.dart';
 
 import 'dart:ui' show PointerDeviceKind;
 
@@ -47,7 +48,6 @@ class AppGrid<T> extends StatefulWidget {
   final double headerHeight;
   final double? footerHeight;
   final GridHeaderBuilder? headerBuilder;
-  final GridCellBuilder<T>? cellBuilder;
   final GridFooterBuilder? footerBuilder;
   final ValueChanged<RowIndexInfo>? onRowSelected;
   final Color? selectedRowColor;
@@ -56,6 +56,12 @@ class AppGrid<T> extends StatefulWidget {
   ///
   /// Deprecated alias: [alternateRowColor] can also be used.
   final Color? oddRowColor;
+
+  /// Whether the grid is in read-only mode.
+  ///
+  /// When true, rows cannot be selected (via pointer clicks or keyboard navigation)
+  /// and no selected row highlighting will be rendered.
+  final bool readOnly;
 
   /// Alternate row background color applied to odd rows (index 1, 3, 5, ...).
   ///
@@ -91,6 +97,17 @@ class AppGrid<T> extends StatefulWidget {
   /// Whether to display the interactive vertical scrollbar on the right edge.
   final bool showVerticalScrollbar;
 
+  /// Visibility behavior of the vertical scrollbar.
+  /// Options: [AppGridScrollbarVisibility.onHover] (default), [AppGridScrollbarVisibility.always], [AppGridScrollbarVisibility.hidden].
+  final AppGridScrollbarVisibility? verticalScrollbarVisibility;
+
+  /// Visibility behavior of the horizontal scrollbar.
+  /// Options: [AppGridScrollbarVisibility.onHover] (default), [AppGridScrollbarVisibility.always], [AppGridScrollbarVisibility.hidden].
+  final AppGridScrollbarVisibility? horizontalScrollbarVisibility;
+
+  /// Convenient shorthand visibility behavior for both vertical and horizontal scrollbars.
+  final AppGridScrollbarVisibility? scrollbarVisibility;
+
   /// Thickness of the horizontal and vertical scrollbars.
   final double scrollbarThickness;
 
@@ -99,6 +116,24 @@ class AppGrid<T> extends StatefulWidget {
 
   /// Custom color for the scrollbar track background.
   final Color? scrollbarTrackColor;
+
+  /// Optional background color for header cells.
+  final Color? headerBackgroundColor;
+
+  /// Optional outer border color for the entire table grid.
+  final Color? borderColor;
+
+  /// Optional grid line / divider color between cells, rows, and headers.
+  final Color? gridLineColor;
+
+  /// Whether to render horizontal grid lines / dividers between table rows.
+  final bool showHorizontalGridLines;
+
+  /// Whether to render vertical grid lines / dividers between table columns.
+  final bool showVerticalGridLines;
+
+  /// Optional custom color for vertical grid dividers between cells, headers, and footers.
+  final Color? verticalGridLineColor;
 
   /// Whether the table is currently loading data asynchronously.
   ///
@@ -118,13 +153,19 @@ class AppGrid<T> extends StatefulWidget {
     this.headerHeight = 48.0,
     this.footerHeight,
     this.headerBuilder,
-    this.cellBuilder,
     this.footerBuilder,
     this.onRowSelected,
     this.selectedRowColor,
+    this.readOnly = false,
     this.alternateRowColor,
     this.evenRowColor,
     this.oddRowColor,
+    this.headerBackgroundColor,
+    this.borderColor,
+    this.gridLineColor,
+    this.showHorizontalGridLines = true,
+    this.showVerticalGridLines = false,
+    this.verticalGridLineColor,
     this.verticalScrollController,
     this.horizontalScrollController,
     this.focusNode,
@@ -139,11 +180,30 @@ class AppGrid<T> extends StatefulWidget {
     this.enableMouseDragScroll = true,
     this.showHorizontalScrollbar = true,
     this.showVerticalScrollbar = true,
+    this.verticalScrollbarVisibility,
+    this.horizontalScrollbarVisibility,
+    this.scrollbarVisibility,
     this.scrollbarThickness = 10.0,
     this.scrollbarThumbColor,
     this.scrollbarTrackColor,
     this.physics,
   });
+
+  /// Resolves the effective visibility behavior for the vertical scrollbar.
+  AppGridScrollbarVisibility get effectiveVerticalScrollbarVisibility {
+    if (verticalScrollbarVisibility != null) return verticalScrollbarVisibility!;
+    if (scrollbarVisibility != null) return scrollbarVisibility!;
+    if (!showVerticalScrollbar) return AppGridScrollbarVisibility.hidden;
+    return AppGridScrollbarVisibility.onHover;
+  }
+
+  /// Resolves the effective visibility behavior for the horizontal scrollbar.
+  AppGridScrollbarVisibility get effectiveHorizontalScrollbarVisibility {
+    if (horizontalScrollbarVisibility != null) return horizontalScrollbarVisibility!;
+    if (scrollbarVisibility != null) return scrollbarVisibility!;
+    if (!showHorizontalScrollbar) return AppGridScrollbarVisibility.hidden;
+    return AppGridScrollbarVisibility.onHover;
+  }
 
   /// Optional scroll physics for the grid's vertical and horizontal viewports.
   final ScrollPhysics? physics;
@@ -157,6 +217,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
   late final ScrollController _verticalScrollController;
   late final ScrollController _horizontalScrollController;
   late final FocusNode _focusNode;
+  final ValueNotifier<bool> _isGridHovered = ValueNotifier<bool>(false);
   bool _ownsVerticalController = false;
   bool _ownsHorizontalController = false;
   bool _ownsFocusNode = false;
@@ -193,6 +254,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
       widget.controller.onRowSelected = widget.onRowSelected;
     }
 
+    if ((widget.readOnly || widget.controller.isReadOnly) &&
+        widget.controller.selectedOriginalIndex != null) {
+      widget.controller.clearSelection();
+    }
+
     widget.controller.addListener(_onControllerChanged);
   }
 
@@ -201,6 +267,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     super.didUpdateWidget(oldWidget);
     if (widget.onRowSelected != null) {
       widget.controller.onRowSelected = widget.onRowSelected;
+    }
+    if (widget.readOnly != oldWidget.readOnly && widget.readOnly) {
+      if (widget.controller.selectedOriginalIndex != null) {
+        widget.controller.clearSelection();
+      }
     }
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_onControllerChanged);
@@ -232,6 +303,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     _focusNode.removeListener(_onFocusChanged);
     _layoutManager.removeListener(_onLayoutChanged);
     _layoutManager.dispose();
+    _isGridHovered.dispose();
 
     if (_ownsVerticalController) {
       _verticalScrollController.dispose();
@@ -292,6 +364,9 @@ class _AppGridState<T> extends State<AppGrid<T>> {
         final totalWidth = constraints.maxWidth;
         final totalHeight = constraints.maxHeight;
 
+        const double borderWidth = 1.0;
+        final double innerWidth = math.max(0.0, totalWidth - (borderWidth * 2));
+
         final hasFooter = widget.footerBuilder != null ||
             widget.footerHeight != null ||
             widget.controller.visibleColumns.any((c) => c.footerBuilder != null);
@@ -303,12 +378,13 @@ class _AppGridState<T> extends State<AppGrid<T>> {
 
         final computedLayout = _layoutManager.computeLayout(
           visibleColumns: widget.controller.visibleColumns,
-          availableViewportWidth: totalWidth,
+          availableViewportWidth: innerWidth,
         );
 
         final double leftWidth = computedLayout.leftPane.totalWidth;
         final double rightWidth = computedLayout.rightPane.totalWidth;
-        final double centerWidth = math.max(0.0, totalWidth - leftWidth - rightWidth);
+        final double centerWidth = math.max(0.0, innerWidth - leftWidth - rightWidth);
+        final bool effectiveReadOnly = widget.readOnly || widget.controller.isReadOnly;
 
         return ScrollConfiguration(
           behavior: const AppGridScrollBehavior(),
@@ -319,6 +395,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
             rowHeight: widget.rowHeight,
             focusNode: _focusNode,
             autofocus: widget.autofocus,
+            readOnly: effectiveReadOnly,
             child: ClipRect(
               child: Material(
                 type: MaterialType.transparency,
@@ -327,109 +404,122 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                   clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: _focusNode.hasFocus
-                          ? Theme.of(context).colorScheme.primary.withAlpha(120)
-                          : Theme.of(context).dividerColor.withAlpha(60),
+                      color: widget.borderColor ??
+                          (_focusNode.hasFocus
+                              ? Theme.of(context).colorScheme.primary.withAlpha(120)
+                              : Theme.of(context).dividerColor.withAlpha(60)),
                       width: 1.0,
                     ),
                   ),
-                  child: Column(
-                children: [
-                  // 1. Header Bar
-                  SizedBox(
-                    height: widget.headerHeight,
-                    width: totalWidth,
-                    child: _buildHeader(
-                      totalWidth: totalWidth,
-                      leftWidth: leftWidth,
-                      centerWidth: centerWidth,
-                      rightWidth: rightWidth,
-                      layout: computedLayout,
-                    ),
-                  ),
+                  child: MouseRegion(
+                    onEnter: (_) => _isGridHovered.value = true,
+                    onExit: (_) => _isGridHovered.value = false,
+                    child: Column(
+                      children: [
+                        // 1. Header Bar
+                        SizedBox(
+                          height: widget.headerHeight,
+                          width: innerWidth,
+                          child: _buildHeader(
+                            totalWidth: innerWidth,
+                            leftWidth: leftWidth,
+                            centerWidth: centerWidth,
+                            rightWidth: rightWidth,
+                            layout: computedLayout,
+                          ),
+                        ),
 
-                  // 2. Body Viewport or Empty State with Loading Overlay
-                  Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        final effectiveIsLoading = widget.isLoading ?? widget.controller.isLoading;
-                        final isEmpty = widget.controller.displayRowCount == 0;
+                        // 2. Body Viewport or Empty State with Loading Overlay
+                        Expanded(
+                          child: Builder(
+                            builder: (context) {
+                              final effectiveIsLoading = widget.isLoading ?? widget.controller.isLoading;
+                              final isEmpty = widget.controller.displayRowCount == 0;
 
-                        Widget bodyContent;
-                        if (isEmpty && !effectiveIsLoading && widget.emptyWidget != null) {
-                          bodyContent = widget.emptyWidget!;
-                        } else {
-                          bodyContent = AppGridViewport<T>(
-                            controller: widget.controller,
-                            layoutManager: _layoutManager,
-                            verticalScrollController: _verticalScrollController,
-                            horizontalScrollController: _horizontalScrollController,
-                            rowHeight: widget.rowHeight,
-                            headerHeight: widget.headerHeight,
-                            footerHeight: widget.footerHeight,
-                            customCellBuilder: widget.cellBuilder,
-                            selectedRowColor: widget.selectedRowColor,
-                            alternateRowColor: widget.alternateRowColor,
-                            evenRowColor: widget.evenRowColor,
-                            oddRowColor: widget.oddRowColor,
-                            infiniteScrollThreshold: widget.infiniteScrollThreshold,
-                            enableMouseDragScroll: widget.enableMouseDragScroll,
-                            showHorizontalScrollbar: widget.showHorizontalScrollbar,
-                            showVerticalScrollbar: widget.showVerticalScrollbar,
-                            scrollbarThickness: widget.scrollbarThickness,
-                            scrollbarThumbColor: widget.scrollbarThumbColor,
-                            scrollbarTrackColor: widget.scrollbarTrackColor,
-                            physics: widget.physics,
-                          );
-                        }
+                              Widget bodyContent;
+                              if (isEmpty && !effectiveIsLoading && widget.emptyWidget != null) {
+                                bodyContent = widget.emptyWidget!;
+                              } else {
+                                bodyContent = AppGridViewport<T>(
+                                  controller: widget.controller,
+                                  layoutManager: _layoutManager,
+                                  computedLayout: computedLayout,
+                                  verticalScrollController: _verticalScrollController,
+                                  horizontalScrollController: _horizontalScrollController,
+                                  rowHeight: widget.rowHeight,
+                                  headerHeight: widget.headerHeight,
+                                  footerHeight: widget.footerHeight,
+                                  selectedRowColor: widget.selectedRowColor,
+                                  readOnly: effectiveReadOnly,
+                                  alternateRowColor: widget.alternateRowColor,
+                                  evenRowColor: widget.evenRowColor,
+                                  oddRowColor: widget.oddRowColor,
+                                  gridLineColor: widget.gridLineColor,
+                                  showHorizontalGridLines: widget.showHorizontalGridLines,
+                                  showVerticalGridLines: widget.showVerticalGridLines,
+                                  verticalGridLineColor: widget.verticalGridLineColor,
+                                  infiniteScrollThreshold: widget.infiniteScrollThreshold,
+                                  enableMouseDragScroll: widget.enableMouseDragScroll,
+                                  showHorizontalScrollbar: widget.showHorizontalScrollbar,
+                                  showVerticalScrollbar: widget.showVerticalScrollbar,
+                                  horizontalScrollbarVisibility: widget.effectiveHorizontalScrollbarVisibility,
+                                  verticalScrollbarVisibility: widget.effectiveVerticalScrollbarVisibility,
+                                  isParentHovered: _isGridHovered,
+                                  scrollbarThickness: widget.scrollbarThickness,
+                                  scrollbarThumbColor: widget.scrollbarThumbColor,
+                                  scrollbarTrackColor: widget.scrollbarTrackColor,
+                                  physics: widget.physics,
+                                );
+                              }
 
-                        if (!effectiveIsLoading) {
-                          return bodyContent;
-                        }
+                              if (!effectiveIsLoading) {
+                                return bodyContent;
+                              }
 
-                        return Stack(
-                          children: [
-                            Positioned.fill(child: bodyContent),
-                            Positioned.fill(
-                              child: widget.loadingWidget ?? const AppGridLoadingOverlay(),
+                              return Stack(
+                                children: [
+                                  Positioned.fill(child: bodyContent),
+                                  Positioned.fill(
+                                    child: widget.loadingWidget ?? const AppGridLoadingOverlay(),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+
+                        // 3. Footer Bar (Optional)
+                        if (hasFooter)
+                          SizedBox(
+                            height: footerH,
+                            width: innerWidth,
+                            child: _buildFooter(
+                              totalWidth: innerWidth,
+                              leftWidth: leftWidth,
+                              centerWidth: centerWidth,
+                              rightWidth: rightWidth,
+                              layout: computedLayout,
+                              footerHeight: footerH,
                             ),
-                          ],
-                        );
-                      },
+                          ),
+
+                        // 4. Built-in Pagination Bar (Optional)
+                        if (widget.showPaginationBar &&
+                            widget.controller.fetchMode == DataFetchMode.pagination)
+                          AppGridPaginationBar<T>(
+                            controller: widget.controller,
+                            onPageChanged: widget.onPageChanged,
+                          ),
+                      ],
                     ),
                   ),
-
-                // 3. Footer Bar (Optional)
-                if (hasFooter)
-                  SizedBox(
-                    height: footerH,
-                    width: totalWidth,
-                    child: _buildFooter(
-                      totalWidth: totalWidth,
-                      leftWidth: leftWidth,
-                      centerWidth: centerWidth,
-                      rightWidth: rightWidth,
-                      layout: computedLayout,
-                      footerHeight: footerH,
-                    ),
-                  ),
-
-                // 4. Built-in Pagination Bar (Optional)
-                if (widget.showPaginationBar &&
-                    widget.controller.fetchMode == DataFetchMode.pagination)
-                  AppGridPaginationBar<T>(
-                    controller: widget.controller,
-                    onPageChanged: widget.onPageChanged,
-                  ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
-  },
-);
   }
 
   Widget _buildHeader({
@@ -496,6 +586,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                     height: widget.headerHeight,
                                     customHeaderBuilder: widget.headerBuilder,
                                     onAutoFit: _handleAutoFit,
+                                    headerBackgroundColor: widget.headerBackgroundColor,
+                                    gridLineColor: widget.gridLineColor,
+                                    verticalGridLineColor: widget.verticalGridLineColor,
+                                    showHorizontalGridLines: widget.showHorizontalGridLines,
+                                    showVerticalGridLines: widget.showVerticalGridLines,
                                   ),
                               ],
                             ),
@@ -531,6 +626,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           height: widget.headerHeight,
                           customHeaderBuilder: widget.headerBuilder,
                           onAutoFit: _handleAutoFit,
+                          headerBackgroundColor: widget.headerBackgroundColor,
+                          gridLineColor: widget.gridLineColor,
+                          verticalGridLineColor: widget.verticalGridLineColor,
+                          showHorizontalGridLines: widget.showHorizontalGridLines,
+                          showVerticalGridLines: widget.showVerticalGridLines,
                         ),
                     ],
                   ),
@@ -561,6 +661,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           height: widget.headerHeight,
                           customHeaderBuilder: widget.headerBuilder,
                           onAutoFit: _handleAutoFit,
+                          headerBackgroundColor: widget.headerBackgroundColor,
+                          gridLineColor: widget.gridLineColor,
+                          verticalGridLineColor: widget.verticalGridLineColor,
+                          showHorizontalGridLines: widget.showHorizontalGridLines,
+                          showVerticalGridLines: widget.showVerticalGridLines,
                         ),
                     ],
                   ),
@@ -637,6 +742,10 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                     height: footerHeight,
                                     currentVisibleData: visibleData,
                                     customFooterBuilder: widget.footerBuilder,
+                                    verticalGridLineColor: widget.verticalGridLineColor,
+                                    gridLineColor: widget.gridLineColor,
+                                    showHorizontalGridLines: widget.showHorizontalGridLines,
+                                    showVerticalGridLines: widget.showVerticalGridLines,
                                   ),
                               ],
                             ),
@@ -670,6 +779,10 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           height: footerHeight,
                           currentVisibleData: visibleData,
                           customFooterBuilder: widget.footerBuilder,
+                          verticalGridLineColor: widget.verticalGridLineColor,
+                          gridLineColor: widget.gridLineColor,
+                          showHorizontalGridLines: widget.showHorizontalGridLines,
+                          showVerticalGridLines: widget.showVerticalGridLines,
                         ),
                     ],
                   ),
@@ -698,6 +811,10 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           height: footerHeight,
                           currentVisibleData: visibleData,
                           customFooterBuilder: widget.footerBuilder,
+                          verticalGridLineColor: widget.verticalGridLineColor,
+                          gridLineColor: widget.gridLineColor,
+                          showHorizontalGridLines: widget.showHorizontalGridLines,
+                          showVerticalGridLines: widget.showVerticalGridLines,
                         ),
                     ],
                   ),

@@ -15,6 +15,11 @@ class AppGridHeaderCell<T> extends StatefulWidget {
   final double height;
   final GridHeaderBuilder? customHeaderBuilder;
   final void Function(GridColumn column)? onAutoFit;
+  final Color? headerBackgroundColor;
+  final Color? gridLineColor;
+  final Color? verticalGridLineColor;
+  final bool showHorizontalGridLines;
+  final bool showVerticalGridLines;
 
   const AppGridHeaderCell({
     super.key,
@@ -25,6 +30,11 @@ class AppGridHeaderCell<T> extends StatefulWidget {
     required this.height,
     this.customHeaderBuilder,
     this.onAutoFit,
+    this.headerBackgroundColor,
+    this.gridLineColor,
+    this.verticalGridLineColor,
+    this.showHorizontalGridLines = true,
+    this.showVerticalGridLines = false,
   });
 
   @override
@@ -144,7 +154,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
     }
 
     Widget content;
-    final columnHeaderBuilder = widget.controller.getHeaderBuilder(widget.column.id);
+    final columnHeaderBuilder = widget.column.headerBuilder ?? widget.controller.getHeaderBuilder(widget.column.id);
     if (columnHeaderBuilder != null) {
       content = columnHeaderBuilder(
         context,
@@ -253,8 +263,11 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
       );
     }
 
-    final defaultBg = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5);
-    final hoverBg = isDark ? const Color(0xFF282828) : const Color(0xFFECECEC);
+    final defaultBg = widget.headerBackgroundColor ??
+        (isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5));
+    final hoverBg = widget.headerBackgroundColor != null
+        ? widget.headerBackgroundColor!.withAlpha(220)
+        : (isDark ? const Color(0xFF282828) : const Color(0xFFECECEC));
 
     return ClipRect(
       child: Container(
@@ -263,14 +276,21 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         decoration: BoxDecoration(
           color: _isHovered ? hoverBg : defaultBg,
           border: Border(
-            right: BorderSide(
-              color: isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000),
-              width: 1.0,
-            ),
-            bottom: BorderSide(
-              color: isDark ? const Color(0x3FFFFFFF) : const Color(0x3F000000),
-              width: 1.5,
-            ),
+            right: widget.showVerticalGridLines
+                ? BorderSide(
+                    color: widget.verticalGridLineColor ??
+                        widget.gridLineColor ??
+                        (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000)),
+                    width: 1.0,
+                  )
+                : BorderSide.none,
+            bottom: widget.showHorizontalGridLines
+                ? BorderSide(
+                    color: widget.gridLineColor ??
+                        (isDark ? const Color(0x3FFFFFFF) : const Color(0x3F000000)),
+                    width: 1.5,
+                  )
+                : BorderSide.none,
           ),
         ),
         child: Stack(

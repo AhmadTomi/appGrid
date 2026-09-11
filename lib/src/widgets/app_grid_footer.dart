@@ -9,6 +9,10 @@ class AppGridFooterCell extends StatelessWidget {
   final double height;
   final List<dynamic> currentVisibleData;
   final GridFooterBuilder? customFooterBuilder;
+  final Color? verticalGridLineColor;
+  final Color? gridLineColor;
+  final bool showHorizontalGridLines;
+  final bool showVerticalGridLines;
 
   const AppGridFooterCell({
     super.key,
@@ -17,6 +21,10 @@ class AppGridFooterCell extends StatelessWidget {
     required this.height,
     required this.currentVisibleData,
     this.customFooterBuilder,
+    this.verticalGridLineColor,
+    this.gridLineColor,
+    this.showHorizontalGridLines = true,
+    this.showVerticalGridLines = false,
   });
 
   @override
@@ -47,14 +55,21 @@ class AppGridFooterCell extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEEEEEE),
         border: Border(
-          right: BorderSide(
-            color: isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000),
-            width: 1.0,
-          ),
-          top: BorderSide(
-            color: isDark ? const Color(0x3FFFFFFF) : const Color(0x3F000000),
-            width: 1.5,
-          ),
+          right: showVerticalGridLines
+              ? BorderSide(
+                  color: verticalGridLineColor ??
+                      gridLineColor ??
+                      (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000)),
+                  width: 1.0,
+                )
+              : BorderSide.none,
+          top: showHorizontalGridLines
+              ? BorderSide(
+                  color: gridLineColor ??
+                      (isDark ? const Color(0x3FFFFFFF) : const Color(0x3F000000)),
+                  width: 1.5,
+                )
+              : BorderSide.none,
         ),
       ),
       child: content,

@@ -12,8 +12,13 @@ void main() {
 
       final controller = AppGridController<String>(
         initialData: items,
-        columns: const [
-          GridColumn(id: 'col', label: 'Items', initialWidth: 300),
+        columns: [
+          GridColumn(
+            id: 'col',
+            label: 'Items',
+            initialWidth: 300,
+            cellBuilder: (context, item, info) => Text(item as String),
+          ),
         ],
         onRowSelected: (info) => lastSelectedInfo = info,
       );
@@ -31,7 +36,6 @@ void main() {
                 focusNode: focusNode,
                 rowHeight: 50.0,
                 headerHeight: 50.0,
-                cellBuilder: (context, item, info, colId) => Text(item),
               ),
             ),
           ),
@@ -87,8 +91,13 @@ void main() {
       final items = List.generate(50, (i) => 'Row $i');
       final controller = AppGridController<String>(
         initialData: items,
-        columns: const [
-          GridColumn(id: 'col', label: 'Items', initialWidth: 300),
+        columns: [
+          GridColumn(
+            id: 'col',
+            label: 'Items',
+            initialWidth: 300,
+            cellBuilder: (context, item, info) => Text(item as String),
+          ),
         ],
       );
       final focusNode = FocusNode();
@@ -105,7 +114,6 @@ void main() {
                 autofocus: false, // verify click-to-focus works even when autofocus is false
                 rowHeight: 50.0,
                 headerHeight: 50.0,
-                cellBuilder: (context, item, info, colId) => Text(item),
               ),
             ),
           ),
@@ -141,8 +149,13 @@ void main() {
       final items = List.generate(20, (i) => 'Item $i');
       final controller = AppGridController<String>(
         initialData: items,
-        columns: const [
-          GridColumn(id: 'col', label: 'Items', initialWidth: 300),
+        columns: [
+          GridColumn(
+            id: 'col',
+            label: 'Items',
+            initialWidth: 300,
+            cellBuilder: (context, item, info) => Text(item as String),
+          ),
         ],
       );
       final focusNode = FocusNode();
@@ -159,7 +172,6 @@ void main() {
                 autofocus: true,
                 rowHeight: 50.0,
                 headerHeight: 50.0,
-                cellBuilder: (context, item, info, colId) => Text(item),
               ),
             ),
           ),

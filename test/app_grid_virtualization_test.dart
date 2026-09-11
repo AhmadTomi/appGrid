@@ -15,6 +15,7 @@ void main() {
           pin: c == 0
               ? GridColumnPin.left
               : (c == 49 ? GridColumnPin.right : GridColumnPin.none),
+          cellBuilder: (context, item, info) => Text('$item col_$c'),
         ),
       );
 
@@ -34,7 +35,6 @@ void main() {
                 controller: controller,
                 rowHeight: 40.0,
                 headerHeight: 48.0,
-                cellBuilder: (context, item, info, colId) => Text('$item $colId'),
               ),
             ),
           ),
@@ -67,8 +67,13 @@ void main() {
           {'id': 'r0', 'val': 'Initial'},
           {'id': 'r1', 'val': 'Static'},
         ],
-        columns: const [
-          GridColumn(id: 'val', label: 'Value', initialWidth: 200),
+        columns: [
+          GridColumn(
+            id: 'val',
+            label: 'Value',
+            initialWidth: 200,
+            cellBuilder: (context, item, info) => Text((item as Map<String, dynamic>)['val'] as String),
+          ),
         ],
       );
 
@@ -83,9 +88,6 @@ void main() {
                   height: 300,
                   child: AppGrid<Map<String, dynamic>>(
                     controller: controller,
-                    cellBuilder: (context, item, info, colId) {
-                      return Text(item['val'] as String);
-                    },
                   ),
                 );
               },

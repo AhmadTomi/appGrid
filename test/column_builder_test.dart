@@ -13,7 +13,7 @@ class FruitItem {
 
 void main() {
   group('DX Features: Column Builders, GridFooter, Empty States & Header Context Menu', () {
-    testWidgets('AppGridController cellBuilders renders modular column cells and EmptyCell for nulls', (tester) async {
+    testWidgets('GridColumn cellBuilder renders modular column cells and EmptyCell for nulls', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -24,24 +24,22 @@ void main() {
           FruitItem(name: 'Banana', total: 20, note: null),
         ],
         columns: [
-          const GridColumn(
+          GridColumn(
             id: 'name',
             label: 'Fruit Name',
+            cellBuilder: (context, fruit, info) => Text('FRUIT: ${(fruit as FruitItem).name}'),
           ),
-          const GridColumn(
+          GridColumn(
             id: 'total',
             label: 'Total',
+            cellBuilder: (context, fruit, info) => Text('QTY: ${(fruit as FruitItem).total}'),
           ),
           GridColumn(
             id: 'note',
             label: 'Note',
-            valueGetter: (f) => f.note,
+            valueGetter: (f) => (f as FruitItem).note,
           ),
         ],
-        cellBuilders: {
-          'name': (context, fruit, info) => Text('FRUIT: ${fruit.name}'),
-          'total': (context, fruit, info) => Text('QTY: ${fruit.total}'),
-        },
       );
 
       await tester.pumpWidget(
@@ -69,7 +67,7 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('AppGridController headerBuilders and dynamic builder updates', (tester) async {
+    testWidgets('GridColumn headerBuilder and dynamic builder updates', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -78,13 +76,14 @@ void main() {
         initialData: const [
           FruitItem(name: 'Apple', total: 50),
         ],
-        columns: const [
-          GridColumn(id: 'name', label: 'Fruit Name'),
-          GridColumn(id: 'total', label: 'Total'),
+        columns: [
+          GridColumn(
+            id: 'name',
+            label: 'Fruit Name',
+            headerBuilder: (context, sortDirection, onToggle) => const Text('CUSTOM_NAME_HEADER'),
+          ),
+          const GridColumn(id: 'total', label: 'Total'),
         ],
-        headerBuilders: {
-          'name': (context, sortDirection, onToggle) => const Text('CUSTOM_NAME_HEADER'),
-        },
       );
 
       await tester.pumpWidget(

@@ -18,8 +18,18 @@ void main() {
           {'id': 'ORD-3', 'name': 'Gamma'},
         ],
         columns: [
-          GridColumn(id: 'id', label: 'ID', valueGetter: (r) => r['id']),
-          GridColumn(id: 'name', label: 'Name', valueGetter: (r) => r['name']),
+          GridColumn(
+            id: 'id',
+            label: 'ID',
+            valueGetter: (r) => r['id'],
+            cellBuilder: (context, row, info) => Text('${row['id']}'),
+          ),
+          GridColumn(
+            id: 'name',
+            label: 'Name',
+            valueGetter: (r) => r['name'],
+            cellBuilder: (context, row, info) => Text('${row['name']}'),
+          ),
         ],
       );
 
@@ -28,9 +38,6 @@ void main() {
           home: Scaffold(
             body: AppGrid<Map<String, dynamic>>(
               controller: controller,
-              cellBuilder: (context, row, info, colId) {
-                return Text('${row[colId]}');
-              },
             ),
           ),
         ),

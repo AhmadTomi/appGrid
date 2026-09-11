@@ -18,6 +18,7 @@ class GridKeyboardHandler<T> extends StatelessWidget {
   final FocusNode focusNode;
   final Widget child;
   final bool autofocus;
+  final bool readOnly;
 
   const GridKeyboardHandler({
     super.key,
@@ -28,9 +29,14 @@ class GridKeyboardHandler<T> extends StatelessWidget {
     required this.focusNode,
     required this.child,
     this.autofocus = false,
+    this.readOnly = false,
   });
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
+    if (readOnly || controller.isReadOnly) {
+      return KeyEventResult.ignored;
+    }
+
     if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
       return KeyEventResult.ignored;
     }

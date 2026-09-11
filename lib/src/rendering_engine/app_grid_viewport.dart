@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -8,7 +9,6 @@ import '../models/data_fetch_mode.dart';
 import '../models/row_index_info.dart';
 import '../controllers/app_grid_controller.dart';
 import '../column_layout/column_layout_manager.dart';
-import 'grid_builders.dart';
 import 'virtualized_grid_layout.dart';
 import 'row_widget.dart';
 import '../widgets/app_grid_scrollbar.dart';
@@ -23,7 +23,6 @@ class AppGridViewport<T> extends StatefulWidget {
   final double rowHeight;
   final double headerHeight;
   final double? footerHeight;
-  final GridCellBuilder<T>? customCellBuilder;
   final Color? selectedRowColor;
   final Color? alternateRowColor;
   final Color? evenRowColor;
@@ -32,10 +31,19 @@ class AppGridViewport<T> extends StatefulWidget {
   final bool enableMouseDragScroll;
   final bool showHorizontalScrollbar;
   final bool showVerticalScrollbar;
+  final AppGridScrollbarVisibility horizontalScrollbarVisibility;
+  final AppGridScrollbarVisibility verticalScrollbarVisibility;
+  final ValueListenable<bool>? isParentHovered;
   final double scrollbarThickness;
   final Color? scrollbarThumbColor;
   final Color? scrollbarTrackColor;
+  final Color? gridLineColor;
+  final bool showHorizontalGridLines;
+  final bool showVerticalGridLines;
+  final Color? verticalGridLineColor;
   final ScrollPhysics? physics;
+  final ComputedGridLayout? computedLayout;
+  final bool readOnly;
 
   const AppGridViewport({
     super.key,
@@ -43,10 +51,10 @@ class AppGridViewport<T> extends StatefulWidget {
     required this.layoutManager,
     required this.verticalScrollController,
     required this.horizontalScrollController,
+    this.computedLayout,
     this.rowHeight = 48.0,
     this.headerHeight = 48.0,
     this.footerHeight,
-    this.customCellBuilder,
     this.selectedRowColor,
     this.alternateRowColor,
     this.evenRowColor,
@@ -55,10 +63,18 @@ class AppGridViewport<T> extends StatefulWidget {
     this.enableMouseDragScroll = true,
     this.showHorizontalScrollbar = true,
     this.showVerticalScrollbar = true,
+    this.horizontalScrollbarVisibility = AppGridScrollbarVisibility.onHover,
+    this.verticalScrollbarVisibility = AppGridScrollbarVisibility.onHover,
+    this.isParentHovered,
     this.scrollbarThickness = 10.0,
     this.scrollbarThumbColor,
     this.scrollbarTrackColor,
+    this.gridLineColor,
+    this.showHorizontalGridLines = true,
+    this.showVerticalGridLines = false,
+    this.verticalGridLineColor,
     this.physics,
+    this.readOnly = false,
   });
 
   @override
@@ -256,10 +272,11 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
         final double viewportWidth = constraints.maxWidth;
         final double viewportHeight = constraints.maxHeight;
 
-        final computedLayout = widget.layoutManager.computeLayout(
-          visibleColumns: widget.controller.visibleColumns,
-          availableViewportWidth: viewportWidth,
-        );
+        final computedLayout = widget.computedLayout ??
+            widget.layoutManager.computeLayout(
+              visibleColumns: widget.controller.visibleColumns,
+              availableViewportWidth: viewportWidth,
+            );
 
         final totalRows = widget.controller.displayRowCount;
         final double totalContentHeight = totalRows * widget.rowHeight;
@@ -361,8 +378,14 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                   child: bodyContent,
                 );
 
-                final bool hasHScrollbar = widget.showHorizontalScrollbar && maxHorizontalScroll > 0;
-                final bool hasVScrollbar = widget.showVerticalScrollbar && maxVerticalScroll > 0;
+                final bool hasHScrollbar =
+                    widget.horizontalScrollbarVisibility != AppGridScrollbarVisibility.hidden &&
+                    widget.showHorizontalScrollbar &&
+                    maxHorizontalScroll > 0;
+                final bool hasVScrollbar =
+                    widget.verticalScrollbarVisibility != AppGridScrollbarVisibility.hidden &&
+                    widget.showVerticalScrollbar &&
+                    maxVerticalScroll > 0;
 
                 return ClipRect(
                   child: Stack(
@@ -391,6 +414,8 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                             thickness: widget.scrollbarThickness,
                             thumbColor: widget.scrollbarThumbColor,
                             trackColor: widget.scrollbarTrackColor,
+                            visibility: widget.horizontalScrollbarVisibility,
+                            isParentHovered: widget.isParentHovered,
                           ),
                         ),
 
@@ -408,6 +433,8 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                             thickness: widget.scrollbarThickness,
                             thumbColor: widget.scrollbarThumbColor,
                             trackColor: widget.scrollbarTrackColor,
+                            visibility: widget.verticalScrollbarVisibility,
+                            isParentHovered: widget.isParentHovered,
                           ),
                         ),
                     ],
@@ -429,8 +456,9 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
     required double leftWidth,
     required double rightWidth,
   }) {
+    final effectiveReadOnly = widget.readOnly || widget.controller.isReadOnly;
     final indexInfo = widget.controller.getRowIndexInfo(displayIndex);
-    final isSelected = widget.controller.selectedDisplayIndex == displayIndex;
+    final isSelected = !effectiveReadOnly && widget.controller.selectedDisplayIndex == displayIndex;
 
     final leftPane = computedLayout.leftPane;
     final centerPane = computedLayout.centerPane;
@@ -438,7 +466,7 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => widget.controller.selectRow(indexInfo.displayIndex),
+      onTap: effectiveReadOnly ? null : () => widget.controller.selectRow(indexInfo.displayIndex),
       child: SizedBox(
         key: ValueKey('grid_pos_row_${indexInfo.originalIndex}'),
         height: widget.rowHeight,
@@ -462,22 +490,27 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                           columnOffsets: leftPane.offsets,
                           rowHeight: widget.rowHeight,
                           isSelected: isSelected,
-                          customCellBuilder: widget.customCellBuilder,
+                          readOnly: effectiveReadOnly,
                           selectedColor: widget.selectedRowColor,
                           alternateRowColor: widget.alternateRowColor,
                           evenRowColor: widget.evenRowColor,
                           oddRowColor: widget.oddRowColor,
+                          gridLineColor: widget.gridLineColor,
+                          showHorizontalGridLines: widget.showHorizontalGridLines,
+                          showVerticalGridLines: widget.showVerticalGridLines,
+                          verticalGridLineColor: widget.verticalGridLineColor,
                         ),
                       ),
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: 1.5,
-                        child: Container(
-                          color: Theme.of(context).dividerColor.withAlpha(80),
+                      if (widget.showVerticalGridLines)
+                        Positioned(
+                          right: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: 1.5,
+                          child: Container(
+                            color: widget.verticalGridLineColor ?? widget.gridLineColor ?? Theme.of(context).dividerColor.withAlpha(80),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -495,12 +528,16 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                     centerContentWidth: centerContentWidth,
                     indexInfo: indexInfo,
                     isSelected: isSelected,
+                    readOnly: effectiveReadOnly,
                     rowHeight: widget.rowHeight,
-                    customCellBuilder: widget.customCellBuilder,
                     selectedColor: widget.selectedRowColor,
                     alternateRowColor: widget.alternateRowColor,
                     evenRowColor: widget.evenRowColor,
                     oddRowColor: widget.oddRowColor,
+                    gridLineColor: widget.gridLineColor,
+                    showHorizontalGridLines: widget.showHorizontalGridLines,
+                    showVerticalGridLines: widget.showVerticalGridLines,
+                    verticalGridLineColor: widget.verticalGridLineColor,
                   ),
                 ),
               ),
@@ -523,22 +560,27 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                           columnOffsets: rightPane.offsets,
                           rowHeight: widget.rowHeight,
                           isSelected: isSelected,
-                          customCellBuilder: widget.customCellBuilder,
+                          readOnly: effectiveReadOnly,
                           selectedColor: widget.selectedRowColor,
                           alternateRowColor: widget.alternateRowColor,
                           evenRowColor: widget.evenRowColor,
                           oddRowColor: widget.oddRowColor,
+                          gridLineColor: widget.gridLineColor,
+                          showHorizontalGridLines: widget.showHorizontalGridLines,
+                          showVerticalGridLines: widget.showVerticalGridLines,
+                          verticalGridLineColor: widget.verticalGridLineColor,
                         ),
                       ),
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        width: 1.5,
-                        child: Container(
-                          color: Theme.of(context).dividerColor.withAlpha(80),
+                      if (widget.showVerticalGridLines)
+                        Positioned(
+                          left: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: 1.5,
+                          child: Container(
+                            color: widget.verticalGridLineColor ?? widget.gridLineColor ?? Theme.of(context).dividerColor.withAlpha(80),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -562,11 +604,15 @@ class _CenterPaneRow<T> extends StatelessWidget {
   final RowIndexInfo indexInfo;
   final bool isSelected;
   final double rowHeight;
-  final GridCellBuilder<T>? customCellBuilder;
   final Color? selectedColor;
   final Color? alternateRowColor;
   final Color? evenRowColor;
   final Color? oddRowColor;
+  final Color? gridLineColor;
+  final bool showHorizontalGridLines;
+  final bool showVerticalGridLines;
+  final Color? verticalGridLineColor;
+  final bool readOnly;
 
   const _CenterPaneRow({
     super.key,
@@ -578,19 +624,26 @@ class _CenterPaneRow<T> extends StatelessWidget {
     required this.indexInfo,
     required this.isSelected,
     required this.rowHeight,
-    this.customCellBuilder,
     this.selectedColor,
     this.alternateRowColor,
     this.evenRowColor,
     this.oddRowColor,
+    this.gridLineColor,
+    this.showHorizontalGridLines = true,
+    this.showVerticalGridLines = false,
+    this.verticalGridLineColor,
+    this.readOnly = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final effectiveReadOnly = readOnly || controller.isReadOnly;
+    final showSelected = isSelected && !effectiveReadOnly;
+
     Color? backgroundColor;
-    if (isSelected) {
+    if (showSelected) {
       backgroundColor = selectedColor ??
           (isDark
               ? theme.colorScheme.primary.withAlpha(75)
@@ -609,12 +662,15 @@ class _CenterPaneRow<T> extends StatelessWidget {
       height: rowHeight,
       decoration: BoxDecoration(
         color: backgroundColor,
-        border: Border(
-          bottom: BorderSide(
-            color: isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000),
-            width: 1.0,
-          ),
-        ),
+        border: showHorizontalGridLines
+            ? Border(
+                bottom: BorderSide(
+                  color: gridLineColor ??
+                      (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000)),
+                  width: 1.0,
+                ),
+              )
+            : null,
       ),
       child: AnimatedBuilder(
         animation: horizontalScrollController,
@@ -664,12 +720,16 @@ class _CenterPaneRow<T> extends StatelessWidget {
                   columnWidths: centerPane.widths,
                   columnOffsets: centerPane.offsets,
                   rowHeight: rowHeight,
-                  isSelected: isSelected,
-                  customCellBuilder: customCellBuilder,
+                  isSelected: showSelected,
+                  readOnly: effectiveReadOnly,
                   selectedColor: selectedColor,
                   alternateRowColor: alternateRowColor,
                   evenRowColor: evenRowColor,
                   oddRowColor: oddRowColor,
+                  gridLineColor: gridLineColor,
+                  showHorizontalGridLines: showHorizontalGridLines,
+                  showVerticalGridLines: showVerticalGridLines,
+                  verticalGridLineColor: verticalGridLineColor,
                 ),
               ),
             ],

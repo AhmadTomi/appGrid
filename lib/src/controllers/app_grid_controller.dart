@@ -31,9 +31,6 @@ class AppGridController<T> extends ChangeNotifier {
   /// Modular header builders per column ID.
   final Map<String, ColumnHeaderBuilder> _headerBuilders = {};
 
-  /// Optional global cell builder fallback.
-  GridCellBuilder<T>? _globalCellBuilder;
-
   /// Optional global header builder fallback.
   GridHeaderBuilder? _globalHeaderBuilder;
 
@@ -55,6 +52,7 @@ class AppGridController<T> extends ChangeNotifier {
   bool _isLoading = false;
   bool _isLoadingMore = false;
   bool _isSorting = false;
+  bool _isReadOnly = false;
 
   /// Row count threshold above which sorting is automatically offloaded to a background Isolate.
   int isolateSortThreshold;
@@ -62,10 +60,6 @@ class AppGridController<T> extends ChangeNotifier {
   AppGridController({
     List<T> initialData = const [],
     List<GridColumn> columns = const [],
-    Map<String, ColumnCellBuilder<T>>? cellBuilders,
-    Map<String, ColumnHeaderBuilder>? headerBuilders,
-    GridCellBuilder<T>? cellBuilder,
-    GridHeaderBuilder? headerBuilder,
     this.rowIdGetter,
     this.onRowSelected,
     this.fetchMode = DataFetchMode.infiniteScroll,
@@ -73,25 +67,24 @@ class AppGridController<T> extends ChangeNotifier {
     this.onLoadMore,
     this.isolateSortThreshold = 2000,
     bool isLoading = false,
+    bool isReadOnly = false,
   })  : _data = List<T>.from(initialData),
         _columns = List<GridColumn>.from(columns),
-        _globalCellBuilder = cellBuilder,
-        _globalHeaderBuilder = headerBuilder,
-        _isLoading = isLoading {
+        _isLoading = isLoading,
+        _isReadOnly = isReadOnly {
     _streamingThrottler = FrameBatchThrottler<MapEntry<int, T>>(
       onFlush: _applyFlushedBatch,
     );
 
-    if (cellBuilders != null) {
-      _cellBuilders.addAll(cellBuilders);
-    }
-    if (headerBuilders != null) {
-      _headerBuilders.addAll(headerBuilders);
-    }
-
     for (final col in _columns) {
       _columnOrder.add(col.id);
       _columnVisibility[col.id] = col.isVisible;
+      if (col.cellBuilder != null) {
+        _cellBuilders[col.id] ??= (ctx, data, info) => col.cellBuilder!(ctx, data, info);
+      }
+      if (col.headerBuilder != null) {
+        _headerBuilders[col.id] ??= col.headerBuilder!;
+      }
     }
 
     _dualIndexMap.reset(_data.length);
@@ -126,13 +119,28 @@ class AppGridController<T> extends ChangeNotifier {
 
   SortCriteria? get sortCriteria => _sortCriteria;
 
-  int? get selectedOriginalIndex => _selectedOriginalIndex;
+  /// Whether the grid is in read-only mode.
+  ///
+  /// When true, row selection is disabled and any existing selection is cleared.
+  bool get isReadOnly => _isReadOnly;
 
-  int? get selectedDisplayIndex => _selectedOriginalIndex != null
+  set isReadOnly(bool value) {
+    if (_isReadOnly != value) {
+      _isReadOnly = value;
+      if (value && _selectedOriginalIndex != null) {
+        _selectedOriginalIndex = null;
+      }
+      notifyListeners();
+    }
+  }
+
+  int? get selectedOriginalIndex => _isReadOnly ? null : _selectedOriginalIndex;
+
+  int? get selectedDisplayIndex => (!_isReadOnly && _selectedOriginalIndex != null)
       ? _dualIndexMap.getDisplayIndex(_selectedOriginalIndex!)
       : null;
 
-  RowIndexInfo? get selectedRowInfo => _selectedOriginalIndex != null
+  RowIndexInfo? get selectedRowInfo => (!_isReadOnly && _selectedOriginalIndex != null)
       ? _dualIndexMap.getInfoForOriginalIndex(_selectedOriginalIndex!)
       : null;
 
@@ -153,9 +161,6 @@ class AppGridController<T> extends ChangeNotifier {
   /// Modular header builders registered per column ID.
   Map<String, ColumnHeaderBuilder> get headerBuilders =>
       Map.unmodifiable(_headerBuilders);
-
-  /// Global cell builder fallback.
-  GridCellBuilder<T>? get globalCellBuilder => _globalCellBuilder;
 
   /// Global header builder fallback.
   GridHeaderBuilder? get globalHeaderBuilder => _globalHeaderBuilder;
@@ -191,12 +196,6 @@ class AppGridController<T> extends ChangeNotifier {
 
   /// Returns the registered header builder for [columnId], if any.
   ColumnHeaderBuilder? getHeaderBuilder(String columnId) => _headerBuilders[columnId];
-
-  /// Sets or updates the global cell builder fallback.
-  void setGlobalCellBuilder(GridCellBuilder<T>? builder) {
-    _globalCellBuilder = builder;
-    notifyListeners();
-  }
 
   /// Sets or updates the global header builder fallback.
   void setGlobalHeaderBuilder(GridHeaderBuilder? builder) {
@@ -390,6 +389,7 @@ class AppGridController<T> extends ChangeNotifier {
 
   /// Selects a row by active visual [displayIndex].
   void selectRow(int displayIndex) {
+    if (_isReadOnly) return;
     if (displayIndex < 0 || displayIndex >= _dualIndexMap.displayRowCount) {
       return;
     }
@@ -401,6 +401,7 @@ class AppGridController<T> extends ChangeNotifier {
 
   /// Selects a row by raw [originalIndex].
   void selectRowByOriginalIndex(int originalIndex) {
+    if (_isReadOnly) return;
     if (originalIndex < 0 || originalIndex >= _data.length) return;
     final info = _dualIndexMap.getInfoForOriginalIndex(originalIndex);
     if (info != null) {

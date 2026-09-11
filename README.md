@@ -82,6 +82,11 @@ class _UserGridPageState extends State<UserGridPage> {
           initialWidth: 80,
           pin: GridColumnPin.left, // Left pinned
           valueGetter: (u) => (u as User).id,
+          cellBuilder: (context, user, info) => Container(
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text((user as User).id),
+          ),
         ),
         GridColumn(
           id: 'name',
@@ -117,16 +122,6 @@ class _UserGridPageState extends State<UserGridPage> {
         controller: _controller,
         rowHeight: 48.0,
         headerHeight: 48.0,
-        cellBuilder: (context, user, indexInfo, columnId) {
-          final text = columnId == 'id'
-              ? user.id
-              : (columnId == 'name' ? user.name : user.role);
-          return Container(
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Text(text),
-          );
-        },
       ),
     );
   }

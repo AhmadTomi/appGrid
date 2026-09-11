@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/grid_column.dart';
 import '../models/row_index_info.dart';
 import '../controllers/app_grid_controller.dart';
-import 'grid_builders.dart';
 import 'cell_widget.dart';
 
 /// Renders a single virtualized row with cell composition and selection highlighting.
@@ -15,11 +14,15 @@ class RowWidget<T> extends StatelessWidget {
   final double rowHeight;
   final bool isSelected;
   final VoidCallback? onTap;
-  final GridCellBuilder<T>? customCellBuilder;
   final Color? selectedColor;
   final Color? alternateRowColor;
   final Color? evenRowColor;
   final Color? oddRowColor;
+  final Color? gridLineColor;
+  final bool showHorizontalGridLines;
+  final bool showVerticalGridLines;
+  final Color? verticalGridLineColor;
+  final bool readOnly;
 
   const RowWidget({
     super.key,
@@ -31,20 +34,26 @@ class RowWidget<T> extends StatelessWidget {
     required this.rowHeight,
     required this.isSelected,
     this.onTap,
-    this.customCellBuilder,
     this.selectedColor,
     this.alternateRowColor,
     this.evenRowColor,
     this.oddRowColor,
+    this.gridLineColor,
+    this.showHorizontalGridLines = true,
+    this.showVerticalGridLines = false,
+    this.verticalGridLineColor,
+    this.readOnly = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final effectiveReadOnly = readOnly || controller.isReadOnly;
+    final showSelected = isSelected && !effectiveReadOnly;
 
     Color? backgroundColor;
-    if (isSelected) {
+    if (showSelected) {
       backgroundColor = selectedColor ??
           (isDark
               ? theme.colorScheme.primary.withAlpha(75)
@@ -70,7 +79,9 @@ class RowWidget<T> extends StatelessWidget {
           column: col,
           width: width,
           height: rowHeight,
-          customCellBuilder: customCellBuilder,
+          showVerticalGridLine: showVerticalGridLines,
+          verticalGridLineColor: verticalGridLineColor,
+          gridLineColor: gridLineColor,
         ),
       );
     }
@@ -82,18 +93,22 @@ class RowWidget<T> extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: onTap ?? () => controller.selectRow(indexInfo.displayIndex),
+      onTap: effectiveReadOnly
+          ? null
+          : (onTap ?? () => controller.selectRow(indexInfo.displayIndex)),
       child: Container(
         width: totalWidth,
         height: rowHeight,
         decoration: BoxDecoration(
           color: backgroundColor,
-          border: Border(
-            bottom: BorderSide(
-              color: isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000),
-              width: 1.0,
-            ),
-          ),
+          border: showHorizontalGridLines
+              ? Border(
+                  bottom: BorderSide(
+                    color: gridLineColor ?? (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000)),
+                    width: 1.0,
+                  ),
+                )
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

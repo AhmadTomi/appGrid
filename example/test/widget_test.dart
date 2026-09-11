@@ -80,5 +80,20 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Field 0'), findsOneWidget);
+
+    // Switch to Customization Studio tab
+    await tester.ensureVisible(find.text('Customization Studio'));
+    await tester.tap(find.text('Customization Studio'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Interactive Customization Studio'), findsOneWidget);
+    expect(find.text('Theme Presets:'), findsOneWidget);
+    expect(find.text('Emerald Forest'), findsOneWidget);
+
+    // Select Emerald Forest preset
+    await tester.tap(find.text('Emerald Forest'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('MacBook Pro 16" M3 Max'), findsOneWidget);
   });
 }

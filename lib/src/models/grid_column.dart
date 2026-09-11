@@ -72,6 +72,12 @@ class GridColumn {
   /// Column-level modular footer builder. Takes precedence over global grid footerBuilder.
   final ColumnFooterBuilder? footerBuilder;
 
+  /// Column-level modular cell builder for this specific column.
+  final ColumnCellBuilder<dynamic>? cellBuilder;
+
+  /// Column-level modular header builder for this specific column.
+  final ColumnHeaderBuilder? headerBuilder;
+
   const GridColumn({
     required this.id,
     required this.label,
@@ -86,6 +92,8 @@ class GridColumn {
     this.comparator,
     this.valueGetter,
     this.footerBuilder,
+    this.cellBuilder,
+    this.headerBuilder,
   }) : assert(minWidth >= 0, 'minWidth cannot be negative');
 
   bool get isFrozen => pin != GridColumnPin.none;
@@ -104,6 +112,8 @@ class GridColumn {
     int Function(dynamic a, dynamic b)? comparator,
     dynamic Function(dynamic rowData)? valueGetter,
     ColumnFooterBuilder? footerBuilder,
+    ColumnCellBuilder<dynamic>? cellBuilder,
+    ColumnHeaderBuilder? headerBuilder,
   }) {
     return GridColumn(
       id: id ?? this.id,
@@ -119,6 +129,8 @@ class GridColumn {
       comparator: comparator ?? this.comparator,
       valueGetter: valueGetter ?? this.valueGetter,
       footerBuilder: footerBuilder ?? this.footerBuilder,
+      cellBuilder: cellBuilder ?? this.cellBuilder,
+      headerBuilder: headerBuilder ?? this.headerBuilder,
     );
   }
 

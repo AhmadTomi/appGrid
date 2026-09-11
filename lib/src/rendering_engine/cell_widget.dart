@@ -1,8 +1,7 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import '../models/grid_column.dart';
 import '../models/row_index_info.dart';
 import '../controllers/app_grid_controller.dart';
-import 'grid_builders.dart';
 
 import '../widgets/empty_cell.dart';
 
@@ -17,7 +16,9 @@ class CellWidget<T> extends StatelessWidget {
   final GridColumn column;
   final double width;
   final double height;
-  final GridCellBuilder<T>? customCellBuilder;
+  final bool showVerticalGridLine;
+  final Color? verticalGridLineColor;
+  final Color? gridLineColor;
 
   const CellWidget({
     super.key,
@@ -26,30 +27,47 @@ class CellWidget<T> extends StatelessWidget {
     required this.column,
     required this.width,
     required this.height,
-    this.customCellBuilder,
+    this.showVerticalGridLine = false,
+    this.verticalGridLineColor,
+    this.gridLineColor,
   });
 
   @override
   Widget build(BuildContext context) {
     final notifier = controller.getRowNotifier(indexInfo.originalIndex);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final hasVerticalDivider = showVerticalGridLine;
 
-    return SizedBox(
+    final decoration = hasVerticalDivider
+        ? BoxDecoration(
+            border: Border(
+              right: BorderSide(
+                color: verticalGridLineColor ??
+                    gridLineColor ??
+                    (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000)),
+                width: 1.0,
+              ),
+            ),
+          )
+        : null;
+
+    return Container(
       width: width,
       height: height,
+      decoration: decoration,
       child: ValueListenableBuilder<T>(
         valueListenable: notifier,
         builder: (context, rowData, _) {
+          // 1. Column-specific modular cell builder
+          if (column.cellBuilder != null) {
+            return column.cellBuilder!(context, rowData, indexInfo);
+          }
+
+          // 2. Controller-level registered cell builder
           final columnBuilder = controller.getCellBuilder(column.id);
           if (columnBuilder != null) {
             return columnBuilder(context, rowData, indexInfo);
-          }
-
-          if (customCellBuilder != null) {
-            return customCellBuilder!(context, rowData, indexInfo, column.id);
-          }
-
-          if (controller.globalCellBuilder != null) {
-            return controller.globalCellBuilder!(context, rowData, indexInfo, column.id);
           }
 
           // Default cell presentation
