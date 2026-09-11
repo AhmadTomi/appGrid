@@ -1,0 +1,17 @@
+name: app_grid
+description: A high-performance Flutter Virtualized DataGrid engine supporting 2D virtualization, streaming tick updates, column freezing, dual-index selection, and keyboard navigation.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.10.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
