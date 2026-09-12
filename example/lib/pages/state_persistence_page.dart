@@ -46,7 +46,7 @@ class _StatePersistencePageState extends State<StatePersistencePage> {
         children: [
           buildDemoHeader(
             title: 'Selective State Persistence (AC-05)',
-            subtitle: 'REQ-STATE-03 Strict Invariant: Serializes columnOrder, sortCriteria, columnVisibility. NO widths allowed.',
+            subtitle: '1. Click header menu to "Hide Column" or "Manage Columns..." • 2. Click "Export State JSON" • 3. Modify columns and click "Restore State".',
           ),
           const SizedBox(height: 12),
           Wrap(

@@ -123,7 +123,7 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
     _applyPresetColors(GridThemePreset.corporateNavy);
 
     _controller = AppGridController<InventoryItem>(
@@ -168,8 +168,7 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
           footerBuilder: GridFooter.average<InventoryItem>((item) => item.price, prefix: 'Avg: \$', precision: 2),
           cellBuilder: (context, item, info) {
             final inv = item as InventoryItem;
-            return Container(
-              alignment: Alignment.centerLeft,
+            return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
                 '\$${inv.price.toStringAsFixed(2)}',
@@ -186,10 +185,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
           valueGetter: (item) => (item as InventoryItem).rating,
           cellBuilder: (context, item, info) {
             final inv = item as InventoryItem;
-            return Container(
-              alignment: Alignment.centerLeft,
+            return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.star, size: 14, color: Colors.amber),
                   const SizedBox(width: 4),
@@ -210,8 +209,7 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
             final isOut = inv.status == 'Out of Stock';
             final isLow = inv.status == 'Low Stock';
             final color = isOut ? Colors.red : (isLow ? Colors.amber.shade800 : Colors.teal);
-            return Container(
-              alignment: Alignment.centerLeft,
+            return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -331,6 +329,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
               tooltip: 'Reset to Defaults',
               onPressed: () {
                 _applyPresetColors(GridThemePreset.corporateNavy);
+                for (final col in _controller.columns) {
+                  _controller.setColumnHeaderAlignment(col.id, Alignment.center);
+                  _controller.setColumnCellAlignment(col.id, Alignment.centerLeft);
+                }
                 setState(() {
                   _isFixedHeight = false;
                   _tableContainerHeight = 360.0;
@@ -468,6 +470,7 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
           tabAlignment: TabAlignment.start,
           tabs: const [
             Tab(icon: Icon(Icons.palette_outlined, size: 18), text: 'Colors'),
+            Tab(icon: Icon(Icons.format_align_center, size: 18), text: 'Alignment'),
             Tab(icon: Icon(Icons.straighten, size: 18), text: 'Heights & Sizing'),
             Tab(icon: Icon(Icons.touch_app_outlined, size: 18), text: 'Scroll & Toggles'),
             Tab(icon: Icon(Icons.code, size: 18), text: 'Code Snippet'),
@@ -478,6 +481,7 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
             controller: _tabController,
             children: [
               _buildColorsTab(),
+              _buildAlignmentTab(),
               _buildDimensionsTab(),
               _buildScrollTogglesTab(),
               _buildCodeSnippetTab(),
@@ -598,7 +602,203 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
     );
   }
 
-  // 2. Heights & Dimensions Customization Tab ("scroll height etc")
+  // 2. Alignment Customization Tab
+  Widget _buildAlignmentTab() {
+    final columns = _controller.columns;
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        _buildSectionHeader('Quick Alignment Presets'),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            ActionChip(
+              avatar: const Icon(Icons.restart_alt, size: 16),
+              label: const Text('Default (Center Header, Left Cell)'),
+              onPressed: () {
+                setState(() {
+                  for (final col in columns) {
+                    _controller.setColumnHeaderAlignment(col.id, Alignment.center);
+                    _controller.setColumnCellAlignment(col.id, Alignment.centerLeft);
+                  }
+                });
+              },
+            ),
+            ActionChip(
+              avatar: const Icon(Icons.format_align_left, size: 16),
+              label: const Text('All Left'),
+              onPressed: () {
+                setState(() {
+                  for (final col in columns) {
+                    _controller.setColumnHeaderAlignment(col.id, Alignment.centerLeft);
+                    _controller.setColumnCellAlignment(col.id, Alignment.centerLeft);
+                  }
+                });
+              },
+            ),
+            ActionChip(
+              avatar: const Icon(Icons.format_align_center, size: 16),
+              label: const Text('All Center'),
+              onPressed: () {
+                setState(() {
+                  for (final col in columns) {
+                    _controller.setColumnHeaderAlignment(col.id, Alignment.center);
+                    _controller.setColumnCellAlignment(col.id, Alignment.center);
+                  }
+                });
+              },
+            ),
+            ActionChip(
+              avatar: const Icon(Icons.account_balance, size: 16),
+              label: const Text('Accounting / Financial'),
+              onPressed: () {
+                setState(() {
+                  for (final col in columns) {
+                    if (col.id == 'stock' || col.id == 'price') {
+                      _controller.setColumnHeaderAlignment(col.id, Alignment.centerRight);
+                      _controller.setColumnCellAlignment(col.id, Alignment.centerRight);
+                    } else if (col.id == 'rating' || col.id == 'status') {
+                      _controller.setColumnHeaderAlignment(col.id, Alignment.center);
+                      _controller.setColumnCellAlignment(col.id, Alignment.center);
+                    } else {
+                      _controller.setColumnHeaderAlignment(col.id, Alignment.centerLeft);
+                      _controller.setColumnCellAlignment(col.id, Alignment.centerLeft);
+                    }
+                  }
+                });
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _buildSectionHeader('Per-Column Alignment Controls'),
+        const Text(
+          'Independently customize column header and cell child widget alignments:',
+          style: TextStyle(fontSize: 12, color: Colors.grey),
+        ),
+        const SizedBox(height: 12),
+        ...columns.map((col) => _buildColumnAlignmentCard(col)),
+      ],
+    );
+  }
+
+  Widget _buildColumnAlignmentCard(GridColumn col) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: BorderSide(color: Theme.of(context).dividerColor.withAlpha(60)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  col.label,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '(${col.id})',
+                  style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            // Header alignment selector
+            Row(
+              children: [
+                const SizedBox(
+                  width: 95,
+                  child: Text('Header Align:', style: TextStyle(fontSize: 12)),
+                ),
+                Expanded(
+                  child: SegmentedButton<Alignment>(
+                    segments: const [
+                      ButtonSegment(
+                        value: Alignment.centerLeft,
+                        icon: Icon(Icons.format_align_left, size: 16),
+                        label: Text('Left', style: TextStyle(fontSize: 11)),
+                      ),
+                      ButtonSegment(
+                        value: Alignment.center,
+                        icon: Icon(Icons.format_align_center, size: 16),
+                        label: Text('Center', style: TextStyle(fontSize: 11)),
+                      ),
+                      ButtonSegment(
+                        value: Alignment.centerRight,
+                        icon: Icon(Icons.format_align_right, size: 16),
+                        label: Text('Right', style: TextStyle(fontSize: 11)),
+                      ),
+                    ],
+                    selected: {col.headerAlignment},
+                    onSelectionChanged: (Set<Alignment> selection) {
+                      setState(() {
+                        _controller.setColumnHeaderAlignment(col.id, selection.first);
+                      });
+                    },
+                    style: const ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Cell alignment selector
+            Row(
+              children: [
+                const SizedBox(
+                  width: 95,
+                  child: Text('Cell Align:', style: TextStyle(fontSize: 12)),
+                ),
+                Expanded(
+                  child: SegmentedButton<Alignment>(
+                    segments: const [
+                      ButtonSegment(
+                        value: Alignment.centerLeft,
+                        icon: Icon(Icons.format_align_left, size: 16),
+                        label: Text('Left', style: TextStyle(fontSize: 11)),
+                      ),
+                      ButtonSegment(
+                        value: Alignment.center,
+                        icon: Icon(Icons.format_align_center, size: 16),
+                        label: Text('Center', style: TextStyle(fontSize: 11)),
+                      ),
+                      ButtonSegment(
+                        value: Alignment.centerRight,
+                        icon: Icon(Icons.format_align_right, size: 16),
+                        label: Text('Right', style: TextStyle(fontSize: 11)),
+                      ),
+                    ],
+                    selected: {col.cellAlignment},
+                    onSelectionChanged: (Set<Alignment> selection) {
+                      setState(() {
+                        _controller.setColumnCellAlignment(col.id, selection.first);
+                      });
+                    },
+                    style: const ButtonStyle(
+                      visualDensity: VisualDensity.compact,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // 3. Heights & Dimensions Customization Tab ("scroll height etc")
   Widget _buildDimensionsTab() {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -803,8 +1003,27 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
     final hexThumb = '#${_scrollbarThumbColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
     final hexTrack = '#${_scrollbarTrackColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
 
-    final code = '''// AppGrid Custom Styling & Sizing Configuration:
-${_isFixedHeight ? '// 1. Bounded container for fixed scroll height:\nSizedBox(\n  height: ${_tableContainerHeight.toInt()}.0,\n  child: ' : ''}AppGrid<InventoryItem>(
+    String alignStr(Alignment a) {
+      if (a == Alignment.centerLeft) return 'Alignment.centerLeft';
+      if (a == Alignment.center) return 'Alignment.center';
+      if (a == Alignment.centerRight) return 'Alignment.centerRight';
+      return a.toString();
+    }
+
+    final columnsCode = _controller.columns.map((c) {
+      return "    GridColumn(id: '${c.id}', label: '${c.label}', headerAlignment: ${alignStr(c.headerAlignment)}, cellAlignment: ${alignStr(c.cellAlignment)}),";
+    }).join('\n');
+
+    final code = '''// 1. Column Definitions with Custom Header & Cell Alignments:
+final controller = AppGridController<InventoryItem>(
+  initialData: inventoryItems,
+  columns: [
+$columnsCode
+  ],
+);
+
+// 2. AppGrid Custom Styling & Sizing Configuration:
+${_isFixedHeight ? '// Bounded container for fixed scroll height:\nSizedBox(\n  height: ${_tableContainerHeight.toInt()}.0,\n  child: ' : ''}AppGrid<InventoryItem>(
   controller: controller,
   // Heights & Sizing:
   rowHeight: ${_rowHeight.toInt()}.0,

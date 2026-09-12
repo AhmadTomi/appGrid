@@ -33,11 +33,11 @@ class _RealtimeStreamingPageState extends State<RealtimeStreamingPage> {
       initialData: data,
       columns: [
         GridColumn(id: 'symbol', label: 'Ticker', initialWidth: 100, pin: GridColumnPin.left, valueGetter: (r) => r['symbol']),
-        GridColumn(id: 'price', label: 'Price (\$)', initialWidth: 120, valueGetter: (r) => r['price']),
+        GridColumn(id: 'price', label: 'Price (\$)', initialWidth: 110, valueGetter: (r) => r['price']),
         GridColumn(
           id: 'change',
           label: 'Delta',
-          initialWidth: 120,
+          initialWidth: 110,
           valueGetter: (r) => r['change'],
           cellBuilder: (context, item, info) {
             final delta = item['change'] as double;
@@ -55,7 +55,41 @@ class _RealtimeStreamingPageState extends State<RealtimeStreamingPage> {
             );
           },
         ),
-        GridColumn(id: 'volume', label: 'Volume', initialWidth: 120, valueGetter: (r) => r['volume']),
+        GridColumn(id: 'volume', label: 'Volume', initialWidth: 110, valueGetter: (r) => r['volume']),
+        GridColumn(
+          id: 'trade',
+          label: 'Trade Action',
+          initialWidth: 140,
+          valueGetter: (r) => r['price'],
+          cellBuilder: (context, item, info) {
+            final price = (item['price'] as num).toStringAsFixed(2);
+            final delta = item['change'] as num;
+            final isPos = delta >= 0;
+            return Center(
+              child: AppGridButton(
+                icon: Icon(
+                  isPos ? Icons.arrow_upward : Icons.arrow_downward,
+                  size: 12,
+                  color: isPos ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                ),
+                text: 'Buy \$$price',
+                color: isPos ? const Color(0x1F16A34A) : const Color(0x1FDC2626),
+                hoverColor: isPos ? const Color(0x3D16A34A) : const Color(0x3DDC2626),
+                borderColor: isPos ? const Color(0x7F16A34A) : const Color(0x7FDC2626),
+                foregroundColor: isPos ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Order executed: Buy ${item['symbol']} at \$$price (Row #${info.displayIndex})'),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
       ],
     );
   }

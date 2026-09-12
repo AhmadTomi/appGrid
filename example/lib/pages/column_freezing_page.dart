@@ -36,12 +36,21 @@ class _ColumnFreezingPageState extends State<ColumnFreezingPage> {
           label: 'Frozen Action',
           initialWidth: 130,
           pin: GridColumnPin.right,
+          isSortable: false,
           valueGetter: (r) => r['actions'],
-          cellBuilder: (context, row, info) => Container(
-            alignment: Alignment.center,
-            child: ElevatedButton(
-              onPressed: () {},
-              child: const Text('View', style: TextStyle(fontSize: 11)),
+          cellBuilder: (context, row, info) => Center(
+            child: AppGridButton(
+              icon: const Icon(Icons.visibility_outlined, size: 13),
+              text: 'View',
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Action clicked for ${row['name']} (Display #${info.displayIndex})'),
+                    duration: const Duration(seconds: 1),
+                  ),
+                );
+              },
             ),
           ),
         ),

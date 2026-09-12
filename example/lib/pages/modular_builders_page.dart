@@ -248,11 +248,11 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.mouse, size: 16, color: Colors.amber),
+                    Icon(Icons.more_vert, size: 16, color: Colors.amber),
                     SizedBox(width: 6),
                     Flexible(
                       child: Text(
-                        'Right-click header to freeze/unpin',
+                        'Click column sort/menu icon to freeze/unpin or sort',
                         style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
