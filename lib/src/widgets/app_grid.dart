@@ -11,6 +11,7 @@ import '../rendering_engine/app_grid_viewport.dart';
 import '../keyboard_interaction/grid_keyboard_handler.dart';
 import 'app_grid_header.dart';
 import 'app_grid_footer.dart';
+import 'app_grid_column_dialog.dart';
 
 import '../models/data_fetch_mode.dart';
 import 'app_grid_pagination_bar.dart';
@@ -44,12 +45,32 @@ class AppGridScrollBehavior extends MaterialScrollBehavior {
 /// High-performance virtualized 2D DataGrid engine widget.
 class AppGrid<T> extends StatefulWidget {
   final AppGridController<T> controller;
+
+  /// Optional declarative dataset.
+  ///
+  /// When provided, updates to [data] across widget rebuilds will automatically
+  /// be reconciled and rendered via [AppGridController.updateData] using virtualized diffing.
+  final List<T>? data;
+
+  /// Optional custom equality predicate for comparing rows during auto-diff reconciliation.
+  final bool Function(T a, T b)? rowEquality;
+
   final double rowHeight;
   final double headerHeight;
   final double? footerHeight;
   final GridHeaderBuilder? headerBuilder;
   final GridFooterBuilder? footerBuilder;
   final ValueChanged<RowIndexInfo>? onRowSelected;
+
+  /// Optional callback invoked when a row is clicked/tapped.
+  final ValueChanged<RowIndexInfo>? onRowTap;
+
+  /// Optional callback invoked when a row is double-clicked/double-tapped.
+  ///
+  /// Note: Even when [onRowDoubleTap] is provided, single-click selection
+  /// triggers immediately on pointer down without any delay or gesture conflict.
+  final ValueChanged<RowIndexInfo>? onRowDoubleTap;
+
   final Color? selectedRowColor;
 
   /// Background color for odd rows (index 1, 3, 5, ...).
@@ -149,12 +170,16 @@ class AppGrid<T> extends StatefulWidget {
   const AppGrid({
     super.key,
     required this.controller,
+    this.data,
+    this.rowEquality,
     this.rowHeight = 48.0,
     this.headerHeight = 48.0,
     this.footerHeight,
     this.headerBuilder,
     this.footerBuilder,
     this.onRowSelected,
+    this.onRowTap,
+    this.onRowDoubleTap,
     this.selectedRowColor,
     this.readOnly = false,
     this.alternateRowColor,
@@ -187,6 +212,7 @@ class AppGrid<T> extends StatefulWidget {
     this.scrollbarThumbColor,
     this.scrollbarTrackColor,
     this.physics,
+    this.clock,
   });
 
   /// Resolves the effective visibility behavior for the vertical scrollbar.
@@ -207,6 +233,9 @@ class AppGrid<T> extends StatefulWidget {
 
   /// Optional scroll physics for the grid's vertical and horizontal viewports.
   final ScrollPhysics? physics;
+
+  /// Optional clock provider (defaults to [DateTime.now]).
+  final DateTime Function()? clock;
 
   @override
   State<AppGrid<T>> createState() => _AppGridState<T>();
@@ -259,6 +288,17 @@ class _AppGridState<T> extends State<AppGrid<T>> {
       widget.controller.clearSelection();
     }
 
+    if (widget.data != null && widget.controller.originalRowCount == 0) {
+      widget.controller.setRows(widget.data!);
+    }
+
+    _lastSelectedDisplayIndex = widget.controller.selectedDisplayIndex;
+    _lastRowCount = widget.controller.displayRowCount;
+    _lastVisibleColCount = widget.controller.visibleColumns.length;
+    _lastIsLoading = widget.isLoading ?? widget.controller.isLoading;
+    _lastFetchMode = widget.controller.fetchMode;
+    _lastSortCriteria = widget.controller.sortCriteria;
+
     widget.controller.addListener(_onControllerChanged);
   }
 
@@ -272,6 +312,12 @@ class _AppGridState<T> extends State<AppGrid<T>> {
       if (widget.controller.selectedOriginalIndex != null) {
         widget.controller.clearSelection();
       }
+    }
+    if (widget.data != null && !identical(widget.data, oldWidget.data)) {
+      widget.controller.updateData(
+        widget.data!,
+        rowEquality: widget.rowEquality,
+      );
     }
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_onControllerChanged);
@@ -326,14 +372,52 @@ class _AppGridState<T> extends State<AppGrid<T>> {
   }
 
   SortCriteria? _lastSortCriteria;
+  int? _lastSelectedDisplayIndex;
+  int _lastRowCount = 0;
+  int _lastVisibleColCount = 0;
+  bool _lastIsLoading = false;
+  bool _lastIsColumnChooserOpen = false;
+  DataFetchMode _lastFetchMode = DataFetchMode.infiniteScroll;
 
   void _onControllerChanged() {
-    if (_lastSortCriteria != widget.controller.sortCriteria) {
-      _lastSortCriteria = widget.controller.sortCriteria;
-      if (_verticalScrollController.hasClients) {
+    final currentSort = widget.controller.sortCriteria;
+    final currentSelection = widget.controller.selectedDisplayIndex;
+    final currentRows = widget.controller.displayRowCount;
+    final currentCols = widget.controller.visibleColumns.length;
+    final currentLoading = widget.isLoading ?? widget.controller.isLoading;
+    final currentFetchMode = widget.controller.fetchMode;
+    final currentColumnChooser = widget.controller.isColumnChooserOpen;
+
+    final sortChanged = _lastSortCriteria != currentSort;
+    if (sortChanged) {
+      _lastSortCriteria = currentSort;
+      if (_verticalScrollController.hasClients && _verticalScrollController.offset != 0.0) {
         _verticalScrollController.jumpTo(0.0);
       }
     }
+
+    final onlySelectionChanged = !sortChanged &&
+        _lastSelectedDisplayIndex != currentSelection &&
+        _lastRowCount == currentRows &&
+        _lastVisibleColCount == currentCols &&
+        _lastIsLoading == currentLoading &&
+        _lastFetchMode == currentFetchMode &&
+        _lastIsColumnChooserOpen == currentColumnChooser;
+
+    _lastSelectedDisplayIndex = currentSelection;
+    _lastRowCount = currentRows;
+    _lastVisibleColCount = currentCols;
+    _lastIsLoading = currentLoading;
+    _lastFetchMode = currentFetchMode;
+    _lastIsColumnChooserOpen = currentColumnChooser;
+
+    // Granular selection update: if only the active selected row changed,
+    // skip rebuilding the full AppGrid tree (header, columnLayout, footer, pagination).
+    // AppGridViewport updates visible rows directly via its isolated controller listener.
+    if (onlySelectionChanged) {
+      return;
+    }
+
     setState(() {});
   }
 
@@ -396,6 +480,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
             focusNode: _focusNode,
             autofocus: widget.autofocus,
             readOnly: effectiveReadOnly,
+            clock: widget.clock,
             child: ClipRect(
               child: Material(
                 type: MaterialType.transparency,
@@ -414,102 +499,117 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                   child: MouseRegion(
                     onEnter: (_) => _isGridHovered.value = true,
                     onExit: (_) => _isGridHovered.value = false,
-                    child: Column(
+                    child: Stack(
                       children: [
-                        // 1. Header Bar
-                        SizedBox(
-                          height: widget.headerHeight,
-                          width: innerWidth,
-                          child: _buildHeader(
-                            totalWidth: innerWidth,
-                            leftWidth: leftWidth,
-                            centerWidth: centerWidth,
-                            rightWidth: rightWidth,
-                            layout: computedLayout,
-                          ),
-                        ),
-
-                        // 2. Body Viewport or Empty State with Loading Overlay
-                        Expanded(
-                          child: Builder(
-                            builder: (context) {
-                              final effectiveIsLoading = widget.isLoading ?? widget.controller.isLoading;
-                              final isEmpty = widget.controller.displayRowCount == 0;
-
-                              Widget bodyContent;
-                              if (isEmpty && !effectiveIsLoading && widget.emptyWidget != null) {
-                                bodyContent = widget.emptyWidget!;
-                              } else {
-                                bodyContent = AppGridViewport<T>(
-                                  controller: widget.controller,
-                                  layoutManager: _layoutManager,
-                                  computedLayout: computedLayout,
-                                  verticalScrollController: _verticalScrollController,
-                                  horizontalScrollController: _horizontalScrollController,
-                                  rowHeight: widget.rowHeight,
-                                  headerHeight: widget.headerHeight,
-                                  footerHeight: widget.footerHeight,
-                                  hasFooter: hasFooter,
-                                  selectedRowColor: widget.selectedRowColor,
-                                  readOnly: effectiveReadOnly,
-                                  alternateRowColor: widget.alternateRowColor,
-                                  evenRowColor: widget.evenRowColor,
-                                  oddRowColor: widget.oddRowColor,
-                                  gridLineColor: widget.gridLineColor,
-                                  showHorizontalGridLines: widget.showHorizontalGridLines,
-                                  showVerticalGridLines: widget.showVerticalGridLines,
-                                  verticalGridLineColor: widget.verticalGridLineColor,
-                                  infiniteScrollThreshold: widget.infiniteScrollThreshold,
-                                  enableMouseDragScroll: widget.enableMouseDragScroll,
-                                  showHorizontalScrollbar: widget.showHorizontalScrollbar,
-                                  showVerticalScrollbar: widget.showVerticalScrollbar,
-                                  horizontalScrollbarVisibility: widget.effectiveHorizontalScrollbarVisibility,
-                                  verticalScrollbarVisibility: widget.effectiveVerticalScrollbarVisibility,
-                                  isParentHovered: _isGridHovered,
-                                  scrollbarThickness: widget.scrollbarThickness,
-                                  scrollbarThumbColor: widget.scrollbarThumbColor,
-                                  scrollbarTrackColor: widget.scrollbarTrackColor,
-                                  physics: widget.physics,
-                                );
-                              }
-
-                              if (!effectiveIsLoading) {
-                                return bodyContent;
-                              }
-
-                              return Stack(
-                                children: [
-                                  Positioned.fill(child: bodyContent),
-                                  Positioned.fill(
-                                    child: widget.loadingWidget ?? const AppGridLoadingOverlay(),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ),
-
-                        // 3. Footer Bar (Optional)
-                        if (hasFooter)
-                          SizedBox(
-                            height: footerH,
-                            width: innerWidth,
-                            child: _buildFooter(
-                              totalWidth: innerWidth,
-                              leftWidth: leftWidth,
-                              centerWidth: centerWidth,
-                              rightWidth: rightWidth,
-                              layout: computedLayout,
-                              footerHeight: footerH,
+                        Column(
+                          children: [
+                            // 1. Header Bar
+                            SizedBox(
+                              height: widget.headerHeight,
+                              width: innerWidth,
+                              child: _buildHeader(
+                                totalWidth: innerWidth,
+                                leftWidth: leftWidth,
+                                centerWidth: centerWidth,
+                                rightWidth: rightWidth,
+                                layout: computedLayout,
+                              ),
                             ),
-                          ),
 
-                        // 4. Built-in Pagination Bar (Optional)
-                        if (widget.showPaginationBar &&
-                            widget.controller.fetchMode == DataFetchMode.pagination)
-                          AppGridPaginationBar<T>(
-                            controller: widget.controller,
-                            onPageChanged: widget.onPageChanged,
+                            // 2. Body Viewport or Empty State with Loading Overlay
+                            Expanded(
+                              child: Builder(
+                                builder: (context) {
+                                  final effectiveIsLoading = widget.isLoading ?? widget.controller.isLoading;
+                                  final isEmpty = widget.controller.displayRowCount == 0;
+
+                                  Widget bodyContent;
+                                  if (isEmpty && !effectiveIsLoading && widget.emptyWidget != null) {
+                                    bodyContent = widget.emptyWidget!;
+                                  } else {
+                                    bodyContent = AppGridViewport<T>(
+                                      controller: widget.controller,
+                                      layoutManager: _layoutManager,
+                                      computedLayout: computedLayout,
+                                      verticalScrollController: _verticalScrollController,
+                                      horizontalScrollController: _horizontalScrollController,
+                                      rowHeight: widget.rowHeight,
+                                      headerHeight: widget.headerHeight,
+                                      footerHeight: widget.footerHeight,
+                                      hasFooter: hasFooter,
+                                      selectedRowColor: widget.selectedRowColor,
+                                      readOnly: effectiveReadOnly,
+                                      onRowTap: widget.onRowTap,
+                                      onRowDoubleTap: widget.onRowDoubleTap,
+                                      alternateRowColor: widget.alternateRowColor,
+                                      evenRowColor: widget.evenRowColor,
+                                      oddRowColor: widget.oddRowColor,
+                                      gridLineColor: widget.gridLineColor,
+                                      showHorizontalGridLines: widget.showHorizontalGridLines,
+                                      showVerticalGridLines: widget.showVerticalGridLines,
+                                      verticalGridLineColor: widget.verticalGridLineColor,
+                                      infiniteScrollThreshold: widget.infiniteScrollThreshold,
+                                      enableMouseDragScroll: widget.enableMouseDragScroll,
+                                      showHorizontalScrollbar: widget.showHorizontalScrollbar,
+                                      showVerticalScrollbar: widget.showVerticalScrollbar,
+                                      horizontalScrollbarVisibility: widget.effectiveHorizontalScrollbarVisibility,
+                                      verticalScrollbarVisibility: widget.effectiveVerticalScrollbarVisibility,
+                                      isParentHovered: _isGridHovered,
+                                      scrollbarThickness: widget.scrollbarThickness,
+                                      scrollbarThumbColor: widget.scrollbarThumbColor,
+                                      scrollbarTrackColor: widget.scrollbarTrackColor,
+                                      physics: widget.physics,
+                                    );
+                                  }
+
+                                  if (!effectiveIsLoading) {
+                                    return bodyContent;
+                                  }
+
+                                  return Stack(
+                                    children: [
+                                      Positioned.fill(child: bodyContent),
+                                      Positioned.fill(
+                                        child: widget.loadingWidget ?? const AppGridLoadingOverlay(),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ),
+
+                            // 3. Footer Bar (Optional)
+                            if (hasFooter)
+                              SizedBox(
+                                height: footerH,
+                                width: innerWidth,
+                                child: _buildFooter(
+                                  totalWidth: innerWidth,
+                                  leftWidth: leftWidth,
+                                  centerWidth: centerWidth,
+                                  rightWidth: rightWidth,
+                                  layout: computedLayout,
+                                  footerHeight: footerH,
+                                ),
+                              ),
+
+                            // 4. Built-in Pagination Bar (Optional)
+                            if (widget.showPaginationBar &&
+                                widget.controller.fetchMode == DataFetchMode.pagination)
+                              AppGridPaginationBar<T>(
+                                controller: widget.controller,
+                                onPageChanged: widget.onPageChanged,
+                              ),
+                          ],
+                        ),
+
+                        // In-grid Column Chooser Overlay (Blocks strictly the table, not the parent app)
+                        if (widget.controller.isColumnChooserOpen)
+                          Positioned.fill(
+                            child: AppGridColumnChooserOverlay<T>(
+                              controller: widget.controller,
+                              onClose: widget.controller.closeColumnChooser,
+                            ),
                           ),
                       ],
                     ),

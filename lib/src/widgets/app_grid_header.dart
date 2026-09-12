@@ -46,6 +46,31 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
   bool _isHovered = false;
 
   @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_onControllerChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant AppGridHeaderCell<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onControllerChanged);
+      widget.controller.addListener(_onControllerChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_onControllerChanged);
+    super.dispose();
+  }
+
+  void _onControllerChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -57,139 +82,77 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
     void onSortToggle() {
       if (widget.column.isSortable) {
         widget.controller.sortByColumn(widget.column.id);
+        if (mounted) setState(() {});
       }
-    }
-
-    void showHeaderContextMenu(Offset globalPosition) {
-      final overlay = Overlay.of(context).context.findRenderObject() as RenderBox?;
-      if (overlay == null) return;
-
-      final position = RelativeRect.fromRect(
-        globalPosition & const Size(40, 40),
-        Offset.zero & overlay.size,
-      );
-
-      showMenu<GridColumnPin>(
-        context: context,
-        position: position,
-        items: [
-          PopupMenuItem(
-            value: GridColumnPin.left,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.push_pin,
-                  size: 18,
-                  color: widget.column.pin == GridColumnPin.left
-                      ? theme.colorScheme.primary
-                      : null,
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    'Pin to Left',
-                    style: TextStyle(
-                      fontWeight: widget.column.pin == GridColumnPin.left
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          PopupMenuItem(
-            value: GridColumnPin.right,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.push_pin_outlined,
-                  size: 18,
-                  color: widget.column.pin == GridColumnPin.right
-                      ? theme.colorScheme.primary
-                      : null,
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    'Pin to Right',
-                    style: TextStyle(
-                      fontWeight: widget.column.pin == GridColumnPin.right
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          PopupMenuItem(
-            value: GridColumnPin.none,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.lock_open, size: 18),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: Text(
-                    'Unpin (Scrollable)',
-                    style: TextStyle(
-                      fontWeight: widget.column.pin == GridColumnPin.none
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ).then((selectedPin) {
-        if (selectedPin != null) {
-          widget.controller.setColumnPin(widget.column.id, selectedPin);
-        }
-      });
     }
 
     Widget content;
     final columnHeaderBuilder = widget.column.headerBuilder ?? widget.controller.getHeaderBuilder(widget.column.id);
     if (columnHeaderBuilder != null) {
-      content = columnHeaderBuilder(
-        context,
-        sortDirection,
-        onSortToggle,
+      content = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.column.isSortable ? onSortToggle : null,
+        child: Align(
+          alignment: widget.column.headerAlignment,
+          child: columnHeaderBuilder(
+            context,
+            sortDirection,
+            onSortToggle,
+          ),
+        ),
       );
     } else if (widget.customHeaderBuilder != null) {
-      content = widget.customHeaderBuilder!(
-        context,
-        widget.column,
-        sortDirection,
-        onSortToggle,
+      content = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.column.isSortable ? onSortToggle : null,
+        child: Align(
+          alignment: widget.column.headerAlignment,
+          child: widget.customHeaderBuilder!(
+            context,
+            widget.column,
+            sortDirection,
+            onSortToggle,
+          ),
+        ),
       );
     } else if (widget.controller.globalHeaderBuilder != null) {
-      content = widget.controller.globalHeaderBuilder!(
-        context,
-        widget.column,
-        sortDirection,
-        onSortToggle,
+      content = GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: widget.column.isSortable ? onSortToggle : null,
+        child: Align(
+          alignment: widget.column.headerAlignment,
+          child: widget.controller.globalHeaderBuilder!(
+            context,
+            widget.column,
+            sortDirection,
+            onSortToggle,
+          ),
+        ),
       );
     } else {
       content = Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        padding: const EdgeInsets.only(left: 12.0, right: 4.0),
         child: Row(
           children: [
             Expanded(
-              child: Text(
-                widget.column.label,
-                style: theme.textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: widget.column.isSortable ? onSortToggle : null,
+                child: Container(
+                  alignment: widget.column.headerAlignment,
+                  child: Text(
+                    widget.column.label,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: _textAlignFromAlignment(widget.column.headerAlignment),
+                  ),
                 ),
-                overflow: TextOverflow.ellipsis,
               ),
             ),
-            if (widget.column.isSortable) _buildSortIcon(sortDirection),
+            if (widget.column.isSortable || widget.column.pin != GridColumnPin.none || _isHovered)
+              _buildSortMenuButton(sortDirection),
           ],
         ),
       );
@@ -203,12 +166,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
       onExit: (_) {
         if (_isHovered) setState(() => _isHovered = false);
       },
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: widget.column.isSortable ? onSortToggle : null,
-        onSecondaryTapUp: (details) => showHeaderContextMenu(details.globalPosition),
-        child: content,
-      ),
+      child: content,
     );
 
     // Wrap with drag target and draggable for reordering if enabled
@@ -357,28 +315,367 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
     );
   }
 
-  Widget _buildSortIcon(SortDirection direction) {
+  Widget _buildSortMenuButton(SortDirection direction) {
     IconData icon;
     Color? color;
 
-    switch (direction) {
-      case SortDirection.ascending:
-        icon = Icons.arrow_upward;
-        color = Theme.of(context).colorScheme.primary;
-        break;
-      case SortDirection.descending:
-        icon = Icons.arrow_downward;
-        color = Theme.of(context).colorScheme.primary;
-        break;
-      case SortDirection.none:
-        icon = Icons.unfold_more;
-        color = Colors.grey.withAlpha(120);
-        break;
+    if (!widget.column.isSortable) {
+      if (widget.column.pin != GridColumnPin.none) {
+        icon = Icons.push_pin;
+        color = Theme.of(context).colorScheme.primary.withAlpha(200);
+      } else {
+        icon = Icons.more_vert;
+        color = Colors.grey.withAlpha(140);
+      }
+    } else {
+      switch (direction) {
+        case SortDirection.ascending:
+          icon = Icons.arrow_upward;
+          color = Theme.of(context).colorScheme.primary;
+          break;
+        case SortDirection.descending:
+          icon = Icons.arrow_downward;
+          color = Theme.of(context).colorScheme.primary;
+          break;
+        case SortDirection.none:
+          if (widget.column.pin != GridColumnPin.none) {
+            icon = Icons.push_pin;
+            color = Theme.of(context).colorScheme.primary.withAlpha(200);
+          } else {
+            icon = Icons.unfold_more;
+            color = Colors.grey.withAlpha(140);
+          }
+          break;
+      }
     }
 
-    return Padding(
-      padding: const EdgeInsets.only(left: 4.0),
-      child: Icon(icon, size: 16, color: color),
+    return Builder(
+      builder: (btnContext) {
+        return MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => _showColumnMenu(btnContext),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+              color: Colors.transparent,
+              child: Icon(icon, size: 16, color: color),
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  void _showColumnMenu(BuildContext buttonContext) {
+    final navigator = Navigator.maybeOf(context);
+    final RenderBox? overlay = (navigator?.overlay?.context.findRenderObject() as RenderBox?) ??
+        (Overlay.maybeOf(context)?.context.findRenderObject() as RenderBox?);
+    if (overlay == null) return;
+
+    final RenderBox? buttonBox = buttonContext.findRenderObject() as RenderBox?;
+    if (buttonBox == null) return;
+
+    // Convert button coordinates directly into overlay local coordinate space
+    final buttonTopLeft = buttonBox.localToGlobal(
+      Offset.zero,
+      ancestor: overlay,
+    );
+    final buttonBottomRight = buttonBox.localToGlobal(
+      buttonBox.size.bottomRight(Offset.zero),
+      ancestor: overlay,
+    );
+
+    final position = RelativeRect.fromRect(
+      Rect.fromPoints(buttonTopLeft, buttonBottomRight),
+      Offset.zero & overlay.size,
+    );
+
+    final theme = Theme.of(context);
+    final sortCrit = widget.controller.sortCriteria;
+    final isCurrentSort = sortCrit?.columnId == widget.column.id;
+    final sortDirection = isCurrentSort ? sortCrit!.direction : SortDirection.none;
+
+    final items = <PopupMenuEntry<_HeaderMenuAction>>[];
+
+    if (widget.column.isSortable) {
+      items.addAll([
+        PopupMenuItem<_HeaderMenuAction>(
+          value: _HeaderMenuAction.sortAscending,
+          child: Row(
+            children: [
+              Icon(
+                Icons.arrow_upward,
+                size: 18,
+                color: sortDirection == SortDirection.ascending
+                    ? theme.colorScheme.primary
+                    : null,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Sort Ascending',
+                  style: TextStyle(
+                    fontWeight: sortDirection == SortDirection.ascending
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: sortDirection == SortDirection.ascending
+                        ? theme.colorScheme.primary
+                        : null,
+                  ),
+                ),
+              ),
+              if (sortDirection == SortDirection.ascending)
+                Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+            ],
+          ),
+        ),
+        PopupMenuItem<_HeaderMenuAction>(
+          value: _HeaderMenuAction.sortDescending,
+          child: Row(
+            children: [
+              Icon(
+                Icons.arrow_downward,
+                size: 18,
+                color: sortDirection == SortDirection.descending
+                    ? theme.colorScheme.primary
+                    : null,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Sort Descending',
+                  style: TextStyle(
+                    fontWeight: sortDirection == SortDirection.descending
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                    color: sortDirection == SortDirection.descending
+                        ? theme.colorScheme.primary
+                        : null,
+                  ),
+                ),
+              ),
+              if (sortDirection == SortDirection.descending)
+                Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+            ],
+          ),
+        ),
+        if (sortDirection != SortDirection.none)
+          const PopupMenuItem<_HeaderMenuAction>(
+            value: _HeaderMenuAction.clearSort,
+            child: Row(
+              children: [
+                Icon(Icons.clear, size: 18),
+                SizedBox(width: 8),
+                Expanded(child: Text('Clear Sort')),
+              ],
+            ),
+          ),
+        const PopupMenuDivider(),
+      ]);
+    }
+
+    items.addAll([
+      PopupMenuItem<_HeaderMenuAction>(
+        value: _HeaderMenuAction.pinLeft,
+        child: Row(
+          children: [
+            Icon(
+              Icons.push_pin,
+              size: 18,
+              color: widget.column.pin == GridColumnPin.left
+                  ? theme.colorScheme.primary
+                  : null,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Pin to Left',
+                style: TextStyle(
+                  fontWeight: widget.column.pin == GridColumnPin.left
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  color: widget.column.pin == GridColumnPin.left
+                      ? theme.colorScheme.primary
+                      : null,
+                ),
+              ),
+            ),
+            if (widget.column.pin == GridColumnPin.left)
+              Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+          ],
+        ),
+      ),
+      PopupMenuItem<_HeaderMenuAction>(
+        value: _HeaderMenuAction.pinRight,
+        child: Row(
+          children: [
+            Icon(
+              Icons.push_pin_outlined,
+              size: 18,
+              color: widget.column.pin == GridColumnPin.right
+                  ? theme.colorScheme.primary
+                  : null,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Pin to Right',
+                style: TextStyle(
+                  fontWeight: widget.column.pin == GridColumnPin.right
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  color: widget.column.pin == GridColumnPin.right
+                      ? theme.colorScheme.primary
+                      : null,
+                ),
+              ),
+            ),
+            if (widget.column.pin == GridColumnPin.right)
+              Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+          ],
+        ),
+      ),
+      PopupMenuItem<_HeaderMenuAction>(
+        value: _HeaderMenuAction.unpin,
+        child: Row(
+          children: [
+            const Icon(Icons.lock_open, size: 18),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Unpin (Scrollable)',
+                style: TextStyle(
+                  fontWeight: widget.column.pin == GridColumnPin.none
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                ),
+              ),
+            ),
+            if (widget.column.pin == GridColumnPin.none)
+              Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+          ],
+        ),
+      ),
+    ]);
+
+    if (widget.column.isResizable && widget.onAutoFit != null) {
+      items.add(const PopupMenuDivider());
+      items.add(
+        const PopupMenuItem<_HeaderMenuAction>(
+          value: _HeaderMenuAction.autoFit,
+          child: Row(
+            children: [
+              Icon(Icons.fit_screen, size: 18),
+              SizedBox(width: 8),
+              Expanded(child: Text('Auto-fit Width')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    items.add(const PopupMenuDivider());
+    if (widget.column.canHide) {
+      final canHideColumn = widget.controller.visibleColumns.length > 1;
+      items.add(
+        PopupMenuItem<_HeaderMenuAction>(
+          value: _HeaderMenuAction.hideColumn,
+          enabled: canHideColumn,
+          child: Row(
+            children: [
+              Icon(
+                Icons.visibility_off_outlined,
+                size: 18,
+                color: canHideColumn ? null : theme.disabledColor,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Hide Column',
+                  style: TextStyle(
+                    color: canHideColumn ? null : theme.disabledColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    items.add(
+      const PopupMenuItem<_HeaderMenuAction>(
+        value: _HeaderMenuAction.manageColumns,
+        child: Row(
+          children: [
+            Icon(Icons.view_column_outlined, size: 18),
+            SizedBox(width: 8),
+            Expanded(child: Text('Manage Columns...')),
+          ],
+        ),
+      ),
+    );
+
+    showMenu<_HeaderMenuAction>(
+      context: context,
+      position: position,
+      items: items,
+    ).then((selected) {
+      if (selected == null || !mounted) return;
+      switch (selected) {
+        case _HeaderMenuAction.sortAscending:
+          widget.controller.sortByColumn(widget.column.id, direction: SortDirection.ascending);
+          if (mounted) setState(() {});
+          break;
+        case _HeaderMenuAction.sortDescending:
+          widget.controller.sortByColumn(widget.column.id, direction: SortDirection.descending);
+          if (mounted) setState(() {});
+          break;
+        case _HeaderMenuAction.clearSort:
+          widget.controller.sortByColumn(widget.column.id, direction: SortDirection.none);
+          if (mounted) setState(() {});
+          break;
+        case _HeaderMenuAction.pinLeft:
+          widget.controller.setColumnPin(widget.column.id, GridColumnPin.left);
+          break;
+        case _HeaderMenuAction.pinRight:
+          widget.controller.setColumnPin(widget.column.id, GridColumnPin.right);
+          break;
+        case _HeaderMenuAction.unpin:
+          widget.controller.setColumnPin(widget.column.id, GridColumnPin.none);
+          break;
+        case _HeaderMenuAction.autoFit:
+          widget.onAutoFit?.call(widget.column);
+          break;
+        case _HeaderMenuAction.hideColumn:
+          widget.controller.setColumnVisibility(widget.column.id, false);
+          break;
+        case _HeaderMenuAction.manageColumns:
+          widget.controller.openColumnChooser();
+          break;
+      }
+    });
+  }
+}
+
+enum _HeaderMenuAction {
+  sortAscending,
+  sortDescending,
+  clearSort,
+  pinLeft,
+  pinRight,
+  unpin,
+  autoFit,
+  hideColumn,
+  manageColumns,
+}
+
+TextAlign _textAlignFromAlignment(Alignment alignment) {
+  if (alignment.x < -0.33) {
+    return TextAlign.left;
+  } else if (alignment.x > 0.33) {
+    return TextAlign.right;
+  } else {
+    return TextAlign.center;
   }
 }
