@@ -83,33 +83,6 @@ class AutoStretchCalculator {
       return stretchedWidths;
     }
 
-    // If totalBaseWidth >= availableViewportWidth but totalMinWidth < availableViewportWidth:
-    // Scale down from base width towards minWidth so it fits the screen without overflow.
-    if (totalBaseWidth >= availableViewportWidth && totalMinWidth < availableViewportWidth) {
-      final double shrinkableSpace = totalBaseWidth - totalMinWidth;
-      if (shrinkableSpace > 0) {
-        final double excess = totalBaseWidth - availableViewportWidth;
-        final Map<String, double> fittedWidths = {};
-        double accumulated = 0.0;
-
-        for (var i = 0; i < columns.length; i++) {
-          final col = columns[i];
-          final base = baseWidths[col.id]!;
-          if (i == columns.length - 1) {
-            final lastWidth = availableViewportWidth - accumulated;
-            fittedWidths[col.id] = lastWidth > col.minWidth ? lastWidth : col.minWidth;
-          } else {
-            final colShrinkable = base - col.minWidth;
-            final colReduction = excess * (colShrinkable / shrinkableSpace);
-            final finalWidth = base - colReduction;
-            fittedWidths[col.id] = finalWidth;
-            accumulated += finalWidth;
-          }
-        }
-        return fittedWidths;
-      }
-    }
-
     return baseWidths;
   }
 }

@@ -45,6 +45,9 @@ class ColumnLayoutManager extends ChangeNotifier {
   /// In-memory runtime column widths overridden by user drag-resize or auto-fit.
   final Map<String, double> _userResizedWidths = {};
 
+  /// Cached active computed column widths from the last layout pass.
+  Map<String, double> _lastComputedWidths = {};
+
   /// Whether auto-stretch is enabled when no manual resizes exist.
   bool autoStretchEnabled;
 
@@ -64,6 +67,12 @@ class ColumnLayoutManager extends ChangeNotifier {
     required GridColumn column,
     required double newWidth,
   }) {
+    // When resizing a column, preserve the current active widths of all other
+    // columns so they keep their current width instead of collapsing to minWidth/initialWidth.
+    if (_userResizedWidths.isEmpty && _lastComputedWidths.isNotEmpty) {
+      _userResizedWidths.addAll(_lastComputedWidths);
+    }
+
     double clamped = newWidth;
     if (clamped < column.minWidth) {
       clamped = column.minWidth;
@@ -89,6 +98,7 @@ class ColumnLayoutManager extends ChangeNotifier {
   /// Clears in-memory resizing overrides.
   void resetWidths() {
     _userResizedWidths.clear();
+    _lastComputedWidths.clear();
     notifyListeners();
   }
 
@@ -103,6 +113,7 @@ class ColumnLayoutManager extends ChangeNotifier {
       userResizedWidths: _userResizedWidths,
       disableAutoStretch: !autoStretchEnabled,
     );
+    _lastComputedWidths = allWidths;
 
     final leftCols = <GridColumn>[];
     final centerCols = <GridColumn>[];

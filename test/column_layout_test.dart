@@ -109,5 +109,36 @@ void main() {
       expect(manager.getUserResizedWidth('col1'), isNull);
       expect(manager.hasManualResize, isFalse);
     });
+
+    test('Resizing one column preserves active computed widths of other columns', () {
+      final manager = ColumnLayoutManager();
+      const columns = [
+        GridColumn(id: 'col1', label: 'C1', minWidth: 100, initialWidth: 100),
+        GridColumn(id: 'col2', label: 'C2', minWidth: 200, initialWidth: 200),
+        GridColumn(id: 'col3', label: 'C3', minWidth: 200, initialWidth: 200),
+      ];
+
+      // Viewport 1000px:
+      // col1: 200px, col2: 400px, col3: 400px
+      final layout1 = manager.computeLayout(
+        visibleColumns: columns,
+        availableViewportWidth: 1000.0,
+      );
+      expect(layout1.allWidths['col1'], closeTo(200.0, 0.01));
+      expect(layout1.allWidths['col2'], closeTo(400.0, 0.01));
+      expect(layout1.allWidths['col3'], closeTo(400.0, 0.01));
+
+      // User resizes col1 from 200px to 250px
+      manager.resizeColumn(column: columns[0], newWidth: 250.0);
+
+      // Recompute layout: col1 is 250px, col2 and col3 MUST retain 400px (not drop to 200px initialWidth)
+      final layout2 = manager.computeLayout(
+        visibleColumns: columns,
+        availableViewportWidth: 1000.0,
+      );
+      expect(layout2.allWidths['col1'], equals(250.0));
+      expect(layout2.allWidths['col2'], closeTo(400.0, 0.01));
+      expect(layout2.allWidths['col3'], closeTo(400.0, 0.01));
+    });
   });
 }
