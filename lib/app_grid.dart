@@ -40,6 +40,7 @@ export 'src/export_utils/data_grid_exporter.dart';
 
 export 'src/widgets/app_grid.dart';
 export 'src/widgets/app_grid_header.dart';
+export 'src/widgets/app_grid_column_dialog.dart';
 export 'src/widgets/app_grid_footer.dart';
 export 'src/widgets/grid_footer_summary.dart';
 export 'src/widgets/empty_cell.dart';
@@ -47,3 +48,4 @@ export 'src/widgets/app_grid_empty_widget.dart';
 export 'src/widgets/app_grid_pagination_bar.dart';
 export 'src/widgets/app_grid_scrollbar.dart';
 export 'src/widgets/app_grid_loading_overlay.dart';
+export 'src/widgets/app_grid_button.dart';
