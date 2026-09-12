@@ -91,6 +91,9 @@ class RowWidget<T> extends StatelessWidget {
       (sum, col) => sum + (columnWidths[col.id] ?? col.initialWidth),
     );
 
+    final horizontalLineColor = gridLineColor ??
+        (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: effectiveReadOnly
@@ -101,18 +104,28 @@ class RowWidget<T> extends StatelessWidget {
         height: rowHeight,
         decoration: BoxDecoration(
           color: backgroundColor,
-          border: showHorizontalGridLines
-              ? Border(
-                  bottom: BorderSide(
-                    color: gridLineColor ?? (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000)),
-                    width: 1.0,
-                  ),
-                )
-              : null,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: children,
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            // Horizontal grid divider line (rendered underneath cells and vertical dividers)
+            if (showHorizontalGridLines)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 1.0,
+                child: Container(
+                  color: horizontalLineColor,
+                ),
+              ),
+            Positioned.fill(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: children,
+              ),
+            ),
+          ],
         ),
       ),
     );

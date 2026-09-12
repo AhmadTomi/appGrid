@@ -319,5 +319,105 @@ void main() {
 
       controller.dispose();
     });
+
+    testWidgets('Vertical grid dividers span full cell height and render on top of horizontal grid lines', (tester) async {
+      final controller = AppGridController<Map<String, dynamic>>(
+        initialData: [
+          {'id': 1, 'name': 'Alpha'},
+          {'id': 2, 'name': 'Beta'},
+        ],
+        columns: const [
+          GridColumn(id: 'id', label: 'ID', initialWidth: 100),
+          GridColumn(id: 'name', label: 'Name', initialWidth: 200),
+        ],
+      );
+
+      const verticalColor = Color(0xFF2196F3);
+      const horizontalColor = Color(0xFF9E9E9E);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 400,
+              child: AppGrid<Map<String, dynamic>>(
+                controller: controller,
+                rowHeight: 48,
+                headerHeight: 40,
+                showVerticalGridLines: true,
+                showHorizontalGridLines: true,
+                verticalGridLineColor: verticalColor,
+                gridLineColor: horizontalColor,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 1. Verify in CellWidget: vertical divider is rendered in a Stack spanning top: 0 to bottom: 0
+      final cellWidgetFinder = find.byKey(const ValueKey('cell_0_id'));
+      expect(cellWidgetFinder, findsOneWidget);
+
+      final cellStack = tester.widget<Stack>(
+        find.descendant(of: cellWidgetFinder, matching: find.byType(Stack)).first,
+      );
+      // Last child of CellWidget's stack must be the vertical divider
+      final lastPositioned = cellStack.children.last as Positioned;
+      expect(lastPositioned.right, equals(0.0));
+      expect(lastPositioned.top, equals(0.0));
+      expect(lastPositioned.bottom, equals(0.0));
+      expect(lastPositioned.width, equals(1.0));
+      final dividerContainer = lastPositioned.child as Container;
+      expect(dividerContainer.color, equals(verticalColor));
+
+      // 2. Verify in RowWidget: Stack renders horizontal line first, then cells on top
+      final rowFinder = find.byType(RowWidget<Map<String, dynamic>>).first;
+      final rowStack = tester.widget<Stack>(
+        find.descendant(of: rowFinder, matching: find.byType(Stack)).first,
+      );
+      expect(rowStack.children.length, equals(2));
+      // First child is the horizontal divider line
+      final hLinePositioned = rowStack.children.first as Positioned;
+      expect(hLinePositioned.bottom, equals(0.0));
+      expect(hLinePositioned.height, equals(1.0));
+      final hLineContainer = hLinePositioned.child as Container;
+      expect(hLineContainer.color, equals(horizontalColor));
+
+      // Second child is the Row containing cells (rendered on top of horizontal line)
+      expect(rowStack.children[1], isA<Positioned>());
+      final cellsPositioned = rowStack.children[1] as Positioned;
+      expect(cellsPositioned.child, isA<Row>());
+
+      // 3. Verify in HeaderCell: vertical divider is rendered after horizontal line in Stack
+      final headerCellFinder = find.byType(AppGridHeaderCell<Map<String, dynamic>>).first;
+      final headerStack = tester.widget<Stack>(
+        find.descendant(of: headerCellFinder, matching: find.byType(Stack)).first,
+      );
+      // Find the vertical divider positioned child
+      final headerPositionedList = headerStack.children.whereType<Positioned>().toList();
+      final headerVDivider = headerPositionedList.firstWhere(
+        (p) => p.right == 0.0 && p.top == 0.0 && p.bottom == 0.0 && p.width == 1.0,
+      );
+      final headerVContainer = headerVDivider.child as Container;
+      expect(headerVContainer.color, equals(verticalColor));
+
+      // Find horizontal bottom line in header
+      final headerHLine = headerPositionedList.firstWhere(
+        (p) => p.bottom == 0.0 && p.height == 1.5,
+      );
+      final headerHContainer = headerHLine.child as Container;
+      expect(headerHContainer.color, equals(horizontalColor));
+
+      // Header vertical divider index in children must be greater than horizontal line index (drawn on top)
+      final hLineIdx = headerStack.children.indexOf(headerHLine);
+      final vLineIdx = headerStack.children.indexOf(headerVDivider);
+      expect(vLineIdx, greaterThan(hLineIdx),
+          reason: 'Vertical divider must be rendered after/on top of horizontal line');
+
+      controller.dispose();
+    });
   });
 }
+

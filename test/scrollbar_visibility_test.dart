@@ -244,5 +244,63 @@ void main() {
 
       controller.dispose();
     });
+
+    testWidgets('Horizontal scrollbar is positioned at the bottom of the footer when showFooter is true', (tester) async {
+      tester.view.physicalSize = const Size(500, 300);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      final controller = AppGridController<Map<String, dynamic>>(
+        initialData: List.generate(
+          20,
+          (i) => {'col1': 'V1-$i', 'col2': 'V2-$i', 'col3': 'V3-$i'},
+        ),
+        columns: const [
+          GridColumn(id: 'col1', label: 'C1', initialWidth: 300),
+          GridColumn(id: 'col2', label: 'C2', initialWidth: 300),
+          GridColumn(id: 'col3', label: 'C3', initialWidth: 300),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AppGrid<Map<String, dynamic>>(
+              controller: controller,
+              autoStretch: false,
+              footerHeight: 40.0,
+              scrollbarThickness: 10.0,
+              horizontalScrollbarVisibility: AppGridScrollbarVisibility.always,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 1. Horizontal scrollbar is present in the grid
+      final hScrollbarFinder = find.byType(AppGridHorizontalScrollbar);
+      expect(hScrollbarFinder, findsOneWidget);
+
+      // 2. Horizontal scrollbar is NOT inside AppGridViewport (it was moved out to footer)
+      final viewportHScrollbarFinder = find.descendant(
+        of: find.byType(AppGridViewport<Map<String, dynamic>>),
+        matching: find.byType(AppGridHorizontalScrollbar),
+      );
+      expect(viewportHScrollbarFinder, findsNothing);
+
+      // 3. Footer cells are present
+      final footerCellFinder = find.byType(AppGridFooterCell);
+      expect(footerCellFinder, findsWidgets);
+
+      // 4. Horizontal scrollbar bottom edge aligns with footer bottom edge
+      final footerCellRect = tester.getRect(footerCellFinder.first);
+      final hScrollbarRect = tester.getRect(hScrollbarFinder);
+      expect(hScrollbarRect.bottom, closeTo(footerCellRect.bottom, 1.0),
+          reason: 'Horizontal scrollbar must be positioned at the bottom of the footer');
+      expect(hScrollbarRect.top, greaterThanOrEqualTo(footerCellRect.top),
+          reason: 'Horizontal scrollbar must sit inside/at the bottom of the footer area');
+
+      controller.dispose();
+    });
   });
 }

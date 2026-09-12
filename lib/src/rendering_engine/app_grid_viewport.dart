@@ -23,6 +23,7 @@ class AppGridViewport<T> extends StatefulWidget {
   final double rowHeight;
   final double headerHeight;
   final double? footerHeight;
+  final bool hasFooter;
   final Color? selectedRowColor;
   final Color? alternateRowColor;
   final Color? evenRowColor;
@@ -55,6 +56,7 @@ class AppGridViewport<T> extends StatefulWidget {
     this.rowHeight = 48.0,
     this.headerHeight = 48.0,
     this.footerHeight,
+    this.hasFooter = false,
     this.selectedRowColor,
     this.alternateRowColor,
     this.evenRowColor,
@@ -379,6 +381,7 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                 );
 
                 final bool hasHScrollbar =
+                    !widget.hasFooter &&
                     widget.horizontalScrollbarVisibility != AppGridScrollbarVisibility.hidden &&
                     widget.showHorizontalScrollbar &&
                     maxHorizontalScroll > 0;
@@ -657,24 +660,33 @@ class _CenterPaneRow<T> extends StatelessWidget {
       }
     }
 
+    final horizontalLineColor = gridLineColor ??
+        (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
+
     return Container(
       width: centerViewportWidth,
       height: rowHeight,
       decoration: BoxDecoration(
         color: backgroundColor,
-        border: showHorizontalGridLines
-            ? Border(
-                bottom: BorderSide(
-                  color: gridLineColor ??
-                      (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000)),
-                  width: 1.0,
-                ),
-              )
-            : null,
       ),
-      child: AnimatedBuilder(
-        animation: horizontalScrollController,
-        builder: (context, _) {
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          // Horizontal grid divider line across center viewport
+          if (showHorizontalGridLines)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              height: 1.0,
+              child: Container(
+                color: horizontalLineColor,
+              ),
+            ),
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: horizontalScrollController,
+              builder: (context, _) {
           final double hScroll = horizontalScrollController.hasClients &&
                   horizontalScrollController.positions.isNotEmpty
               ? horizontalScrollController.positions.first.pixels
@@ -736,6 +748,9 @@ class _CenterPaneRow<T> extends StatelessWidget {
           );
         },
       ),
-    );
-  }
+    ),
+  ],
+),
+);
+}
 }

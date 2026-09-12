@@ -269,34 +269,51 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         ? widget.headerBackgroundColor!.withAlpha(220)
         : (isDark ? const Color(0xFF282828) : const Color(0xFFECECEC));
 
+    final horizontalLineColor = widget.gridLineColor ??
+        (isDark ? const Color(0x3FFFFFFF) : const Color(0x3F000000));
+    final verticalDividerColor = widget.verticalGridLineColor ??
+        widget.gridLineColor ??
+        (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
+
     return ClipRect(
       child: Container(
         width: widget.width,
         height: widget.height,
-        decoration: BoxDecoration(
-          color: _isHovered ? hoverBg : defaultBg,
-          border: Border(
-            right: widget.showVerticalGridLines
-                ? BorderSide(
-                    color: widget.verticalGridLineColor ??
-                        widget.gridLineColor ??
-                        (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000)),
-                    width: 1.0,
-                  )
-                : BorderSide.none,
-            bottom: widget.showHorizontalGridLines
-                ? BorderSide(
-                    color: widget.gridLineColor ??
-                        (isDark ? const Color(0x3FFFFFFF) : const Color(0x3F000000)),
-                    width: 1.5,
-                  )
-                : BorderSide.none,
-          ),
-        ),
+        color: _isHovered ? hoverBg : defaultBg,
         child: Stack(
           clipBehavior: Clip.hardEdge,
           children: [
-            Positioned.fill(child: headerNode),
+            Positioned.fill(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  right: widget.showVerticalGridLines ? 1.0 : 0.0,
+                  bottom: widget.showHorizontalGridLines ? 1.5 : 0.0,
+                ),
+                child: headerNode,
+              ),
+            ),
+            // Horizontal bottom divider
+            if (widget.showHorizontalGridLines)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                height: 1.5,
+                child: Container(
+                  color: horizontalLineColor,
+                ),
+              ),
+            // Vertical right divider rendered on top of horizontal line
+            if (widget.showVerticalGridLines)
+              Positioned(
+                right: 0,
+                top: 0,
+                bottom: 0,
+                width: 1.0,
+                child: Container(
+                  color: verticalDividerColor,
+                ),
+              ),
             if (widget.column.isResizable)
               Positioned(
                 right: 0,

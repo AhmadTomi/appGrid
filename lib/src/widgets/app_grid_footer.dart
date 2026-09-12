@@ -49,30 +49,53 @@ class AppGridFooterCell extends StatelessWidget {
       );
     }
 
+    final defaultBg = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEEEEEE);
+    final horizontalLineColor = gridLineColor ??
+        (isDark ? const Color(0x3FFFFFFF) : const Color(0x3F000000));
+    final verticalDividerColor = verticalGridLineColor ??
+        gridLineColor ??
+        (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
+
     return Container(
       width: width,
       height: height,
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEEEEEE),
-        border: Border(
-          right: showVerticalGridLines
-              ? BorderSide(
-                  color: verticalGridLineColor ??
-                      gridLineColor ??
-                      (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000)),
-                  width: 1.0,
-                )
-              : BorderSide.none,
-          top: showHorizontalGridLines
-              ? BorderSide(
-                  color: gridLineColor ??
-                      (isDark ? const Color(0x3FFFFFFF) : const Color(0x3F000000)),
-                  width: 1.5,
-                )
-              : BorderSide.none,
-        ),
+      color: defaultBg,
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          Positioned.fill(
+            child: Padding(
+              padding: EdgeInsets.only(
+                right: showVerticalGridLines ? 1.0 : 0.0,
+                top: showHorizontalGridLines ? 1.5 : 0.0,
+              ),
+              child: content,
+            ),
+          ),
+          // Horizontal top divider
+          if (showHorizontalGridLines)
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: 1.5,
+              child: Container(
+                color: horizontalLineColor,
+              ),
+            ),
+          // Vertical right divider rendered on top of horizontal line
+          if (showVerticalGridLines)
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: 1.0,
+              child: Container(
+                color: verticalDividerColor,
+              ),
+            ),
+        ],
       ),
-      child: content,
     );
   }
 }

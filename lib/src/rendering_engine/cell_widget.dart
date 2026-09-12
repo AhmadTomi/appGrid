@@ -39,57 +39,77 @@ class CellWidget<T> extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final hasVerticalDivider = showVerticalGridLine;
 
-    final decoration = hasVerticalDivider
-        ? BoxDecoration(
-            border: Border(
-              right: BorderSide(
-                color: verticalGridLineColor ??
-                    gridLineColor ??
-                    (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000)),
-                width: 1.0,
-              ),
-            ),
-          )
-        : null;
+    final cellContent = ValueListenableBuilder<T>(
+      valueListenable: notifier,
+      builder: (context, rowData, _) {
+        // 1. Column-specific modular cell builder
+        if (column.cellBuilder != null) {
+          return column.cellBuilder!(context, rowData, indexInfo);
+        }
 
-    return Container(
+        // 2. Controller-level registered cell builder
+        final columnBuilder = controller.getCellBuilder(column.id);
+        if (columnBuilder != null) {
+          return columnBuilder(context, rowData, indexInfo);
+        }
+
+        // Default cell presentation
+        final rawValue = column.valueGetter != null
+            ? column.valueGetter!(rowData)
+            : null;
+        if (rawValue == null || (rawValue is String && rawValue.isEmpty)) {
+          return const EmptyCell();
+        }
+
+        final displayText = rawValue.toString();
+
+        return Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          child: Text(
+            displayText,
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        );
+      },
+    );
+
+    if (!hasVerticalDivider) {
+      return SizedBox(
+        width: width,
+        height: height,
+        child: cellContent,
+      );
+    }
+
+    final dividerColor = verticalGridLineColor ??
+        gridLineColor ??
+        (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
+
+    return SizedBox(
       width: width,
       height: height,
-      decoration: decoration,
-      child: ValueListenableBuilder<T>(
-        valueListenable: notifier,
-        builder: (context, rowData, _) {
-          // 1. Column-specific modular cell builder
-          if (column.cellBuilder != null) {
-            return column.cellBuilder!(context, rowData, indexInfo);
-          }
-
-          // 2. Controller-level registered cell builder
-          final columnBuilder = controller.getCellBuilder(column.id);
-          if (columnBuilder != null) {
-            return columnBuilder(context, rowData, indexInfo);
-          }
-
-          // Default cell presentation
-          final rawValue = column.valueGetter != null
-              ? column.valueGetter!(rowData)
-              : null;
-          if (rawValue == null || (rawValue is String && rawValue.isEmpty)) {
-            return const EmptyCell();
-          }
-
-          final displayText = rawValue.toString();
-
-          return Container(
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.symmetric(horizontal: 12.0),
-            child: Text(
-              displayText,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
+      child: Stack(
+        clipBehavior: Clip.hardEdge,
+        children: [
+          Positioned.fill(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 1.0),
+              child: cellContent,
             ),
-          );
-        },
+          ),
+          // Vertical divider on top
+          Positioned(
+            right: 0,
+            top: 0,
+            bottom: 0,
+            width: 1.0,
+            child: Container(
+              color: dividerColor,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -449,6 +449,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                   rowHeight: widget.rowHeight,
                                   headerHeight: widget.headerHeight,
                                   footerHeight: widget.footerHeight,
+                                  hasFooter: hasFooter,
                                   selectedRowColor: widget.selectedRowColor,
                                   readOnly: effectiveReadOnly,
                                   alternateRowColor: widget.alternateRowColor,
@@ -686,6 +687,12 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     required double footerHeight,
   }) {
     final visibleData = widget.controller.data;
+    final double maxHorizontalScroll =
+        math.max(0.0, layout.centerPane.totalWidth - centerWidth);
+    final bool hasHScrollbar =
+        widget.effectiveHorizontalScrollbarVisibility != AppGridScrollbarVisibility.hidden &&
+        widget.showHorizontalScrollbar &&
+        maxHorizontalScroll > 0;
 
     return ClipRect(
       child: Stack(
@@ -819,6 +826,25 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                     ],
                   ),
                 ),
+              ),
+            ),
+
+          // Horizontal Scrollbar (at the bottom of the footer)
+          if (hasHScrollbar && centerWidth > 0)
+            Positioned(
+              left: leftWidth,
+              width: centerWidth,
+              bottom: 0,
+              height: widget.scrollbarThickness,
+              child: AppGridHorizontalScrollbar(
+                controller: _horizontalScrollController,
+                trackWidth: centerWidth,
+                contentWidth: layout.centerPane.totalWidth,
+                thickness: widget.scrollbarThickness,
+                thumbColor: widget.scrollbarThumbColor,
+                trackColor: widget.scrollbarTrackColor,
+                visibility: widget.effectiveHorizontalScrollbarVisibility,
+                isParentHovered: _isGridHovered,
               ),
             ),
         ],
