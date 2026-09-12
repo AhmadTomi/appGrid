@@ -44,6 +44,7 @@ class AppGridPaginationBar<T> extends StatelessWidget {
         final isDark = theme.brightness == Brightness.dark;
 
         return Container(
+          width: double.infinity,
           padding: padding,
           decoration: BoxDecoration(
             color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),

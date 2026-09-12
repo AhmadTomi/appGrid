@@ -44,13 +44,19 @@ class CellWidget<T> extends StatelessWidget {
       builder: (context, rowData, _) {
         // 1. Column-specific modular cell builder
         if (column.cellBuilder != null) {
-          return column.cellBuilder!(context, rowData, indexInfo);
+          return Align(
+            alignment: column.cellAlignment,
+            child: column.cellBuilder!(context, rowData, indexInfo),
+          );
         }
 
         // 2. Controller-level registered cell builder
         final columnBuilder = controller.getCellBuilder(column.id);
         if (columnBuilder != null) {
-          return columnBuilder(context, rowData, indexInfo);
+          return Align(
+            alignment: column.cellAlignment,
+            child: columnBuilder(context, rowData, indexInfo),
+          );
         }
 
         // Default cell presentation
@@ -58,18 +64,22 @@ class CellWidget<T> extends StatelessWidget {
             ? column.valueGetter!(rowData)
             : null;
         if (rawValue == null || (rawValue is String && rawValue.isEmpty)) {
-          return const EmptyCell();
+          return Align(
+            alignment: column.cellAlignment,
+            child: const EmptyCell(),
+          );
         }
 
         final displayText = rawValue.toString();
 
         return Container(
-          alignment: Alignment.centerLeft,
+          alignment: column.cellAlignment,
           padding: const EdgeInsets.symmetric(horizontal: 12.0),
           child: Text(
             displayText,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
+            textAlign: _textAlignFromAlignment(column.cellAlignment),
           ),
         );
       },
@@ -112,5 +122,15 @@ class CellWidget<T> extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+TextAlign _textAlignFromAlignment(Alignment alignment) {
+  if (alignment.x < -0.33) {
+    return TextAlign.left;
+  } else if (alignment.x > 0.33) {
+    return TextAlign.right;
+  } else {
+    return TextAlign.center;
   }
 }

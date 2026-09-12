@@ -77,7 +77,9 @@ class DualIndexMap {
     _displayRowCount = displayToOriginal.length;
     _displayToOriginal = displayToOriginal;
 
-    _originalToDisplay = Int32List(_totalOriginalCount);
+    if (_originalToDisplay.length != _totalOriginalCount) {
+      _originalToDisplay = Int32List(_totalOriginalCount);
+    }
     _originalToDisplay.fillRange(0, _totalOriginalCount, -1);
 
     for (var displayIdx = 0; displayIdx < _displayRowCount; displayIdx++) {

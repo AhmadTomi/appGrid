@@ -1,4 +1,3 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:app_grid/app_grid.dart';
@@ -185,7 +184,7 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('Right-click on column header shows context menu to freeze column', (tester) async {
+    testWidgets('Tapping column header menu button shows options to freeze column', (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -211,9 +210,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Perform secondary tap (right click) on 'Name' header
-      final headerFinder = find.text('Name');
-      await tester.tap(headerFinder, buttons: kSecondaryMouseButton);
+      // Tap the sort/column menu button on 'Name' header
+      final sortButtonFinder = find.byIcon(Icons.unfold_more).first;
+      await tester.tap(sortButtonFinder);
       await tester.pumpAndSettle();
 
       // Verify Context Menu options
@@ -277,5 +276,97 @@ void main() {
 
       controller.dispose();
     });
+
+    testWidgets('GridColumn supports independent cellAlignment and headerAlignment', (tester) async {
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() => tester.view.resetPhysicalSize());
+
+      // 1. Column with defaults, and column with custom alignments
+      final controller = AppGridController<FruitItem>(
+        initialData: const [
+          FruitItem(name: 'Apple', total: 50),
+        ],
+        columns: [
+          const GridColumn(
+            id: 'name',
+            label: 'Name',
+            valueGetter: _getName,
+          ),
+          const GridColumn(
+            id: 'total',
+            label: 'Total',
+            valueGetter: _getTotal,
+            headerAlignment: Alignment.centerRight,
+            cellAlignment: Alignment.center,
+          ),
+        ],
+      );
+
+      // Verify defaults
+      expect(controller.columns[0].cellAlignment, equals(Alignment.centerLeft));
+      expect(controller.columns[0].headerAlignment, equals(Alignment.center));
+
+      // Verify custom values
+      expect(controller.columns[1].headerAlignment, equals(Alignment.centerRight));
+      expect(controller.columns[1].cellAlignment, equals(Alignment.center));
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: AppGrid<FruitItem>(
+              controller: controller,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify header title container alignment
+      final nameHeaderContainer = tester.widget<Container>(
+        find.ancestor(of: find.text('Name'), matching: find.byType(Container)).first,
+      );
+      expect(nameHeaderContainer.alignment, equals(Alignment.center));
+
+      final totalHeaderContainer = tester.widget<Container>(
+        find.ancestor(of: find.text('Total'), matching: find.byType(Container)).first,
+      );
+      expect(totalHeaderContainer.alignment, equals(Alignment.centerRight));
+
+      // Verify cell container alignment
+      final nameCellContainer = tester.widget<Container>(
+        find.ancestor(of: find.text('Apple'), matching: find.byType(Container)).first,
+      );
+      expect(nameCellContainer.alignment, equals(Alignment.centerLeft));
+
+      final totalCellContainer = tester.widget<Container>(
+        find.ancestor(of: find.text('50'), matching: find.byType(Container)).first,
+      );
+      expect(totalCellContainer.alignment, equals(Alignment.center));
+
+      // Test dynamic update via controller
+      controller.setColumnCellAlignment('total', Alignment.centerRight);
+      controller.setColumnHeaderAlignment('name', Alignment.centerLeft);
+      await tester.pumpAndSettle();
+
+      expect(controller.columns[1].cellAlignment, equals(Alignment.centerRight));
+      expect(controller.columns[0].headerAlignment, equals(Alignment.centerLeft));
+
+      final updatedTotalCell = tester.widget<Container>(
+        find.ancestor(of: find.text('50'), matching: find.byType(Container)).first,
+      );
+      expect(updatedTotalCell.alignment, equals(Alignment.centerRight));
+
+      final updatedNameHeader = tester.widget<Container>(
+        find.ancestor(of: find.text('Name'), matching: find.byType(Container)).first,
+      );
+      expect(updatedNameHeader.alignment, equals(Alignment.centerLeft));
+
+      controller.dispose();
+    });
   });
 }
+
+dynamic _getName(dynamic f) => (f as FruitItem).name;
+dynamic _getTotal(dynamic f) => (f as FruitItem).total.toString();
+

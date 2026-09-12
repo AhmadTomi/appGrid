@@ -63,6 +63,11 @@ class GridColumn {
   /// Whether the user can drag-and-drop to reorder this column.
   final bool isReorderable;
 
+  /// Whether the column can be hidden. Defaults to true.
+  ///
+  /// When false, the column cannot be hidden via the header menu or the column chooser.
+  final bool canHide;
+
   /// Optional comparator function for sorting rows by this column.
   final int Function(dynamic a, dynamic b)? comparator;
 
@@ -78,6 +83,12 @@ class GridColumn {
   /// Column-level modular header builder for this specific column.
   final ColumnHeaderBuilder? headerBuilder;
 
+  /// Alignment for cell child widgets. Defaults to [Alignment.centerLeft].
+  final Alignment cellAlignment;
+
+  /// Alignment for column header child widgets. Defaults to [Alignment.center].
+  final Alignment headerAlignment;
+
   const GridColumn({
     required this.id,
     required this.label,
@@ -89,14 +100,20 @@ class GridColumn {
     this.isSortable = true,
     this.isResizable = true,
     this.isReorderable = true,
+    this.canHide = true,
     this.comparator,
     this.valueGetter,
     this.footerBuilder,
     this.cellBuilder,
     this.headerBuilder,
+    this.cellAlignment = Alignment.centerLeft,
+    this.headerAlignment = Alignment.center,
   }) : assert(minWidth >= 0, 'minWidth cannot be negative');
 
   bool get isFrozen => pin != GridColumnPin.none;
+
+  /// Alias for [canHide].
+  bool get isHideable => canHide;
 
   GridColumn copyWith({
     String? id,
@@ -109,11 +126,14 @@ class GridColumn {
     bool? isSortable,
     bool? isResizable,
     bool? isReorderable,
+    bool? canHide,
     int Function(dynamic a, dynamic b)? comparator,
     dynamic Function(dynamic rowData)? valueGetter,
     ColumnFooterBuilder? footerBuilder,
     ColumnCellBuilder<dynamic>? cellBuilder,
     ColumnHeaderBuilder? headerBuilder,
+    Alignment? cellAlignment,
+    Alignment? headerAlignment,
   }) {
     return GridColumn(
       id: id ?? this.id,
@@ -126,11 +146,14 @@ class GridColumn {
       isSortable: isSortable ?? this.isSortable,
       isResizable: isResizable ?? this.isResizable,
       isReorderable: isReorderable ?? this.isReorderable,
+      canHide: canHide ?? this.canHide,
       comparator: comparator ?? this.comparator,
       valueGetter: valueGetter ?? this.valueGetter,
       footerBuilder: footerBuilder ?? this.footerBuilder,
       cellBuilder: cellBuilder ?? this.cellBuilder,
       headerBuilder: headerBuilder ?? this.headerBuilder,
+      cellAlignment: cellAlignment ?? this.cellAlignment,
+      headerAlignment: headerAlignment ?? this.headerAlignment,
     );
   }
 
@@ -145,7 +168,10 @@ class GridColumn {
           isVisible == other.isVisible &&
           isSortable == other.isSortable &&
           isResizable == other.isResizable &&
-          isReorderable == other.isReorderable;
+          isReorderable == other.isReorderable &&
+          canHide == other.canHide &&
+          cellAlignment == other.cellAlignment &&
+          headerAlignment == other.headerAlignment;
 
   @override
   int get hashCode =>
@@ -153,9 +179,12 @@ class GridColumn {
       label.hashCode ^
       pin.hashCode ^
       isVisible.hashCode ^
-      isSortable.hashCode;
+      isSortable.hashCode ^
+      canHide.hashCode ^
+      cellAlignment.hashCode ^
+      headerAlignment.hashCode;
 
   @override
   String toString() =>
-      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible)';
+      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, cellAlignment: $cellAlignment, headerAlignment: $headerAlignment)';
 }
