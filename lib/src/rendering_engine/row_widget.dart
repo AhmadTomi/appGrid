@@ -94,40 +94,47 @@ class RowWidget<T> extends StatelessWidget {
     final horizontalLineColor = gridLineColor ??
         (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: effectiveReadOnly
-          ? null
-          : (onTap ?? () => controller.selectRow(indexInfo.displayIndex)),
-      child: Container(
-        width: totalWidth,
-        height: rowHeight,
-        decoration: BoxDecoration(
-          color: backgroundColor,
-        ),
-        child: Stack(
-          clipBehavior: Clip.hardEdge,
-          children: [
-            // Horizontal grid divider line (rendered underneath cells and vertical dividers)
-            if (showHorizontalGridLines)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                height: 1.0,
-                child: Container(
-                  color: horizontalLineColor,
-                ),
-              ),
-            Positioned.fill(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: children,
-              ),
-            ),
-          ],
-        ),
+    final rowContainer = Container(
+      width: totalWidth,
+      height: rowHeight,
+      decoration: BoxDecoration(
+        color: backgroundColor,
       ),
+      child: showHorizontalGridLines
+          ? Stack(
+              clipBehavior: Clip.hardEdge,
+              children: [
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: 1.0,
+                  child: Container(
+                    color: horizontalLineColor,
+                  ),
+                ),
+                Positioned.fill(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: children,
+                  ),
+                ),
+              ],
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: children,
+            ),
     );
+
+    if (onTap != null && !effectiveReadOnly) {
+      return GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: rowContainer,
+      );
+    }
+
+    return rowContainer;
   }
 }

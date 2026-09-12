@@ -45,6 +45,8 @@ class AppGridViewport<T> extends StatefulWidget {
   final ScrollPhysics? physics;
   final ComputedGridLayout? computedLayout;
   final bool readOnly;
+  final ValueChanged<RowIndexInfo>? onRowTap;
+  final ValueChanged<RowIndexInfo>? onRowDoubleTap;
 
   const AppGridViewport({
     super.key,
@@ -77,6 +79,8 @@ class AppGridViewport<T> extends StatefulWidget {
     this.verticalGridLineColor,
     this.physics,
     this.readOnly = false,
+    this.onRowTap,
+    this.onRowDoubleTap,
   });
 
   @override
@@ -89,10 +93,18 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
   ClampingScrollSimulation? _vFlingSimulation;
   ClampingScrollSimulation? _hFlingSimulation;
 
+  // Track double click timestamp and index for zero-latency single/double tap dispatch
+  int _lastRowTapIndex = -1;
+  int _lastRowTapTime = 0;
+
+  int? _lastSelectedDisplayIndex;
+
   @override
   void initState() {
     super.initState();
     widget.verticalScrollController.addListener(_onVerticalScroll);
+    widget.controller.addListener(_onControllerChanged);
+    _lastSelectedDisplayIndex = widget.controller.selectedDisplayIndex;
   }
 
   @override
@@ -102,14 +114,27 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
       oldWidget.verticalScrollController.removeListener(_onVerticalScroll);
       widget.verticalScrollController.addListener(_onVerticalScroll);
     }
+    if (oldWidget.controller != widget.controller) {
+      oldWidget.controller.removeListener(_onControllerChanged);
+      widget.controller.addListener(_onControllerChanged);
+      _lastSelectedDisplayIndex = widget.controller.selectedDisplayIndex;
+    }
   }
 
   @override
   void dispose() {
+    widget.controller.removeListener(_onControllerChanged);
     widget.verticalScrollController.removeListener(_onVerticalScroll);
     _cancelFling();
     _flingTicker?.dispose();
     super.dispose();
+  }
+
+  void _onControllerChanged() {
+    if (_lastSelectedDisplayIndex != widget.controller.selectedDisplayIndex) {
+      _lastSelectedDisplayIndex = widget.controller.selectedDisplayIndex;
+      if (mounted) setState(() {});
+    }
   }
 
   void _cancelFling() {
@@ -328,6 +353,19 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                         },
                         childCount: totalRows,
                         addRepaintBoundaries: false,
+                        findChildIndexCallback: (Key key) {
+                          if (key is ValueKey<String>) {
+                            final keyVal = key.value;
+                            if (keyVal.startsWith('grid_pos_row_')) {
+                              final origIndex = int.tryParse(keyVal.substring(13));
+                              if (origIndex != null) {
+                                final displayIndex = widget.controller.getDisplayIndex(origIndex);
+                                return displayIndex >= 0 ? displayIndex : null;
+                              }
+                            }
+                          }
+                          return null;
+                        },
                       ),
                     ),
                   ],
@@ -467,55 +505,69 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
     final centerPane = computedLayout.centerPane;
     final rightPane = computedLayout.rightPane;
 
-    return GestureDetector(
+    void handleRowInteraction({bool isPointerDown = false}) {
+      if (effectiveReadOnly) return;
+
+      // 1. Instant row selection with 0ms delay on mouse press down
+      widget.controller.selectRow(indexInfo.displayIndex);
+
+      // 2. Dispatch row callbacks with desktop-style double-click detection
+      // (Single click responds instantly; double click triggers on 2nd tap within 300ms)
+      if (isPointerDown) {
+        final now = DateTime.now().millisecondsSinceEpoch;
+        if (widget.onRowDoubleTap != null &&
+            _lastRowTapIndex == displayIndex &&
+            (now - _lastRowTapTime) <= 300) {
+          _lastRowTapTime = 0;
+          _lastRowTapIndex = -1;
+          widget.onRowDoubleTap?.call(indexInfo);
+        } else {
+          _lastRowTapTime = now;
+          _lastRowTapIndex = displayIndex;
+          widget.onRowTap?.call(indexInfo);
+        }
+      }
+    }
+
+    return Listener(
       behavior: HitTestBehavior.opaque,
-      onTap: effectiveReadOnly ? null : () => widget.controller.selectRow(indexInfo.displayIndex),
-      child: SizedBox(
-        key: ValueKey('grid_pos_row_${indexInfo.originalIndex}'),
-        height: widget.rowHeight,
-        child: Row(
+      onPointerDown: (event) {
+        if (!effectiveReadOnly &&
+            (event.buttons == kPrimaryMouseButton || event.buttons == 0)) {
+          handleRowInteraction(isPointerDown: true);
+        }
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: effectiveReadOnly ? null : () => handleRowInteraction(isPointerDown: false),
+        child: SizedBox(
+          key: ValueKey('grid_pos_row_${indexInfo.originalIndex}'),
+          height: widget.rowHeight,
+          child: Row(
           children: [
             // 1. Left Pinned Columns (Freezing - stays static horizontally)
             if (leftWidth > 0 && leftPane.columns.isNotEmpty)
               SizedBox(
                 width: leftWidth,
                 height: widget.rowHeight,
-                child: ClipRect(
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: RowWidget<T>(
-                          key: ValueKey('row_left_${indexInfo.originalIndex}'),
-                          controller: widget.controller,
-                          indexInfo: indexInfo,
-                          columns: leftPane.columns,
-                          columnWidths: leftPane.widths,
-                          columnOffsets: leftPane.offsets,
-                          rowHeight: widget.rowHeight,
-                          isSelected: isSelected,
-                          readOnly: effectiveReadOnly,
-                          selectedColor: widget.selectedRowColor,
-                          alternateRowColor: widget.alternateRowColor,
-                          evenRowColor: widget.evenRowColor,
-                          oddRowColor: widget.oddRowColor,
-                          gridLineColor: widget.gridLineColor,
-                          showHorizontalGridLines: widget.showHorizontalGridLines,
-                          showVerticalGridLines: widget.showVerticalGridLines,
-                          verticalGridLineColor: widget.verticalGridLineColor,
-                        ),
-                      ),
-                      if (widget.showVerticalGridLines)
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: 1.5,
-                          child: Container(
-                            color: widget.verticalGridLineColor ?? widget.gridLineColor ?? Theme.of(context).dividerColor.withAlpha(80),
-                          ),
-                        ),
-                    ],
-                  ),
+                child: RowWidget<T>(
+                  key: ValueKey('row_left_${indexInfo.originalIndex}'),
+                  controller: widget.controller,
+                  indexInfo: indexInfo,
+                  columns: leftPane.columns,
+                  columnWidths: leftPane.widths,
+                  columnOffsets: leftPane.offsets,
+                  rowHeight: widget.rowHeight,
+                  isSelected: isSelected,
+                  readOnly: effectiveReadOnly,
+                  selectedColor: widget.selectedRowColor,
+                  alternateRowColor: widget.alternateRowColor,
+                  evenRowColor: widget.evenRowColor,
+                  oddRowColor: widget.oddRowColor,
+                  gridLineColor: widget.gridLineColor,
+                  showHorizontalGridLines: widget.showHorizontalGridLines,
+                  showVerticalGridLines: widget.showVerticalGridLines,
+                  verticalGridLineColor: widget.verticalGridLineColor,
                 ),
               ),
 
@@ -550,49 +602,32 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
               SizedBox(
                 width: rightWidth,
                 height: widget.rowHeight,
-                child: ClipRect(
-                  child: Stack(
-                    children: [
-                      Positioned.fill(
-                        child: RowWidget<T>(
-                          key: ValueKey('row_right_${indexInfo.originalIndex}'),
-                          controller: widget.controller,
-                          indexInfo: indexInfo,
-                          columns: rightPane.columns,
-                          columnWidths: rightPane.widths,
-                          columnOffsets: rightPane.offsets,
-                          rowHeight: widget.rowHeight,
-                          isSelected: isSelected,
-                          readOnly: effectiveReadOnly,
-                          selectedColor: widget.selectedRowColor,
-                          alternateRowColor: widget.alternateRowColor,
-                          evenRowColor: widget.evenRowColor,
-                          oddRowColor: widget.oddRowColor,
-                          gridLineColor: widget.gridLineColor,
-                          showHorizontalGridLines: widget.showHorizontalGridLines,
-                          showVerticalGridLines: widget.showVerticalGridLines,
-                          verticalGridLineColor: widget.verticalGridLineColor,
-                        ),
-                      ),
-                      if (widget.showVerticalGridLines)
-                        Positioned(
-                          left: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: 1.5,
-                          child: Container(
-                            color: widget.verticalGridLineColor ?? widget.gridLineColor ?? Theme.of(context).dividerColor.withAlpha(80),
-                          ),
-                        ),
-                    ],
-                  ),
+                child: RowWidget<T>(
+                  key: ValueKey('row_right_${indexInfo.originalIndex}'),
+                  controller: widget.controller,
+                  indexInfo: indexInfo,
+                  columns: rightPane.columns,
+                  columnWidths: rightPane.widths,
+                  columnOffsets: rightPane.offsets,
+                  rowHeight: widget.rowHeight,
+                  isSelected: isSelected,
+                  readOnly: effectiveReadOnly,
+                  selectedColor: widget.selectedRowColor,
+                  alternateRowColor: widget.alternateRowColor,
+                  evenRowColor: widget.evenRowColor,
+                  oddRowColor: widget.oddRowColor,
+                  gridLineColor: widget.gridLineColor,
+                  showHorizontalGridLines: widget.showHorizontalGridLines,
+                  showVerticalGridLines: widget.showVerticalGridLines,
+                  verticalGridLineColor: widget.verticalGridLineColor,
                 ),
               ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 /// A horizontally virtualized center row pane that only updates its horizontal
@@ -669,24 +704,9 @@ class _CenterPaneRow<T> extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
       ),
-      child: Stack(
-        clipBehavior: Clip.hardEdge,
-        children: [
-          // Horizontal grid divider line across center viewport
-          if (showHorizontalGridLines)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              height: 1.0,
-              child: Container(
-                color: horizontalLineColor,
-              ),
-            ),
-          Positioned.fill(
-            child: AnimatedBuilder(
-              animation: horizontalScrollController,
-              builder: (context, _) {
+      child: AnimatedBuilder(
+        animation: horizontalScrollController,
+        builder: (context, _) {
           final double hScroll = horizontalScrollController.hasClients &&
                   horizontalScrollController.positions.isNotEmpty
               ? horizontalScrollController.positions.first.pixels
@@ -708,7 +728,12 @@ class _CenterPaneRow<T> extends StatelessWidget {
               : <GridColumn>[];
 
           if (visibleCenterCols.isEmpty) {
-            return const SizedBox.shrink();
+            return showHorizontalGridLines
+                ? Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Container(height: 1.0, color: horizontalLineColor),
+                  )
+                : const SizedBox.shrink();
           }
 
           final firstOffset = centerPane.offsets[visibleCenterCols.first.id] ?? 0.0;
@@ -716,6 +741,16 @@ class _CenterPaneRow<T> extends StatelessWidget {
           return Stack(
             clipBehavior: Clip.hardEdge,
             children: [
+              if (showHorizontalGridLines)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: 1.0,
+                  child: Container(
+                    color: horizontalLineColor,
+                  ),
+                ),
               Positioned(
                 left: firstOffset - hScroll,
                 top: 0,
@@ -748,9 +783,6 @@ class _CenterPaneRow<T> extends StatelessWidget {
           );
         },
       ),
-    ),
-  ],
-),
-);
-}
+    );
+  }
 }
