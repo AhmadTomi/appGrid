@@ -10,7 +10,7 @@ import '../controllers/app_grid_controller.dart';
 /// - [LogicalKeyboardKey.home]: jump to first visual row.
 /// - [LogicalKeyboardKey.end]: jump to last visual row.
 /// - [LogicalKeyboardKey.pageUp] / [LogicalKeyboardKey.pageDown]: jump selection by count of visible rows.
-class GridKeyboardHandler<T> extends StatelessWidget {
+class GridKeyboardHandler<T> extends StatefulWidget {
   final AppGridController<T> controller;
   final ScrollController verticalScrollController;
   final double viewportHeight;
@@ -19,6 +19,7 @@ class GridKeyboardHandler<T> extends StatelessWidget {
   final Widget child;
   final bool autofocus;
   final bool readOnly;
+  final DateTime Function()? clock;
 
   const GridKeyboardHandler({
     super.key,
@@ -30,10 +31,20 @@ class GridKeyboardHandler<T> extends StatelessWidget {
     required this.child,
     this.autofocus = false,
     this.readOnly = false,
+    this.clock,
   });
 
+  @override
+  State<GridKeyboardHandler<T>> createState() => _GridKeyboardHandlerState<T>();
+}
+
+class _GridKeyboardHandlerState<T> extends State<GridKeyboardHandler<T>> {
+  int _lastStepTime = 0;
+
+  DateTime get _now => widget.clock != null ? widget.clock!() : DateTime.now();
+
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
-    if (readOnly || controller.isReadOnly) {
+    if (widget.readOnly || widget.controller.isReadOnly) {
       return KeyEventResult.ignored;
     }
 
@@ -41,11 +52,11 @@ class GridKeyboardHandler<T> extends StatelessWidget {
       return KeyEventResult.ignored;
     }
 
-    final rowCount = controller.displayRowCount;
+    final rowCount = widget.controller.displayRowCount;
     if (rowCount == 0) return KeyEventResult.ignored;
 
-    final visibleRowCount = math.max(1, (viewportHeight / rowHeight).floor());
-    final currentDisplayIndex = controller.selectedDisplayIndex;
+    final visibleRowCount = math.max(1, (widget.viewportHeight / widget.rowHeight).floor());
+    final currentDisplayIndex = widget.controller.selectedDisplayIndex;
 
     int? targetIndex;
     final key = event.logicalKey;
@@ -73,6 +84,23 @@ class GridKeyboardHandler<T> extends StatelessWidget {
     final isPageUp = key == LogicalKeyboardKey.pageUp ||
         key == LogicalKeyboardKey.numpad9;
 
+    // Smooth Key Repeat Rate Pacing:
+    // When holding an arrow key, the OS generates repeat events at 30-60 Hz (every 16-33ms).
+    // Without pacing, multiple key repeats collapse into single frames, causing the selection
+    // to skip rows (e.g. jumping 2-4 rows at a time) and feel laggy.
+    // By pacing repeat events to ~45ms for row stepping (~22 rows/sec), every single row
+    // is rendered and stepped 1-by-1 smoothly without any frame jumps or skipped rows.
+    if (event is KeyRepeatEvent) {
+      final now = _now.millisecondsSinceEpoch;
+      final minInterval = (isPageDown || isPageUp) ? 140 : 45;
+      if (now - _lastStepTime < minInterval) {
+        return KeyEventResult.handled;
+      }
+      _lastStepTime = now;
+    } else if (event is KeyDownEvent) {
+      _lastStepTime = _now.millisecondsSinceEpoch;
+    }
+
     if (isHome) {
       targetIndex = 0;
     } else if (isEnd) {
@@ -99,13 +127,13 @@ class GridKeyboardHandler<T> extends StatelessWidget {
         key == LogicalKeyboardKey.numpadEnter ||
         key == LogicalKeyboardKey.space) {
       if (currentDisplayIndex != null) {
-        controller.selectRow(currentDisplayIndex);
+        widget.controller.selectRow(currentDisplayIndex);
         return KeyEventResult.handled;
       }
     }
 
     if (targetIndex != null) {
-      controller.selectRow(targetIndex);
+      widget.controller.selectRow(targetIndex);
       _scrollIntoView(targetIndex);
       return KeyEventResult.handled;
     }
@@ -114,40 +142,40 @@ class GridKeyboardHandler<T> extends StatelessWidget {
   }
 
   void _scrollIntoView(int displayIndex) {
-    if (!verticalScrollController.hasClients || viewportHeight <= 0) return;
+    if (!widget.verticalScrollController.hasClients || widget.viewportHeight <= 0) return;
 
-    final targetOffset = displayIndex * rowHeight;
-    final currentOffset = verticalScrollController.offset;
-    final maxVisibleOffset = currentOffset + viewportHeight - rowHeight;
+    final targetOffset = displayIndex * widget.rowHeight;
+    final currentOffset = widget.verticalScrollController.offset;
+    final maxVisibleOffset = currentOffset + widget.viewportHeight - widget.rowHeight;
 
-    final position = verticalScrollController.position;
+    final position = widget.verticalScrollController.position;
     final minScroll = position.minScrollExtent;
     final maxScroll = position.maxScrollExtent;
 
     if (targetOffset < currentOffset) {
       // Row is above current view -> scroll up
-      verticalScrollController.jumpTo(targetOffset.clamp(minScroll, maxScroll));
+      widget.verticalScrollController.jumpTo(targetOffset.clamp(minScroll, maxScroll));
     } else if (targetOffset > maxVisibleOffset) {
       // Row is below current view -> scroll down
-      final newOffset = targetOffset - viewportHeight + rowHeight;
-      verticalScrollController.jumpTo(newOffset.clamp(minScroll, maxScroll));
+      final newOffset = targetOffset - widget.viewportHeight + widget.rowHeight;
+      widget.verticalScrollController.jumpTo(newOffset.clamp(minScroll, maxScroll));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Focus(
-      focusNode: focusNode,
-      autofocus: autofocus,
+      focusNode: widget.focusNode,
+      autofocus: widget.autofocus,
       onKeyEvent: _handleKeyEvent,
       child: Listener(
         behavior: HitTestBehavior.translucent,
         onPointerDown: (_) {
-          if (!focusNode.hasFocus) {
-            focusNode.requestFocus();
+          if (!widget.focusNode.hasFocus) {
+            widget.focusNode.requestFocus();
           }
         },
-        child: child,
+        child: widget.child,
       ),
     );
   }

@@ -199,5 +199,136 @@ void main() {
       controller.dispose();
       focusNode.dispose();
     });
+
+    testWidgets('Holding arrow key steps smoothly 1-by-1 without skipping or jumping rows', (tester) async {
+      final items = List.generate(50, (i) => 'Row $i');
+      final controller = AppGridController<String>(
+        initialData: items,
+        columns: [
+          GridColumn(
+            id: 'col',
+            label: 'Items',
+            initialWidth: 300,
+            cellBuilder: (context, item, info) => Text(item as String),
+          ),
+        ],
+      );
+      final focusNode = FocusNode();
+
+      var testClock = DateTime(2026, 1, 1, 12, 0, 0);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 400,
+              height: 500,
+              child: AppGrid<String>(
+                controller: controller,
+                focusNode: focusNode,
+                autofocus: true,
+                rowHeight: 50.0,
+                headerHeight: 50.0,
+                clock: () => testClock,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(focusNode.hasFocus, isTrue);
+
+      // 1. Initial key down -> selects row 0
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+      expect(controller.selectedDisplayIndex, equals(0));
+
+      // 2. Holding arrow down: simulate rapid repeat events (every 10ms)
+      // Rapid repeat before 45ms interval should be coalesced / ignored
+      testClock = testClock.add(const Duration(milliseconds: 10));
+      await tester.sendKeyRepeatEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+      expect(controller.selectedDisplayIndex, equals(0), reason: 'Repeat too soon (< 45ms) should not jump');
+
+      // 3. After 50ms, the next repeat event advances strictly by 1 row
+      testClock = testClock.add(const Duration(milliseconds: 50));
+      await tester.sendKeyRepeatEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+      expect(controller.selectedDisplayIndex, equals(1), reason: 'Paced repeat advances strictly 1-by-1 to row 1');
+
+      // 4. Another 50ms later -> advances strictly to row 2
+      testClock = testClock.add(const Duration(milliseconds: 50));
+      await tester.sendKeyRepeatEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+      expect(controller.selectedDisplayIndex, equals(2), reason: 'Paced repeat advances strictly 1-by-1 to row 2');
+
+      // Release key
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+
+      controller.dispose();
+      focusNode.dispose();
+    });
+
+    testWidgets('Keyboard arrow selection updates rows without rebuilding root AppGrid', (tester) async {
+      var rootBuildCount = 0;
+      final items = List.generate(50, (i) => 'Row $i');
+      final controller = AppGridController<String>(
+        initialData: items,
+        columns: [
+          GridColumn(
+            id: 'col',
+            label: 'Items',
+            initialWidth: 300,
+            cellBuilder: (context, item, info) => Text(item as String),
+          ),
+        ],
+      );
+      final focusNode = FocusNode();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: StatefulBuilder(
+              builder: (context, setState) {
+                rootBuildCount++;
+                return SizedBox(
+                  width: 400,
+                  height: 500,
+                  child: AppGrid<String>(
+                    controller: controller,
+                    focusNode: focusNode,
+                    autofocus: true,
+                    rowHeight: 50.0,
+                    headerHeight: 50.0,
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(rootBuildCount, equals(1));
+      expect(focusNode.hasFocus, isTrue);
+
+      // Step row down
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+      expect(controller.selectedDisplayIndex, equals(0));
+
+      // Step row down again
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pump();
+      expect(controller.selectedDisplayIndex, equals(1));
+
+      // Root AppGrid must NOT rebuild on selection changes!
+      expect(rootBuildCount, equals(1));
+
+      controller.dispose();
+      focusNode.dispose();
+    });
   });
 }
