@@ -17,20 +17,26 @@ class GridState {
   /// Visibility flag for each column keyed by its ID.
   final Map<String, bool> columnVisibility;
 
+  /// Whether the table is in compact mode.
+  final bool compactMode;
+
   const GridState({
     required this.columnOrder,
     this.sortCriteria,
     required this.columnVisibility,
+    this.compactMode = false,
   });
 
   /// Serializes the state to a map.
   ///
-  /// Strictly contains only columnOrder, sortCriteria, and columnVisibility.
+  /// Strictly contains only columnOrder, sortCriteria, columnVisibility, and compactMode.
+  /// Column widths are never serialized.
   Map<String, dynamic> toMap() {
     return {
       'columnOrder': List<String>.from(columnOrder),
       'sortCriteria': sortCriteria?.toJson(),
       'columnVisibility': Map<String, bool>.from(columnVisibility),
+      'compactMode': compactMode,
     };
   }
 
@@ -51,6 +57,7 @@ class GridState {
             (k, v) => MapEntry(k.toString(), v as bool),
           ) ??
           const {},
+      compactMode: (map['compactMode'] as bool?) ?? false,
     );
   }
 
@@ -62,6 +69,8 @@ class GridState {
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! GridState) return false;
+
+    if (compactMode != other.compactMode) return false;
 
     if (columnOrder.length != other.columnOrder.length) return false;
     for (var i = 0; i < columnOrder.length; i++) {
@@ -80,9 +89,9 @@ class GridState {
 
   @override
   int get hashCode =>
-      Object.hash(Object.hashAll(columnOrder), sortCriteria, Object.hashAll(columnVisibility.entries));
+      Object.hash(Object.hashAll(columnOrder), sortCriteria, Object.hashAll(columnVisibility.entries), compactMode);
 
   @override
   String toString() =>
-      'GridState(columnOrder: $columnOrder, sortCriteria: $sortCriteria, columnVisibility: $columnVisibility)';
+      'GridState(columnOrder: $columnOrder, sortCriteria: $sortCriteria, columnVisibility: $columnVisibility, compactMode: $compactMode)';
 }

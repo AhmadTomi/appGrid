@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import '../models/grid_column.dart';
+import '../models/compact_column_group.dart';
 
 /// Range of indices currently visible within the virtualized viewport window.
 class VirtualizedRange {
@@ -84,6 +85,47 @@ class VirtualizedGridLayout {
     // Add 1 buffer column left and right if available
     final int bufferedStart = math.max(0, startIndex - 1);
     final int bufferedEnd = math.min(columns.length - 1, endIndex + 1);
+
+    return VirtualizedRange(bufferedStart, bufferedEnd);
+  }
+
+  /// Computes the horizontal visible group range for unpinned scrollable column groups.
+  static VirtualizedRange computeGroupRange({
+    required double scrollOffset,
+    required double viewportWidth,
+    required List<CompactColumnGroup> groups,
+    required Map<String, double> widths,
+    required Map<String, double> offsets,
+  }) {
+    if (groups.isEmpty || viewportWidth <= 0) {
+      return const VirtualizedRange(0, -1);
+    }
+
+    final double startX = math.max(0.0, scrollOffset);
+    final double endX = startX + viewportWidth;
+
+    int startIndex = -1;
+    int endIndex = -1;
+
+    for (var i = 0; i < groups.length; i++) {
+      final group = groups[i];
+      final colX = offsets[group.topColumn.id] ?? 0.0;
+      final colW = widths[group.topColumn.id] ?? group.initialWidth;
+      final colRight = colX + colW;
+
+      // Check intersection between [colX, colRight] and [startX, endX]
+      if (colRight > startX && colX < endX) {
+        if (startIndex == -1) startIndex = i;
+        endIndex = i;
+      }
+    }
+
+    if (startIndex == -1) {
+      return const VirtualizedRange(0, -1);
+    }
+
+    final int bufferedStart = math.max(0, startIndex - 1);
+    final int bufferedEnd = math.min(groups.length - 1, endIndex + 1);
 
     return VirtualizedRange(bufferedStart, bufferedEnd);
   }

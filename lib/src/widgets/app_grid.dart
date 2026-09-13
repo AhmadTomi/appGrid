@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/grid_column.dart';
+import '../models/compact_column_group.dart';
 import '../models/row_index_info.dart';
 import '../models/sort_criteria.dart';
 import '../controllers/app_grid_controller.dart';
@@ -97,6 +98,9 @@ class AppGrid<T> extends StatefulWidget {
   final bool autofocus;
   final double infiniteScrollThreshold;
   final bool autoStretch;
+
+  /// Whether the table is rendered in compact mode with 2 values (top and bottom) per merged cell/header.
+  final bool compactMode;
 
   /// Optional widget displayed when the table has 0 display rows.
   final Widget? emptyWidget;
@@ -197,6 +201,7 @@ class AppGrid<T> extends StatefulWidget {
     this.autofocus = true,
     this.infiniteScrollThreshold = 0.8,
     this.autoStretch = true,
+    this.compactMode = false,
     this.emptyWidget,
     this.isLoading,
     this.loadingWidget,
@@ -254,7 +259,13 @@ class _AppGridState<T> extends State<AppGrid<T>> {
   @override
   void initState() {
     super.initState();
-    _layoutManager = ColumnLayoutManager(autoStretchEnabled: widget.autoStretch);
+    if (widget.compactMode) {
+      widget.controller.compactMode = true;
+    }
+    _layoutManager = ColumnLayoutManager(
+      autoStretchEnabled: widget.autoStretch,
+      compactMode: widget.controller.compactMode,
+    );
     _layoutManager.addListener(_onLayoutChanged);
 
     if (widget.verticalScrollController != null) {
@@ -298,6 +309,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     _lastIsLoading = widget.isLoading ?? widget.controller.isLoading;
     _lastFetchMode = widget.controller.fetchMode;
     _lastSortCriteria = widget.controller.sortCriteria;
+    _lastCompactMode = widget.controller.compactMode;
 
     widget.controller.addListener(_onControllerChanged);
   }
@@ -307,6 +319,10 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     super.didUpdateWidget(oldWidget);
     if (widget.onRowSelected != null) {
       widget.controller.onRowSelected = widget.onRowSelected;
+    }
+    if (widget.compactMode != oldWidget.compactMode) {
+      widget.controller.compactMode = widget.compactMode;
+      _layoutManager.compactMode = widget.compactMode;
     }
     if (widget.readOnly != oldWidget.readOnly && widget.readOnly) {
       if (widget.controller.selectedOriginalIndex != null) {
@@ -377,6 +393,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
   int _lastVisibleColCount = 0;
   bool _lastIsLoading = false;
   bool _lastIsColumnChooserOpen = false;
+  bool _lastCompactMode = false;
   DataFetchMode _lastFetchMode = DataFetchMode.infiniteScroll;
 
   void _onControllerChanged() {
@@ -387,6 +404,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     final currentLoading = widget.isLoading ?? widget.controller.isLoading;
     final currentFetchMode = widget.controller.fetchMode;
     final currentColumnChooser = widget.controller.isColumnChooserOpen;
+    final currentCompact = widget.controller.compactMode;
 
     final sortChanged = _lastSortCriteria != currentSort;
     if (sortChanged) {
@@ -396,7 +414,14 @@ class _AppGridState<T> extends State<AppGrid<T>> {
       }
     }
 
+    final compactChanged = _lastCompactMode != currentCompact;
+    if (compactChanged) {
+      _lastCompactMode = currentCompact;
+      _layoutManager.compactMode = currentCompact;
+    }
+
     final onlySelectionChanged = !sortChanged &&
+        !compactChanged &&
         _lastSelectedDisplayIndex != currentSelection &&
         _lastRowCount == currentRows &&
         _lastVisibleColCount == currentCols &&
@@ -438,7 +463,36 @@ class _AppGridState<T> extends State<AppGrid<T>> {
 
     // Estimate width at ~9px per character + padding
     final estimatedWidth = math.max(column.minWidth, maxTextLength * 9.5 + 32.0);
-    _layoutManager.autoFitColumn(column: column, contentWidth: estimatedWidth);
+    _layoutManager.autoFitColumn(column: column, contentWidth: estimatedWidth, horizontalPadding: 0.0);
+  }
+
+  void _handleAutoFitGroup(CompactColumnGroup group) {
+    double maxTextLength = math.max(
+      group.topColumn.label.length.toDouble(),
+      group.bottomColumn?.label.length.toDouble() ?? 0.0,
+    );
+    final rowCount = widget.controller.displayRowCount;
+    final sampleCount = math.min(rowCount, 200);
+
+    for (var r = 0; r < sampleCount; r++) {
+      final rowData = widget.controller.getRowByDisplayIndex(r);
+      final topVal = group.topColumn.valueGetter != null
+          ? group.topColumn.valueGetter!(rowData)
+          : '';
+      final topLen = topVal?.toString().length.toDouble() ?? 0.0;
+      if (topLen > maxTextLength) maxTextLength = topLen;
+
+      if (group.bottomColumn != null) {
+        final botVal = group.bottomColumn!.valueGetter != null
+            ? group.bottomColumn!.valueGetter!(rowData)
+            : '';
+        final botLen = botVal?.toString().length.toDouble() ?? 0.0;
+        if (botLen > maxTextLength) maxTextLength = botLen;
+      }
+    }
+
+    final estimatedWidth = math.max(group.minWidth, maxTextLength * 9.5 + 32.0);
+    _layoutManager.autoFitColumnGroup(group: group, contentWidth: estimatedWidth, horizontalPadding: 0.0);
   }
 
   @override
@@ -454,15 +508,21 @@ class _AppGridState<T> extends State<AppGrid<T>> {
         final hasFooter = widget.footerBuilder != null ||
             widget.footerHeight != null ||
             widget.controller.visibleColumns.any((c) => c.footerBuilder != null);
-        final footerH = hasFooter ? (widget.footerHeight ?? 40.0) : 0.0;
+        final bool isCompact = widget.controller.compactMode;
+        final double effectiveRowHeight = isCompact ? widget.rowHeight * 2.0 : widget.rowHeight;
+        final double effectiveHeaderHeight = isCompact ? widget.headerHeight * 2.0 : widget.headerHeight;
+        final footerH = hasFooter
+            ? ((widget.footerHeight ?? 40.0) * (isCompact ? 2.0 : 1.0))
+            : 0.0;
         final hasPagination = widget.showPaginationBar &&
             widget.controller.fetchMode == DataFetchMode.pagination;
         final paginationH = hasPagination ? 52.0 : 0.0;
-        final viewportHeight = math.max(0.0, totalHeight - widget.headerHeight - footerH - paginationH);
+        final viewportHeight = math.max(0.0, totalHeight - effectiveHeaderHeight - footerH - paginationH);
 
         final computedLayout = _layoutManager.computeLayout(
           visibleColumns: widget.controller.visibleColumns,
           availableViewportWidth: innerWidth,
+          compactMode: isCompact,
         );
 
         final double leftWidth = computedLayout.leftPane.totalWidth;
@@ -476,7 +536,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
             controller: widget.controller,
             verticalScrollController: _verticalScrollController,
             viewportHeight: viewportHeight,
-            rowHeight: widget.rowHeight,
+            rowHeight: effectiveRowHeight,
             focusNode: _focusNode,
             autofocus: widget.autofocus,
             readOnly: effectiveReadOnly,
@@ -505,7 +565,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           children: [
                             // 1. Header Bar
                             SizedBox(
-                              height: widget.headerHeight,
+                              height: effectiveHeaderHeight,
                               width: innerWidth,
                               child: _buildHeader(
                                 totalWidth: innerWidth,
@@ -513,6 +573,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                 centerWidth: centerWidth,
                                 rightWidth: rightWidth,
                                 layout: computedLayout,
+                                height: effectiveHeaderHeight,
                               ),
                             ),
 
@@ -533,9 +594,9 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                       computedLayout: computedLayout,
                                       verticalScrollController: _verticalScrollController,
                                       horizontalScrollController: _horizontalScrollController,
-                                      rowHeight: widget.rowHeight,
-                                      headerHeight: widget.headerHeight,
-                                      footerHeight: widget.footerHeight,
+                                      rowHeight: effectiveRowHeight,
+                                      headerHeight: effectiveHeaderHeight,
+                                      footerHeight: hasFooter ? footerH : null,
                                       hasFooter: hasFooter,
                                       selectedRowColor: widget.selectedRowColor,
                                       readOnly: effectiveReadOnly,
@@ -629,12 +690,13 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     required double centerWidth,
     required double rightWidth,
     required ComputedGridLayout layout,
+    required double height,
   }) {
     return ClipRect(
       child: Stack(
         children: [
           // Center Scrollable Header (Horizontally Virtualized)
-          if (centerWidth > 0 && layout.centerPane.columns.isNotEmpty)
+          if (centerWidth > 0 && layout.centerPane.groups.isNotEmpty)
             Positioned(
               left: leftWidth,
               width: centerWidth,
@@ -651,22 +713,22 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                               _horizontalScrollController.positions.isNotEmpty
                           ? _horizontalScrollController.positions.first.pixels
                           : 0.0;
-                      final centerColRange = VirtualizedGridLayout.computeColumnRange(
+                      final centerGroupRange = VirtualizedGridLayout.computeGroupRange(
                         scrollOffset: hScroll,
                         viewportWidth: centerWidth,
-                        columns: layout.centerPane.columns,
+                        groups: layout.centerPane.groups,
                         widths: layout.centerPane.widths,
                         offsets: layout.centerPane.offsets,
                       );
-                      final visibleCols = centerColRange.count > 0
-                          ? layout.centerPane.columns.sublist(
-                              centerColRange.startIndex,
-                              centerColRange.endIndex + 1,
+                      final visibleGroups = centerGroupRange.count > 0
+                          ? layout.centerPane.groups.sublist(
+                              centerGroupRange.startIndex,
+                              centerGroupRange.endIndex + 1,
                             )
-                          : <GridColumn>[];
-                      if (visibleCols.isEmpty) return const SizedBox.shrink();
+                          : <CompactColumnGroup>[];
+                      if (visibleGroups.isEmpty) return const SizedBox.shrink();
 
-                      final firstOffset = layout.centerPane.offsets[visibleCols.first.id] ?? 0.0;
+                      final firstOffset = layout.centerPane.offsets[visibleGroups.first.topColumn.id] ?? 0.0;
 
                       return Stack(
                         clipBehavior: Clip.hardEdge,
@@ -678,15 +740,17 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                for (final col in visibleCols)
+                                for (final grp in visibleGroups)
                                   AppGridHeaderCell<T>(
                                     controller: widget.controller,
                                     layoutManager: _layoutManager,
-                                    column: col,
-                                    width: layout.centerPane.widths[col.id]!,
-                                    height: widget.headerHeight,
+                                    column: grp.topColumn,
+                                    group: grp,
+                                    width: layout.centerPane.widths[grp.topColumn.id]!,
+                                    height: height,
                                     customHeaderBuilder: widget.headerBuilder,
                                     onAutoFit: _handleAutoFit,
+                                    onAutoFitGroup: _handleAutoFitGroup,
                                     headerBackgroundColor: widget.headerBackgroundColor,
                                     gridLineColor: widget.gridLineColor,
                                     verticalGridLineColor: widget.verticalGridLineColor,
@@ -705,7 +769,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
             ),
 
           // Left Pinned Header (Stays static)
-          if (leftWidth > 0 && layout.leftPane.columns.isNotEmpty)
+          if (leftWidth > 0 && layout.leftPane.groups.isNotEmpty)
             Positioned(
               left: 0,
               width: leftWidth,
@@ -718,15 +782,17 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      for (final col in layout.leftPane.columns)
+                      for (final grp in layout.leftPane.groups)
                         AppGridHeaderCell<T>(
                           controller: widget.controller,
                           layoutManager: _layoutManager,
-                          column: col,
-                          width: layout.leftPane.widths[col.id]!,
-                          height: widget.headerHeight,
+                          column: grp.topColumn,
+                          group: grp,
+                          width: layout.leftPane.widths[grp.topColumn.id]!,
+                          height: height,
                           customHeaderBuilder: widget.headerBuilder,
                           onAutoFit: _handleAutoFit,
+                          onAutoFitGroup: _handleAutoFitGroup,
                           headerBackgroundColor: widget.headerBackgroundColor,
                           gridLineColor: widget.gridLineColor,
                           verticalGridLineColor: widget.verticalGridLineColor,
@@ -740,7 +806,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
             ),
 
           // Right Pinned Header (Stays static)
-          if (rightWidth > 0 && layout.rightPane.columns.isNotEmpty)
+          if (rightWidth > 0 && layout.rightPane.groups.isNotEmpty)
             Positioned(
               right: 0,
               width: rightWidth,
@@ -753,15 +819,17 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      for (final col in layout.rightPane.columns)
+                      for (final grp in layout.rightPane.groups)
                         AppGridHeaderCell<T>(
                           controller: widget.controller,
                           layoutManager: _layoutManager,
-                          column: col,
-                          width: layout.rightPane.widths[col.id]!,
-                          height: widget.headerHeight,
+                          column: grp.topColumn,
+                          group: grp,
+                          width: layout.rightPane.widths[grp.topColumn.id]!,
+                          height: height,
                           customHeaderBuilder: widget.headerBuilder,
                           onAutoFit: _handleAutoFit,
+                          onAutoFitGroup: _handleAutoFitGroup,
                           headerBackgroundColor: widget.headerBackgroundColor,
                           gridLineColor: widget.gridLineColor,
                           verticalGridLineColor: widget.verticalGridLineColor,
@@ -798,7 +866,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
       child: Stack(
         children: [
           // Center Scrollable Footer (Horizontally Virtualized)
-          if (centerWidth > 0 && layout.centerPane.columns.isNotEmpty)
+          if (centerWidth > 0 && layout.centerPane.groups.isNotEmpty)
             Positioned(
               left: leftWidth,
               width: centerWidth,
@@ -815,22 +883,22 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                               _horizontalScrollController.positions.isNotEmpty
                           ? _horizontalScrollController.positions.first.pixels
                           : 0.0;
-                      final centerColRange = VirtualizedGridLayout.computeColumnRange(
+                      final centerGroupRange = VirtualizedGridLayout.computeGroupRange(
                         scrollOffset: hScroll,
                         viewportWidth: centerWidth,
-                        columns: layout.centerPane.columns,
+                        groups: layout.centerPane.groups,
                         widths: layout.centerPane.widths,
                         offsets: layout.centerPane.offsets,
                       );
-                      final visibleCols = centerColRange.count > 0
-                          ? layout.centerPane.columns.sublist(
-                              centerColRange.startIndex,
-                              centerColRange.endIndex + 1,
+                      final visibleGroups = centerGroupRange.count > 0
+                          ? layout.centerPane.groups.sublist(
+                              centerGroupRange.startIndex,
+                              centerGroupRange.endIndex + 1,
                             )
-                          : <GridColumn>[];
-                      if (visibleCols.isEmpty) return const SizedBox.shrink();
+                          : <CompactColumnGroup>[];
+                      if (visibleGroups.isEmpty) return const SizedBox.shrink();
 
-                      final firstOffset = layout.centerPane.offsets[visibleCols.first.id] ?? 0.0;
+                      final firstOffset = layout.centerPane.offsets[visibleGroups.first.topColumn.id] ?? 0.0;
 
                       return Stack(
                         clipBehavior: Clip.hardEdge,
@@ -842,10 +910,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                for (final col in visibleCols)
+                                for (final grp in visibleGroups)
                                   AppGridFooterCell(
-                                    column: col,
-                                    width: layout.centerPane.widths[col.id]!,
+                                    column: grp.topColumn,
+                                    group: grp,
+                                    width: layout.centerPane.widths[grp.topColumn.id]!,
                                     height: footerHeight,
                                     currentVisibleData: visibleData,
                                     customFooterBuilder: widget.footerBuilder,
@@ -866,7 +935,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
             ),
 
           // Left Pinned Footer
-          if (leftWidth > 0 && layout.leftPane.columns.isNotEmpty)
+          if (leftWidth > 0 && layout.leftPane.groups.isNotEmpty)
             Positioned(
               left: 0,
               width: leftWidth,
@@ -879,10 +948,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      for (final col in layout.leftPane.columns)
+                      for (final grp in layout.leftPane.groups)
                         AppGridFooterCell(
-                          column: col,
-                          width: layout.leftPane.widths[col.id]!,
+                          column: grp.topColumn,
+                          group: grp,
+                          width: layout.leftPane.widths[grp.topColumn.id]!,
                           height: footerHeight,
                           currentVisibleData: visibleData,
                           customFooterBuilder: widget.footerBuilder,
@@ -898,7 +968,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
             ),
 
           // Right Pinned Footer
-          if (rightWidth > 0 && layout.rightPane.columns.isNotEmpty)
+          if (rightWidth > 0 && layout.rightPane.groups.isNotEmpty)
             Positioned(
               right: 0,
               width: rightWidth,
@@ -911,10 +981,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      for (final col in layout.rightPane.columns)
+                      for (final grp in layout.rightPane.groups)
                         AppGridFooterCell(
-                          column: col,
-                          width: layout.rightPane.widths[col.id]!,
+                          column: grp.topColumn,
+                          group: grp,
+                          width: layout.rightPane.widths[grp.topColumn.id]!,
                           height: footerHeight,
                           currentVisibleData: visibleData,
                           customFooterBuilder: widget.footerBuilder,

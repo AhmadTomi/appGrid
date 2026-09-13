@@ -95,5 +95,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('MacBook Pro 16" M3 Max'), findsOneWidget);
+
+    // Toggle Compact Mode
+    expect(find.text('Compact Mode: OFF'), findsOneWidget);
+    await tester.tap(find.text('Compact Mode: OFF'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Compact Mode: ON'), findsOneWidget);
+    expect(find.textContaining('Compact Mode Active'), findsOneWidget);
   });
 }

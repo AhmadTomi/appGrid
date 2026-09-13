@@ -29,7 +29,7 @@ void main() {
       expect(jsonStr.contains('width'), isFalse);
 
       // Check allowed keys only
-      expect(decodedMap.keys.toSet(), equals({'columnOrder', 'sortCriteria', 'columnVisibility'}));
+      expect(decodedMap.keys.toSet(), equals({'columnOrder', 'sortCriteria', 'columnVisibility', 'compactMode'}));
       expect(decodedMap['columnOrder'], equals(['col_b', 'col_c', 'col_a']));
       expect(decodedMap['columnVisibility']['col_b'], equals(false));
       expect(decodedMap['sortCriteria']['columnId'], equals('col_c'));

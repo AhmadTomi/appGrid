@@ -68,6 +68,10 @@ class GridColumn {
   /// When false, the column cannot be hidden via the header menu or the column chooser.
   final bool canHide;
 
+  /// Whether this column can be merged with an adjacent [canCompact] column in compact mode.
+  /// Defaults to true.
+  final bool canCompact;
+
   /// Optional comparator function for sorting rows by this column.
   final int Function(dynamic a, dynamic b)? comparator;
 
@@ -101,6 +105,7 @@ class GridColumn {
     this.isResizable = true,
     this.isReorderable = true,
     this.canHide = true,
+    this.canCompact = true,
     this.comparator,
     this.valueGetter,
     this.footerBuilder,
@@ -127,6 +132,7 @@ class GridColumn {
     bool? isResizable,
     bool? isReorderable,
     bool? canHide,
+    bool? canCompact,
     int Function(dynamic a, dynamic b)? comparator,
     dynamic Function(dynamic rowData)? valueGetter,
     ColumnFooterBuilder? footerBuilder,
@@ -147,6 +153,7 @@ class GridColumn {
       isResizable: isResizable ?? this.isResizable,
       isReorderable: isReorderable ?? this.isReorderable,
       canHide: canHide ?? this.canHide,
+      canCompact: canCompact ?? this.canCompact,
       comparator: comparator ?? this.comparator,
       valueGetter: valueGetter ?? this.valueGetter,
       footerBuilder: footerBuilder ?? this.footerBuilder,
@@ -170,6 +177,7 @@ class GridColumn {
           isResizable == other.isResizable &&
           isReorderable == other.isReorderable &&
           canHide == other.canHide &&
+          canCompact == other.canCompact &&
           cellAlignment == other.cellAlignment &&
           headerAlignment == other.headerAlignment;
 
@@ -181,10 +189,11 @@ class GridColumn {
       isVisible.hashCode ^
       isSortable.hashCode ^
       canHide.hashCode ^
+      canCompact.hashCode ^
       cellAlignment.hashCode ^
       headerAlignment.hashCode;
 
   @override
   String toString() =>
-      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, cellAlignment: $cellAlignment, headerAlignment: $headerAlignment)';
+      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, canCompact: $canCompact, cellAlignment: $cellAlignment, headerAlignment: $headerAlignment)';
 }

@@ -4,7 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
-import '../models/grid_column.dart';
+import '../models/compact_column_group.dart';
 import '../models/data_fetch_mode.dart';
 import '../models/row_index_info.dart';
 import '../controllers/app_grid_controller.dart';
@@ -555,6 +555,7 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                   controller: widget.controller,
                   indexInfo: indexInfo,
                   columns: leftPane.columns,
+                  groups: leftPane.groups,
                   columnWidths: leftPane.widths,
                   columnOffsets: leftPane.offsets,
                   rowHeight: widget.rowHeight,
@@ -607,6 +608,7 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                   controller: widget.controller,
                   indexInfo: indexInfo,
                   columns: rightPane.columns,
+                  groups: rightPane.groups,
                   columnWidths: rightPane.widths,
                   columnOffsets: rightPane.offsets,
                   rowHeight: widget.rowHeight,
@@ -712,22 +714,22 @@ class _CenterPaneRow<T> extends StatelessWidget {
               ? horizontalScrollController.positions.first.pixels
               : 0.0;
 
-          final centerColRange = VirtualizedGridLayout.computeColumnRange(
+          final centerGroupRange = VirtualizedGridLayout.computeGroupRange(
             scrollOffset: hScroll,
             viewportWidth: centerViewportWidth,
-            columns: centerPane.columns,
+            groups: centerPane.groups,
             widths: centerPane.widths,
             offsets: centerPane.offsets,
           );
 
-          final visibleCenterCols = centerColRange.count > 0
-              ? centerPane.columns.sublist(
-                  centerColRange.startIndex,
-                  centerColRange.endIndex + 1,
+          final visibleCenterGroups = centerGroupRange.count > 0
+              ? centerPane.groups.sublist(
+                  centerGroupRange.startIndex,
+                  centerGroupRange.endIndex + 1,
                 )
-              : <GridColumn>[];
+              : <CompactColumnGroup>[];
 
-          if (visibleCenterCols.isEmpty) {
+          if (visibleCenterGroups.isEmpty) {
             return showHorizontalGridLines
                 ? Align(
                     alignment: Alignment.bottomCenter,
@@ -736,7 +738,7 @@ class _CenterPaneRow<T> extends StatelessWidget {
                 : const SizedBox.shrink();
           }
 
-          final firstOffset = centerPane.offsets[visibleCenterCols.first.id] ?? 0.0;
+          final firstOffset = centerPane.offsets[visibleCenterGroups.first.topColumn.id] ?? 0.0;
 
           return Stack(
             clipBehavior: Clip.hardEdge,
@@ -755,15 +757,16 @@ class _CenterPaneRow<T> extends StatelessWidget {
                 left: firstOffset - hScroll,
                 top: 0,
                 bottom: 0,
-                width: visibleCenterCols.fold<double>(
+                width: visibleCenterGroups.fold<double>(
                   0.0,
-                  (s, c) => s + (centerPane.widths[c.id] ?? c.initialWidth),
+                  (s, g) => s + (centerPane.widths[g.topColumn.id] ?? g.initialWidth),
                 ),
                 child: RowWidget<T>(
                   key: ValueKey('row_center_${indexInfo.originalIndex}'),
                   controller: controller,
                   indexInfo: indexInfo,
-                  columns: visibleCenterCols,
+                  columns: centerPane.columns,
+                  groups: visibleCenterGroups,
                   columnWidths: centerPane.widths,
                   columnOffsets: centerPane.offsets,
                   rowHeight: rowHeight,

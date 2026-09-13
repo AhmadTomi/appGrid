@@ -70,6 +70,7 @@ class AppGridController<T> extends ChangeNotifier {
   bool _isSorting = false;
   bool _isReadOnly = false;
   bool _isColumnChooserOpen = false;
+  bool _compactMode = false;
 
   /// Row count threshold above which sorting is automatically offloaded to a background Isolate.
   int isolateSortThreshold;
@@ -85,10 +86,12 @@ class AppGridController<T> extends ChangeNotifier {
     this.isolateSortThreshold = 2000,
     bool isLoading = false,
     bool isReadOnly = false,
+    bool compactMode = false,
   })  : _data = List<T>.from(initialData),
         _columns = List<GridColumn>.from(columns),
         _isLoading = isLoading,
-        _isReadOnly = isReadOnly {
+        _isReadOnly = isReadOnly,
+        _compactMode = compactMode {
     _streamingThrottler = FrameBatchThrottler<MapEntry<int, T>>(
       onFlush: _applyFlushedBatch,
     );
@@ -149,6 +152,32 @@ class AppGridController<T> extends ChangeNotifier {
       }
       notifyListeners();
     }
+  }
+
+  /// Whether the table is currently in compact mode.
+  bool get compactMode => _compactMode;
+
+  /// Sets compact mode on or off.
+  ///
+  /// When enabled, active column sorting is automatically reset/cleared,
+  /// the column chooser dialog is closed, and column sorting and hiding are disabled.
+  set compactMode(bool value) {
+    if (_compactMode != value) {
+      _compactMode = value;
+      if (value) {
+        if (_sortCriteria != null) {
+          _sortCriteria = null;
+          _recomputeIndices();
+        }
+        closeColumnChooser();
+      }
+      notifyListeners();
+    }
+  }
+
+  /// Helper method to toggle or set compact mode.
+  void setCompactMode(bool value) {
+    compactMode = value;
   }
 
   int? get selectedOriginalIndex => _isReadOnly ? null : _selectedOriginalIndex;
@@ -540,7 +569,7 @@ class AppGridController<T> extends ChangeNotifier {
   /// For large datasets (>= [isolateSortThreshold]), sorting is automatically
   /// offloaded to a background [Isolate] to maintain 60 FPS without UI jank.
   Future<void> sortByColumn(String columnId, {SortDirection? direction}) async {
-    if (_isSorting) return;
+    if (_isSorting || _compactMode) return;
 
     final col = _columns.firstWhere(
       (c) => c.id == columnId,
@@ -677,11 +706,31 @@ class AppGridController<T> extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Reorders a group of columns (e.g. a merged compact pair) together to the position of [targetColumnId].
+  void reorderColumnGroup({
+    required List<String> draggedIds,
+    required String targetColumnId,
+  }) {
+    if (draggedIds.isEmpty || draggedIds.contains(targetColumnId)) return;
+    for (final id in draggedIds) {
+      _columnOrder.remove(id);
+    }
+    final targetIndex = _columnOrder.indexOf(targetColumnId);
+    if (targetIndex != -1) {
+      _columnOrder.insertAll(targetIndex, draggedIds);
+    } else {
+      _columnOrder.addAll(draggedIds);
+    }
+    notifyListeners();
+  }
+
   /// Sets visibility of a column.
   ///
   /// If [isVisible] is false and the column has [GridColumn.canHide] set to false,
-  /// this operation is ignored.
+  /// or if [compactMode] is active, this operation is ignored.
   void setColumnVisibility(String columnId, bool isVisible) {
+    if (_compactMode) return;
+
     if (!isVisible) {
       final colIndex = _columns.indexWhere((c) => c.id == columnId);
       if (colIndex != -1 && !_columns[colIndex].canHide) {
@@ -697,6 +746,7 @@ class AppGridController<T> extends ChangeNotifier {
 
   /// Toggles visibility of a column.
   void toggleColumnVisibility(String columnId) {
+    if (_compactMode) return;
     final current = _columnVisibility[columnId] ?? true;
     setColumnVisibility(columnId, !current);
   }
@@ -706,6 +756,7 @@ class AppGridController<T> extends ChangeNotifier {
 
   /// Opens the in-grid column chooser panel scoped strictly to the table viewport.
   void openColumnChooser() {
+    if (_compactMode) return;
     if (!_isColumnChooserOpen) {
       _isColumnChooserOpen = true;
       notifyListeners();
@@ -722,6 +773,7 @@ class AppGridController<T> extends ChangeNotifier {
 
   /// Toggles the in-grid column chooser panel.
   void toggleColumnChooser() {
+    if (_compactMode) return;
     _isColumnChooserOpen = !_isColumnChooserOpen;
     notifyListeners();
   }
@@ -763,13 +815,16 @@ class AppGridController<T> extends ChangeNotifier {
       columnOrder: List<String>.from(_columnOrder),
       sortCriteria: _sortCriteria,
       columnVisibility: Map<String, bool>.from(_columnVisibility),
+      compactMode: _compactMode,
     );
   }
 
   /// Restores table state from a [GridState] snapshot.
   ///
-  /// Reorders columns, restores sorting, and updates column visibility.
+  /// Reorders columns, restores sorting, updates column visibility, and restores compactMode.
   void restoreState(GridState state) {
+    _compactMode = state.compactMode;
+
     // 1. Column order
     _columnOrder.clear();
     final validIds = _columns.map((c) => c.id).toSet();
@@ -797,8 +852,10 @@ class AppGridController<T> extends ChangeNotifier {
       }
     }
 
-    // 3. Sort criteria
-    if (state.sortCriteria != null && validIds.contains(state.sortCriteria!.columnId)) {
+    // 3. Sort criteria (reset if compactMode is true)
+    if (_compactMode) {
+      _sortCriteria = null;
+    } else if (state.sortCriteria != null && validIds.contains(state.sortCriteria!.columnId)) {
       _sortCriteria = state.sortCriteria;
     } else {
       _sortCriteria = null;

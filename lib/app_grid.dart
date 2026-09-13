@@ -15,6 +15,7 @@
 library app_grid;
 
 export 'src/models/grid_column.dart';
+export 'src/models/compact_column_group.dart';
 export 'src/models/row_index_info.dart';
 export 'src/models/sort_criteria.dart';
 export 'src/models/grid_state.dart';
@@ -32,6 +33,7 @@ export 'src/rendering_engine/grid_builders.dart';
 export 'src/rendering_engine/virtualized_grid_layout.dart';
 export 'src/rendering_engine/app_grid_viewport.dart';
 export 'src/rendering_engine/cell_widget.dart';
+export 'src/rendering_engine/compact_cell_widget.dart';
 export 'src/rendering_engine/row_widget.dart';
 
 export 'src/keyboard_interaction/grid_keyboard_handler.dart';

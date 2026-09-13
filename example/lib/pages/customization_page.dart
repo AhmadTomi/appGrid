@@ -33,7 +33,7 @@ class CustomizationPage extends StatelessWidget {
                       ),
                     ),
                     const Text(
-                      'Live configuration of colors, row/header heights, scroll container height, and scrollbars.',
+                      'Live configuration of colors, compact mode (2-in-1 stacked rows), row/header heights, scroll container height, and scrollbars.',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
@@ -75,6 +75,7 @@ SizedBox(
     headerHeight: 48.0,
     footerHeight: 40.0,
     scrollbarThickness: 10.0,
+    compactMode: false, // Set to true to merge adjacent canCompact columns 2-in-1
 
     // 2. Custom Color Palette:
     headerBackgroundColor: const Color(0xFF1E293B),

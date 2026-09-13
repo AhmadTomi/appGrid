@@ -101,6 +101,7 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
   AppGridScrollbarVisibility _verticalScrollbarVisibility = AppGridScrollbarVisibility.onHover;
   bool _useBouncingPhysics = false;
   bool _readOnly = false;
+  bool _compactMode = false;
 
   static const List<InventoryItem> _sampleData = [
     InventoryItem(sku: 'SKU-001', name: 'MacBook Pro 16" M3 Max', category: 'Laptops', stock: 45, price: 3499.00, rating: 4.9, status: 'In Stock'),
@@ -146,9 +147,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         ),
         GridColumn(
           id: 'category',
-          label: 'Category',
-          initialWidth: 130,
+          label: 'Category (Standalone)',
+          initialWidth: 140,
           minWidth: 100,
+          canCompact: false,
           valueGetter: (item) => (item as InventoryItem).category,
         ),
         GridColumn(
@@ -350,6 +352,8 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                   _verticalScrollbarVisibility = AppGridScrollbarVisibility.onHover;
                   _useBouncingPhysics = false;
                   _readOnly = false;
+                  _compactMode = false;
+                  _controller.compactMode = false;
                 });
               },
             ),
@@ -381,6 +385,7 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
       oddRowColor: _useZebraStripes ? _oddRowColor : _evenRowColor,
       selectedRowColor: _selectedRowColor,
       readOnly: _readOnly,
+      compactMode: _compactMode,
 
       scrollbarThickness: _scrollbarThickness,
       scrollbarThumbColor: _scrollbarThumbColor,
@@ -395,7 +400,7 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Preset theme selection bar
+        // Preset theme selection bar & Quick Compact Mode Toggle
         Card(
           elevation: 0,
           color: theme.colorScheme.surfaceContainerHighest.withAlpha(60),
@@ -418,11 +423,58 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                       if (selected) _applyPresetColors(preset);
                     },
                   ),
+                const SizedBox(width: 8),
+                FilterChip(
+                  avatar: Icon(
+                    _compactMode ? Icons.view_compact : Icons.view_compact_outlined,
+                    size: 16,
+                    color: _compactMode ? Colors.white : theme.colorScheme.primary,
+                  ),
+                  label: Text(
+                    'Compact Mode: ${_compactMode ? "ON" : "OFF"}',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: _compactMode ? Colors.white : null,
+                    ),
+                  ),
+                  selected: _compactMode,
+                  selectedColor: theme.colorScheme.primary,
+                  onSelected: (selected) {
+                    setState(() {
+                      _compactMode = selected;
+                      _controller.compactMode = selected;
+                    });
+                  },
+                ),
               ],
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        if (_compactMode) ...[
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+            decoration: BoxDecoration(
+              color: Colors.indigo.withAlpha(20),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.indigo.withAlpha(70)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.info_outline, size: 16, color: Colors.indigo),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Compact Mode Active: Adjacent columns are merged 2-in-1 (SKU + Name, Stock + Price, Rating + Status). "Category" has canCompact: false and stands alone. Header & row heights auto-double (2x). Drag headers to move pairs together. Sort & hide are disabled.',
+                    style: TextStyle(fontSize: 11.5, color: Colors.indigo.shade800, fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 10),
 
         // Live grid viewport: either fixed container scroll height or expanded
         if (_isFixedHeight || !isFlexible) ...[
@@ -834,7 +886,9 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         const Divider(height: 24),
         _buildSectionHeader('Row & Header Heights'),
         _buildSlider(
-          label: 'Row Height: ${_rowHeight.toInt()} px',
+          label: _compactMode
+              ? 'Row Height: ${_rowHeight.toInt()} px (Effective: ${(_rowHeight * 2).toInt()} px in Compact Mode)'
+              : 'Row Height: ${_rowHeight.toInt()} px',
           value: _rowHeight,
           min: 30,
           max: 76,
@@ -850,7 +904,9 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         ),
         const SizedBox(height: 12),
         _buildSlider(
-          label: 'Header Height: ${_headerHeight.toInt()} px',
+          label: _compactMode
+              ? 'Header Height: ${_headerHeight.toInt()} px (Effective: ${(_headerHeight * 2).toInt()} px in Compact Mode)'
+              : 'Header Height: ${_headerHeight.toInt()} px',
           value: _headerHeight,
           min: 32,
           max: 72,
@@ -896,6 +952,21 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
+        _buildSectionHeader('Compact Mode (2-in-1 Stacked Rows)'),
+        SwitchListTile(
+          dense: true,
+          secondary: const Icon(Icons.view_compact, color: Colors.indigo),
+          title: const Text('Compact Mode (2-Level Stacked Columns)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          subtitle: const Text('Combines pairs of adjacent canCompact columns vertically into 2-level stacked headers and cells. Doubles row & header heights (2x) to save 50% horizontal table width.', style: TextStyle(fontSize: 11)),
+          value: _compactMode,
+          onChanged: (v) {
+            setState(() {
+              _compactMode = v;
+              _controller.compactMode = v;
+            });
+          },
+        ),
+        const Divider(height: 24),
         _buildSectionHeader('Interactive Scrolling Behaviors'),
         SwitchListTile(
           dense: true,
@@ -1050,6 +1121,7 @@ ${_isFixedHeight ? '// Bounded container for fixed scroll height:\nSizedBox(\n  
   horizontalScrollbarVisibility: ScrollbarVisibility.${_horizontalScrollbarVisibility.name},
   verticalScrollbarVisibility: ScrollbarVisibility.${_verticalScrollbarVisibility.name},
   physics: ${_useBouncingPhysics ? 'const BouncingScrollPhysics()' : 'const ClampingScrollPhysics()'},
+  compactMode: $_compactMode,
   readOnly: $_readOnly,
 )${_isFixedHeight ? ',\n)' : ''};''';
 
