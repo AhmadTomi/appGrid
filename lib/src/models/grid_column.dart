@@ -93,6 +93,15 @@ class GridColumn {
   /// Alignment for column header child widgets. Defaults to [Alignment.center].
   final Alignment headerAlignment;
 
+  /// Whether this column is a dedicated drag handle column for manual row reordering.
+  final bool isRowDragHandle;
+
+  /// Optional custom icon widget for row drag handle.
+  final Widget? rowDragIcon;
+
+  /// Optional custom icon widget when row drag handle is disabled (e.g. sorting active).
+  final Widget? rowDragDisabledIcon;
+
   const GridColumn({
     required this.id,
     required this.label,
@@ -113,7 +122,43 @@ class GridColumn {
     this.headerBuilder,
     this.cellAlignment = Alignment.centerLeft,
     this.headerAlignment = Alignment.center,
+    this.isRowDragHandle = false,
+    this.rowDragIcon,
+    this.rowDragDisabledIcon,
   }) : assert(minWidth >= 0, 'minWidth cannot be negative');
+
+  /// Factory constructor creating a dedicated drag handle column for manual row reordering.
+  ///
+  /// Typically pinned to [GridColumnPin.left] with a compact fixed width, non-sortable,
+  /// non-resizable, and cannot be hidden.
+  factory GridColumn.rowDragHandle({
+    String id = '__row_drag_handle__',
+    String label = '',
+    double width = 48.0,
+    GridColumnPin pin = GridColumnPin.left,
+    Widget? icon,
+    Widget? disabledIcon,
+    Alignment alignment = Alignment.center,
+  }) {
+    return GridColumn(
+      id: id,
+      label: label,
+      initialWidth: width,
+      minWidth: width,
+      maxWidth: width,
+      pin: pin,
+      isSortable: false,
+      isResizable: false,
+      isReorderable: false,
+      canHide: false,
+      canCompact: false,
+      isRowDragHandle: true,
+      rowDragIcon: icon,
+      rowDragDisabledIcon: disabledIcon,
+      cellAlignment: alignment,
+      headerAlignment: alignment,
+    );
+  }
 
   bool get isFrozen => pin != GridColumnPin.none;
 
@@ -161,6 +206,9 @@ class GridColumn {
       headerBuilder: headerBuilder ?? this.headerBuilder,
       cellAlignment: cellAlignment ?? this.cellAlignment,
       headerAlignment: headerAlignment ?? this.headerAlignment,
+      isRowDragHandle: isRowDragHandle ?? this.isRowDragHandle,
+      rowDragIcon: rowDragIcon ?? this.rowDragIcon,
+      rowDragDisabledIcon: rowDragDisabledIcon ?? this.rowDragDisabledIcon,
     );
   }
 
@@ -179,7 +227,8 @@ class GridColumn {
           canHide == other.canHide &&
           canCompact == other.canCompact &&
           cellAlignment == other.cellAlignment &&
-          headerAlignment == other.headerAlignment;
+          headerAlignment == other.headerAlignment &&
+          isRowDragHandle == other.isRowDragHandle;
 
   @override
   int get hashCode =>
@@ -191,9 +240,10 @@ class GridColumn {
       canHide.hashCode ^
       canCompact.hashCode ^
       cellAlignment.hashCode ^
-      headerAlignment.hashCode;
+      headerAlignment.hashCode ^
+      isRowDragHandle.hashCode;
 
   @override
   String toString() =>
-      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, canCompact: $canCompact, cellAlignment: $cellAlignment, headerAlignment: $headerAlignment)';
+      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, canCompact: $canCompact, cellAlignment: $cellAlignment, headerAlignment: $headerAlignment, isRowDragHandle: $isRowDragHandle)';
 }

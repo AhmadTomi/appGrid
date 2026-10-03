@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/grid_column.dart';
 import '../models/row_index_info.dart';
 import '../controllers/app_grid_controller.dart';
+import '../widgets/app_grid_row_drag_handle.dart';
 
 import '../widgets/empty_cell.dart';
 
@@ -42,6 +43,19 @@ class CellWidget<T> extends StatelessWidget {
     final cellContent = ValueListenableBuilder<T>(
       valueListenable: notifier,
       builder: (context, rowData, _) {
+        // Dedicated row drag handle column
+        if (column.isRowDragHandle) {
+          return Align(
+            alignment: column.cellAlignment,
+            child: AppGridRowDragHandle<T>(
+              controller: controller,
+              displayIndex: indexInfo.displayIndex,
+              icon: column.rowDragIcon,
+              disabledIcon: column.rowDragDisabledIcon,
+            ),
+          );
+        }
+
         // 1. Column-specific modular cell builder
         if (column.cellBuilder != null) {
           return Align(

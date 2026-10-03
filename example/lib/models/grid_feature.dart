@@ -16,7 +16,8 @@ enum GridFeature {
   statePersistence('Selective State Persistence', Icons.save, 'Export & import JSON layout strictly without column widths.'),
   pagination('Discrete Pagination', Icons.pages, 'Discrete page navigation with page, limit, and total count metadata.'),
   infiniteScroll('Infinite Scroll', Icons.all_inclusive, 'Continuous lazy-loading triggered automatically at 80% scroll extent.'),
-  exportUtils('CSV & JSON Exporters', Icons.file_download, 'Built-in RFC 4180 CSV and JSON data export utility.');
+  exportUtils('CSV & JSON Exporters', Icons.file_download, 'Built-in RFC 4180 CSV and JSON data export utility.'),
+  rowReorder('Manual Row Reorder', Icons.drag_indicator, 'Drag and drop rows with handle, live callback logs, and active sort restrictions.');
 
   final String title;
   final IconData icon;
@@ -54,6 +55,8 @@ enum GridFeature {
         return const InfiniteScrollPage();
       case GridFeature.exportUtils:
         return const ExportUtilsPage();
+      case GridFeature.rowReorder:
+        return const RowReorderPage();
     }
   }
 
@@ -87,6 +90,8 @@ enum GridFeature {
         return infiniteScrollSnippet;
       case GridFeature.exportUtils:
         return exportUtilsSnippet;
+      case GridFeature.rowReorder:
+        return rowReorderSnippet;
     }
   }
 }

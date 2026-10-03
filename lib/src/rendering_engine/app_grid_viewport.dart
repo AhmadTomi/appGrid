@@ -47,6 +47,8 @@ class AppGridViewport<T> extends StatefulWidget {
   final bool readOnly;
   final ValueChanged<RowIndexInfo>? onRowTap;
   final ValueChanged<RowIndexInfo>? onRowDoubleTap;
+  final bool enableRowReorder;
+  final void Function(int oldIndex, int newIndex)? onRowReorder;
 
   const AppGridViewport({
     super.key,
@@ -81,6 +83,8 @@ class AppGridViewport<T> extends StatefulWidget {
     this.readOnly = false,
     this.onRowTap,
     this.onRowDoubleTap,
+    this.enableRowReorder = false,
+    this.onRowReorder,
   });
 
   @override
@@ -529,7 +533,7 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
       }
     }
 
-    return Listener(
+    Widget rowContent = Listener(
       behavior: HitTestBehavior.opaque,
       onPointerDown: (event) {
         if (!effectiveReadOnly &&
@@ -544,48 +548,23 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
           key: ValueKey('grid_pos_row_${indexInfo.originalIndex}'),
           height: widget.rowHeight,
           child: Row(
-          children: [
-            // 1. Left Pinned Columns (Freezing - stays static horizontally)
-            if (leftWidth > 0 && leftPane.columns.isNotEmpty)
-              SizedBox(
-                width: leftWidth,
-                height: widget.rowHeight,
-                child: RowWidget<T>(
-                  key: ValueKey('row_left_${indexInfo.originalIndex}'),
-                  controller: widget.controller,
-                  indexInfo: indexInfo,
-                  columns: leftPane.columns,
-                  groups: leftPane.groups,
-                  columnWidths: leftPane.widths,
-                  columnOffsets: leftPane.offsets,
-                  rowHeight: widget.rowHeight,
-                  isSelected: isSelected,
-                  readOnly: effectiveReadOnly,
-                  selectedColor: widget.selectedRowColor,
-                  alternateRowColor: widget.alternateRowColor,
-                  evenRowColor: widget.evenRowColor,
-                  oddRowColor: widget.oddRowColor,
-                  gridLineColor: widget.gridLineColor,
-                  showHorizontalGridLines: widget.showHorizontalGridLines,
-                  showVerticalGridLines: widget.showVerticalGridLines,
-                  verticalGridLineColor: widget.verticalGridLineColor,
-                ),
-              ),
-
-            // 2. Center Scrollable Columns (Horizontally virtualized)
-            if (centerViewportWidth > 0 && centerPane.columns.isNotEmpty)
-              Expanded(
-                child: ClipRect(
-                  child: _CenterPaneRow<T>(
+            children: [
+              // 1. Left Pinned Columns (Freezing - stays static horizontally)
+              if (leftWidth > 0 && leftPane.columns.isNotEmpty)
+                SizedBox(
+                  width: leftWidth,
+                  height: widget.rowHeight,
+                  child: RowWidget<T>(
+                    key: ValueKey('row_left_${indexInfo.originalIndex}'),
                     controller: widget.controller,
-                    horizontalScrollController: widget.horizontalScrollController,
-                    centerPane: centerPane,
-                    centerViewportWidth: centerViewportWidth,
-                    centerContentWidth: centerContentWidth,
                     indexInfo: indexInfo,
+                    columns: leftPane.columns,
+                    groups: leftPane.groups,
+                    columnWidths: leftPane.widths,
+                    columnOffsets: leftPane.offsets,
+                    rowHeight: widget.rowHeight,
                     isSelected: isSelected,
                     readOnly: effectiveReadOnly,
-                    rowHeight: widget.rowHeight,
                     selectedColor: widget.selectedRowColor,
                     alternateRowColor: widget.alternateRowColor,
                     evenRowColor: widget.evenRowColor,
@@ -596,39 +575,102 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                     verticalGridLineColor: widget.verticalGridLineColor,
                   ),
                 ),
-              ),
 
-            // 3. Right Pinned Columns (Freezing - stays static horizontally)
-            if (rightWidth > 0 && rightPane.columns.isNotEmpty)
-              SizedBox(
-                width: rightWidth,
-                height: widget.rowHeight,
-                child: RowWidget<T>(
-                  key: ValueKey('row_right_${indexInfo.originalIndex}'),
-                  controller: widget.controller,
-                  indexInfo: indexInfo,
-                  columns: rightPane.columns,
-                  groups: rightPane.groups,
-                  columnWidths: rightPane.widths,
-                  columnOffsets: rightPane.offsets,
-                  rowHeight: widget.rowHeight,
-                  isSelected: isSelected,
-                  readOnly: effectiveReadOnly,
-                  selectedColor: widget.selectedRowColor,
-                  alternateRowColor: widget.alternateRowColor,
-                  evenRowColor: widget.evenRowColor,
-                  oddRowColor: widget.oddRowColor,
-                  gridLineColor: widget.gridLineColor,
-                  showHorizontalGridLines: widget.showHorizontalGridLines,
-                  showVerticalGridLines: widget.showVerticalGridLines,
-                  verticalGridLineColor: widget.verticalGridLineColor,
+              // 2. Center Scrollable Columns (Horizontally virtualized)
+              if (centerViewportWidth > 0 && centerPane.columns.isNotEmpty)
+                Expanded(
+                  child: ClipRect(
+                    child: _CenterPaneRow<T>(
+                      controller: widget.controller,
+                      horizontalScrollController: widget.horizontalScrollController,
+                      centerPane: centerPane,
+                      centerViewportWidth: centerViewportWidth,
+                      centerContentWidth: centerContentWidth,
+                      indexInfo: indexInfo,
+                      isSelected: isSelected,
+                      readOnly: effectiveReadOnly,
+                      rowHeight: widget.rowHeight,
+                      selectedColor: widget.selectedRowColor,
+                      alternateRowColor: widget.alternateRowColor,
+                      evenRowColor: widget.evenRowColor,
+                      oddRowColor: widget.oddRowColor,
+                      gridLineColor: widget.gridLineColor,
+                      showHorizontalGridLines: widget.showHorizontalGridLines,
+                      showVerticalGridLines: widget.showVerticalGridLines,
+                      verticalGridLineColor: widget.verticalGridLineColor,
+                    ),
+                  ),
                 ),
-              ),
-          ],
+
+              // 3. Right Pinned Columns (Freezing - stays static horizontally)
+              if (rightWidth > 0 && rightPane.columns.isNotEmpty)
+                SizedBox(
+                  width: rightWidth,
+                  height: widget.rowHeight,
+                  child: RowWidget<T>(
+                    key: ValueKey('row_right_${indexInfo.originalIndex}'),
+                    controller: widget.controller,
+                    indexInfo: indexInfo,
+                    columns: rightPane.columns,
+                    groups: rightPane.groups,
+                    columnWidths: rightPane.widths,
+                    columnOffsets: rightPane.offsets,
+                    rowHeight: widget.rowHeight,
+                    isSelected: isSelected,
+                    readOnly: effectiveReadOnly,
+                    selectedColor: widget.selectedRowColor,
+                    alternateRowColor: widget.alternateRowColor,
+                    evenRowColor: widget.evenRowColor,
+                    oddRowColor: widget.oddRowColor,
+                    gridLineColor: widget.gridLineColor,
+                    showHorizontalGridLines: widget.showHorizontalGridLines,
+                    showVerticalGridLines: widget.showVerticalGridLines,
+                    verticalGridLineColor: widget.verticalGridLineColor,
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
+
+    final bool canReorder = widget.enableRowReorder && widget.controller.canReorderRows;
+    if (!canReorder) {
+      return rowContent;
+    }
+
+    return DragTarget<int>(
+      onWillAcceptWithDetails: (details) => details.data != displayIndex,
+      onAcceptWithDetails: (details) {
+        final draggedIndex = details.data;
+        widget.controller.reorderRow(draggedIndex, displayIndex);
+        widget.onRowReorder?.call(draggedIndex, displayIndex);
+      },
+      builder: (context, candidateData, rejectedData) {
+        if (candidateData.isEmpty || candidateData.first == null) {
+          return rowContent;
+        }
+
+        final draggedFromIndex = candidateData.first!;
+        final isAbove = draggedFromIndex > displayIndex;
+        final theme = Theme.of(context);
+
+        return Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withAlpha(25),
+            border: Border(
+              top: isAbove
+                  ? BorderSide(color: theme.colorScheme.primary, width: 2.5)
+                  : BorderSide.none,
+              bottom: !isAbove
+                  ? BorderSide(color: theme.colorScheme.primary, width: 2.5)
+                  : BorderSide.none,
+            ),
+          ),
+          child: rowContent,
+        );
+      },
+    );
 }
 }
 

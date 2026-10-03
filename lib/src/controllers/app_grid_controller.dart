@@ -61,6 +61,7 @@ class AppGridController<T> extends ChangeNotifier {
 
   int? _selectedOriginalIndex;
   ValueChanged<RowIndexInfo>? onRowSelected;
+  void Function(int oldIndex, int newIndex)? onRowReorder;
 
   DataFetchMode fetchMode;
   GridPaginationInfo? paginationInfo;
@@ -80,6 +81,7 @@ class AppGridController<T> extends ChangeNotifier {
     List<GridColumn> columns = const [],
     this.rowIdGetter,
     this.onRowSelected,
+    this.onRowReorder,
     this.fetchMode = DataFetchMode.infiniteScroll,
     this.paginationInfo,
     this.onLoadMore,
@@ -690,6 +692,60 @@ class AppGridController<T> extends ChangeNotifier {
       sortDirection: _sortCriteria?.direction ?? SortDirection.none,
     );
   }
+
+  // ==================== ROW REORDERING ====================
+
+  /// Whether rows can currently be manually reordered.
+  ///
+  /// Manual row reordering is strictly permitted only when no column sorting
+  /// is active and no background sorting operation is in progress.
+  bool get canReorderRows =>
+      (_sortCriteria == null || _sortCriteria!.direction == SortDirection.none) &&
+      !_isSorting;
+
+  /// Reorders a row from [oldIndex] to [newIndex] in the dataset.
+  ///
+  /// Returns `false` if manual reordering is disallowed (e.g. an active sort is present),
+  /// or if the indices are identical or out of bounds.
+  /// When successful, updates the internal data sequence, refreshes dual-index mapping,
+  /// preserves any active row selection, triggers [onRowReorder], and notifies listeners.
+  bool reorderRow(int oldIndex, int newIndex) {
+    if (!canReorderRows) return false;
+    if (oldIndex < 0 ||
+        oldIndex >= _data.length ||
+        newIndex < 0 ||
+        newIndex >= _data.length) {
+      return false;
+    }
+    if (oldIndex == newIndex) return true;
+
+    final item = _data.removeAt(oldIndex);
+    _data.insert(newIndex, item);
+
+    // Adjust active selection index so it continues to track the selected row
+    if (_selectedOriginalIndex != null) {
+      if (_selectedOriginalIndex == oldIndex) {
+        _selectedOriginalIndex = newIndex;
+      } else if (oldIndex < _selectedOriginalIndex! && newIndex >= _selectedOriginalIndex!) {
+        _selectedOriginalIndex = _selectedOriginalIndex! - 1;
+      } else if (oldIndex > _selectedOriginalIndex! && newIndex <= _selectedOriginalIndex!) {
+        _selectedOriginalIndex = _selectedOriginalIndex! + 1;
+      }
+    }
+
+    _recomputeIndices();
+    _syncRowNotifiers();
+
+    onRowReorder?.call(oldIndex, newIndex);
+    notifyListeners();
+    return true;
+  }
+
+  /// Helper returning the dataset rows according to the modified/reordered sequence.
+  List<T> getReorderedData() => List<T>.unmodifiable(_data);
+
+  /// Convenient alias for [getReorderedData] returning the modified row list.
+  List<T> getModifiedData() => List<T>.unmodifiable(_data);
 
   // ==================== COLUMN MANIPULATION ====================
 

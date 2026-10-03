@@ -171,6 +171,15 @@ class AppGrid<T> extends StatefulWidget {
   /// Defaults to [AppGridLoadingOverlay].
   final Widget? loadingWidget;
 
+  /// Whether manual drag-and-drop row reordering is enabled. Defaults to false.
+  ///
+  /// Requires that column sorting is not actively applied. When true, rows can accept
+  /// drops from [AppGridRowDragHandle] widgets.
+  final bool enableRowReorder;
+
+  /// Optional callback triggered when a row is manually moved from [oldIndex] to [newIndex].
+  final void Function(int oldIndex, int newIndex)? onRowReorder;
+
   const AppGrid({
     super.key,
     required this.controller,
@@ -218,6 +227,8 @@ class AppGrid<T> extends StatefulWidget {
     this.scrollbarTrackColor,
     this.physics,
     this.clock,
+    this.enableRowReorder = false,
+    this.onRowReorder,
   });
 
   /// Resolves the effective visibility behavior for the vertical scrollbar.
@@ -293,6 +304,9 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     if (widget.onRowSelected != null) {
       widget.controller.onRowSelected = widget.onRowSelected;
     }
+    if (widget.onRowReorder != null) {
+      widget.controller.onRowReorder = widget.onRowReorder;
+    }
 
     if ((widget.readOnly || widget.controller.isReadOnly) &&
         widget.controller.selectedOriginalIndex != null) {
@@ -319,6 +333,9 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     super.didUpdateWidget(oldWidget);
     if (widget.onRowSelected != null) {
       widget.controller.onRowSelected = widget.onRowSelected;
+    }
+    if (widget.onRowReorder != null) {
+      widget.controller.onRowReorder = widget.onRowReorder;
     }
     if (widget.compactMode != oldWidget.compactMode) {
       widget.controller.compactMode = widget.compactMode;
@@ -620,6 +637,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                       scrollbarThumbColor: widget.scrollbarThumbColor,
                                       scrollbarTrackColor: widget.scrollbarTrackColor,
                                       physics: widget.physics,
+                                      enableRowReorder: widget.enableRowReorder,
+                                      onRowReorder: widget.onRowReorder,
                                     );
                                   }
 

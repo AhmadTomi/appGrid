@@ -51,3 +51,4 @@ export 'src/widgets/app_grid_pagination_bar.dart';
 export 'src/widgets/app_grid_scrollbar.dart';
 export 'src/widgets/app_grid_loading_overlay.dart';
 export 'src/widgets/app_grid_button.dart';
+export 'src/widgets/app_grid_row_drag_handle.dart';

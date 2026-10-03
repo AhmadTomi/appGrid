@@ -12,3 +12,4 @@ export 'state_persistence_page.dart';
 export 'pagination_page.dart';
 export 'infinite_scroll_page.dart';
 export 'export_utils_page.dart';
+export 'row_reorder_page.dart';
