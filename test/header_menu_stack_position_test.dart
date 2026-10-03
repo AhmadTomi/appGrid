@@ -5,7 +5,9 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Header Menu & Stack Positioning Tests', () {
-    testWidgets('Header menu button opens popup adjacent to button even when AppGrid is inside a Stack', (tester) async {
+    testWidgets(
+        'Header menu button opens popup adjacent to button even when AppGrid is inside a Stack',
+        (tester) async {
       final items = [
         {'id': 1, 'name': 'Item A', 'score': 100},
         {'id': 2, 'name': 'Item B', 'score': 85},
@@ -15,7 +17,8 @@ void main() {
         initialData: items,
         columns: [
           GridColumn(id: 'name', label: 'Name', valueGetter: (r) => r['name']),
-          GridColumn(id: 'score', label: 'Score', valueGetter: (r) => r['score']),
+          GridColumn(
+              id: 'score', label: 'Score', valueGetter: (r) => r['score']),
         ],
       );
 
@@ -47,7 +50,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Find the sort menu button on the 'Name' column
-      final sortButtons = find.byIcon(Icons.unfold_more);
+      final sortButtons = find.byIcon(Icons.dehaze);
       expect(sortButtons, findsWidgets);
       final nameSortButton = sortButtons.first;
 
@@ -76,7 +79,8 @@ void main() {
       expect(menuTopLeft.dy, greaterThanOrEqualTo(buttonRect.bottom - 2.0),
           reason: 'Menu should open right underneath the header button');
       expect(menuTopLeft.dx, greaterThanOrEqualTo(stackLeft),
-          reason: 'Menu horizontal position must respect the Stack left offset');
+          reason:
+              'Menu horizontal position must respect the Stack left offset');
 
       // Tap 'Sort Descending'
       await tester.tap(find.text('Sort Descending'));
@@ -84,10 +88,11 @@ void main() {
 
       // Verify controller updated to descending
       expect(controller.sortCriteria?.columnId, equals('name'));
-      expect(controller.sortCriteria?.direction, equals(SortDirection.descending));
+      expect(
+          controller.sortCriteria?.direction, equals(SortDirection.descending));
 
       // Re-open menu to test Clear Sort
-      final descSortButton = find.byIcon(Icons.arrow_downward).first;
+      final descSortButton = find.byIcon(Icons.sort).first;
       await tester.tap(descSortButton);
       await tester.pumpAndSettle();
 
@@ -101,7 +106,9 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('Header cell label tap toggles sort directly, while secondary tap does NOT open menu', (tester) async {
+    testWidgets(
+        'Header cell label tap toggles sort directly, while secondary tap does NOT open menu',
+        (tester) async {
       final items = [
         {'id': 1, 'name': 'Item A'},
         {'id': 2, 'name': 'Item B'},
@@ -136,24 +143,29 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Pin to Left'), findsNothing,
-          reason: 'Right-click should not trigger menu to avoid conflict with browser context menu');
+          reason:
+              'Right-click should not trigger menu to avoid conflict with browser context menu');
 
       // 2. Primary tap on label directly toggles sort
       await tester.tap(labelFinder);
       await tester.pumpAndSettle();
 
-      expect(controller.sortCriteria?.direction, equals(SortDirection.ascending));
+      expect(
+          controller.sortCriteria?.direction, equals(SortDirection.ascending));
 
       // 3. Primary tap again toggles to descending
       await tester.tap(labelFinder);
       await tester.pumpAndSettle();
 
-      expect(controller.sortCriteria?.direction, equals(SortDirection.descending));
+      expect(
+          controller.sortCriteria?.direction, equals(SortDirection.descending));
 
       controller.dispose();
     });
 
-    testWidgets('Pinning from header menu updates column pin state and layout correctly', (tester) async {
+    testWidgets(
+        'Pinning from header menu updates column pin state and layout correctly',
+        (tester) async {
       final items = [
         {'id': 1, 'name': 'Item A', 'city': 'Jakarta'},
       ];
@@ -182,7 +194,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Tap sort/column menu on 'City'
-      final citySortBtn = find.byIcon(Icons.unfold_more).last;
+      final citySortBtn = find.byIcon(Icons.dehaze).last;
       await tester.tap(citySortBtn);
       await tester.pumpAndSettle();
 
@@ -190,7 +202,8 @@ void main() {
       await tester.tap(find.text('Pin to Right'));
       await tester.pumpAndSettle();
 
-      expect(controller.columns.firstWhere((c) => c.id == 'city').pin, equals(GridColumnPin.right));
+      expect(controller.columns.firstWhere((c) => c.id == 'city').pin,
+          equals(GridColumnPin.right));
 
       controller.dispose();
     });

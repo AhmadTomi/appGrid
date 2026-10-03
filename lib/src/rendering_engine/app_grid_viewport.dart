@@ -4,6 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import '../models/app_grid_style.dart';
 import '../models/compact_column_group.dart';
 import '../models/data_fetch_mode.dart';
 import '../models/row_index_info.dart';
@@ -20,35 +21,35 @@ class AppGridViewport<T> extends StatefulWidget {
   final ColumnLayoutManager layoutManager;
   final ScrollController verticalScrollController;
   final ScrollController horizontalScrollController;
-  final double rowHeight;
-  final double headerHeight;
-  final double? footerHeight;
+  final ComputedGridLayout? computedLayout;
+  final AppGridStyle style;
   final bool hasFooter;
-  final Color? selectedRowColor;
-  final Color? alternateRowColor;
-  final Color? evenRowColor;
-  final Color? oddRowColor;
   final double infiniteScrollThreshold;
   final bool enableMouseDragScroll;
-  final bool showHorizontalScrollbar;
-  final bool showVerticalScrollbar;
   final AppGridScrollbarVisibility horizontalScrollbarVisibility;
   final AppGridScrollbarVisibility verticalScrollbarVisibility;
   final ValueListenable<bool>? isParentHovered;
-  final double scrollbarThickness;
-  final Color? scrollbarThumbColor;
-  final Color? scrollbarTrackColor;
-  final Color? gridLineColor;
-  final bool showHorizontalGridLines;
-  final bool showVerticalGridLines;
-  final Color? verticalGridLineColor;
   final ScrollPhysics? physics;
-  final ComputedGridLayout? computedLayout;
   final bool readOnly;
   final ValueChanged<RowIndexInfo>? onRowTap;
   final ValueChanged<RowIndexInfo>? onRowDoubleTap;
   final bool enableRowReorder;
   final void Function(int oldIndex, int newIndex)? onRowReorder;
+
+  double get rowHeight =>
+      controller.compactMode ? style.rowHeight * 2.0 : style.rowHeight;
+  double get headerHeight =>
+      controller.compactMode ? style.headerHeight * 2.0 : style.headerHeight;
+  double? get footerHeight => style.footerHeight != null
+      ? (controller.compactMode
+          ? style.footerHeight! * 2.0
+          : style.footerHeight!)
+      : null;
+  bool get showHorizontalScrollbar => style.showHorizontalScrollbar;
+  bool get showVerticalScrollbar => style.showVerticalScrollbar;
+  double get scrollbarThickness => style.scrollbarThickness;
+  Color? get scrollbarThumbColor => style.scrollbarThumbColor;
+  Color? get scrollbarTrackColor => style.scrollbarTrackColor;
 
   const AppGridViewport({
     super.key,
@@ -57,28 +58,13 @@ class AppGridViewport<T> extends StatefulWidget {
     required this.verticalScrollController,
     required this.horizontalScrollController,
     this.computedLayout,
-    this.rowHeight = 48.0,
-    this.headerHeight = 48.0,
-    this.footerHeight,
+    this.style = const AppGridStyle(),
     this.hasFooter = false,
-    this.selectedRowColor,
-    this.alternateRowColor,
-    this.evenRowColor,
-    this.oddRowColor,
     this.infiniteScrollThreshold = 0.8,
     this.enableMouseDragScroll = true,
-    this.showHorizontalScrollbar = true,
-    this.showVerticalScrollbar = true,
     this.horizontalScrollbarVisibility = AppGridScrollbarVisibility.onHover,
     this.verticalScrollbarVisibility = AppGridScrollbarVisibility.onHover,
     this.isParentHovered,
-    this.scrollbarThickness = 10.0,
-    this.scrollbarThumbColor,
-    this.scrollbarTrackColor,
-    this.gridLineColor,
-    this.showHorizontalGridLines = true,
-    this.showVerticalGridLines = false,
-    this.verticalGridLineColor,
     this.physics,
     this.readOnly = false,
     this.onRowTap,
@@ -91,7 +77,8 @@ class AppGridViewport<T> extends StatefulWidget {
   State<AppGridViewport<T>> createState() => _AppGridViewportState<T>();
 }
 
-class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProviderStateMixin {
+class _AppGridViewportState<T> extends State<AppGridViewport<T>>
+    with TickerProviderStateMixin {
   // Kinetic Ballistic Fling Simulation
   Ticker? _flingTicker;
   ClampingScrollSimulation? _vFlingSimulation;
@@ -201,9 +188,11 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
     if (_vFlingSimulation != null &&
         widget.verticalScrollController.hasClients &&
         widget.verticalScrollController.positions.isNotEmpty) {
-      final maxV = widget.verticalScrollController.positions.first.maxScrollExtent;
+      final maxV =
+          widget.verticalScrollController.positions.first.maxScrollExtent;
       if (!_vFlingSimulation!.isDone(t)) {
-        final double newV = _vFlingSimulation!.x(t).clamp(0.0, math.max(0.0, maxV)).toDouble();
+        final double newV =
+            _vFlingSimulation!.x(t).clamp(0.0, math.max(0.0, maxV)).toDouble();
         widget.verticalScrollController.jumpTo(newV);
         if (newV > 0.0 && newV < maxV) {
           vDone = false;
@@ -214,9 +203,11 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
     if (_hFlingSimulation != null &&
         widget.horizontalScrollController.hasClients &&
         widget.horizontalScrollController.positions.isNotEmpty) {
-      final maxH = widget.horizontalScrollController.positions.first.maxScrollExtent;
+      final maxH =
+          widget.horizontalScrollController.positions.first.maxScrollExtent;
       if (!_hFlingSimulation!.isDone(t)) {
-        final double newH = _hFlingSimulation!.x(t).clamp(0.0, math.max(0.0, maxH)).toDouble();
+        final double newH =
+            _hFlingSimulation!.x(t).clamp(0.0, math.max(0.0, maxH)).toDouble();
         widget.horizontalScrollController.jumpTo(newH);
         if (newH > 0.0 && newH < maxH) {
           hDone = false;
@@ -229,10 +220,12 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
     }
   }
 
-  void _handlePointerSignal(PointerSignalEvent event, double maxV, double maxH) {
+  void _handlePointerSignal(
+      PointerSignalEvent event, double maxV, double maxH) {
     if (event is! PointerScrollEvent) return;
 
-    GestureBinding.instance.pointerSignalResolver.register(event, (resolvedEvent) {
+    GestureBinding.instance.pointerSignalResolver.register(event,
+        (resolvedEvent) {
       if (resolvedEvent is! PointerScrollEvent) return;
 
       // Direct wheel interaction halts any active kinetic drag fling
@@ -265,7 +258,8 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
           widget.horizontalScrollController.hasClients &&
           widget.horizontalScrollController.positions.isNotEmpty &&
           maxH > 0.0) {
-        final currentH = widget.horizontalScrollController.positions.first.pixels;
+        final currentH =
+            widget.horizontalScrollController.positions.first.pixels;
         final targetH = (currentH + dx).clamp(0.0, maxH);
         if (targetH != currentH) {
           widget.horizontalScrollController.jumpTo(targetH);
@@ -311,13 +305,16 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
 
         final totalRows = widget.controller.displayRowCount;
         final double totalContentHeight = totalRows * widget.rowHeight;
-        final double maxVerticalScroll = math.max(0.0, totalContentHeight - viewportHeight);
+        final double maxVerticalScroll =
+            math.max(0.0, totalContentHeight - viewportHeight);
 
         final double leftWidth = computedLayout.leftPane.totalWidth;
         final double rightWidth = computedLayout.rightPane.totalWidth;
-        final double centerViewportWidth = math.max(0.0, viewportWidth - leftWidth - rightWidth);
+        final double centerViewportWidth =
+            math.max(0.0, viewportWidth - leftWidth - rightWidth);
         final double centerContentWidth = computedLayout.centerPane.totalWidth;
-        final double maxHorizontalScroll = math.max(0.0, centerContentWidth - centerViewportWidth);
+        final double maxHorizontalScroll =
+            math.max(0.0, centerContentWidth - centerViewportWidth);
 
         return Scrollable(
           controller: widget.verticalScrollController,
@@ -333,7 +330,8 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
               physics: widget.physics ?? const ClampingScrollPhysics(),
               viewportBuilder: (context, horizontalOffset) {
                 horizontalOffset.applyViewportDimension(centerViewportWidth);
-                horizontalOffset.applyContentDimensions(0.0, maxHorizontalScroll);
+                horizontalOffset.applyContentDimensions(
+                    0.0, maxHorizontalScroll);
 
                 Widget bodyContent = Viewport(
                   axisDirection: AxisDirection.down,
@@ -361,9 +359,11 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                           if (key is ValueKey<String>) {
                             final keyVal = key.value;
                             if (keyVal.startsWith('grid_pos_row_')) {
-                              final origIndex = int.tryParse(keyVal.substring(13));
+                              final origIndex =
+                                  int.tryParse(keyVal.substring(13));
                               if (origIndex != null) {
-                                final displayIndex = widget.controller.getDisplayIndex(origIndex);
+                                final displayIndex = widget.controller
+                                    .getDisplayIndex(origIndex);
                                 return displayIndex >= 0 ? displayIndex : null;
                               }
                             }
@@ -383,16 +383,22 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                     },
                     onPanUpdate: (details) {
                       if (widget.horizontalScrollController.hasClients &&
-                          widget.horizontalScrollController.positions.isNotEmpty &&
+                          widget.horizontalScrollController.positions
+                              .isNotEmpty &&
                           maxHorizontalScroll > 0) {
-                        final newH = (widget.horizontalScrollController.positions.first.pixels - details.delta.dx)
+                        final newH = (widget.horizontalScrollController
+                                    .positions.first.pixels -
+                                details.delta.dx)
                             .clamp(0.0, maxHorizontalScroll);
                         widget.horizontalScrollController.jumpTo(newH);
                       }
                       if (widget.verticalScrollController.hasClients &&
-                          widget.verticalScrollController.positions.isNotEmpty &&
+                          widget
+                              .verticalScrollController.positions.isNotEmpty &&
                           maxVerticalScroll > 0) {
-                        final newV = (widget.verticalScrollController.positions.first.pixels - details.delta.dy)
+                        final newV = (widget.verticalScrollController.positions
+                                    .first.pixels -
+                                details.delta.dy)
                             .clamp(0.0, maxVerticalScroll);
                         widget.verticalScrollController.jumpTo(newV);
                       }
@@ -417,18 +423,18 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                 bodyContent = Listener(
                   behavior: HitTestBehavior.translucent,
                   onPointerDown: (_) => _cancelAllScrollAnimations(),
-                  onPointerSignal: (event) =>
-                      _handlePointerSignal(event, maxVerticalScroll, maxHorizontalScroll),
+                  onPointerSignal: (event) => _handlePointerSignal(
+                      event, maxVerticalScroll, maxHorizontalScroll),
                   child: bodyContent,
                 );
 
-                final bool hasHScrollbar =
-                    !widget.hasFooter &&
-                    widget.horizontalScrollbarVisibility != AppGridScrollbarVisibility.hidden &&
+                final bool hasHScrollbar = !widget.hasFooter &&
+                    widget.horizontalScrollbarVisibility !=
+                        AppGridScrollbarVisibility.hidden &&
                     widget.showHorizontalScrollbar &&
                     maxHorizontalScroll > 0;
-                final bool hasVScrollbar =
-                    widget.verticalScrollbarVisibility != AppGridScrollbarVisibility.hidden &&
+                final bool hasVScrollbar = widget.verticalScrollbarVisibility !=
+                        AppGridScrollbarVisibility.hidden &&
                     widget.showVerticalScrollbar &&
                     maxVerticalScroll > 0;
 
@@ -473,7 +479,8 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                           width: widget.scrollbarThickness,
                           child: AppGridVerticalScrollbar(
                             controller: widget.verticalScrollController,
-                            trackHeight: viewportHeight - (hasHScrollbar ? widget.scrollbarThickness : 0),
+                            trackHeight: viewportHeight -
+                                (hasHScrollbar ? widget.scrollbarThickness : 0),
                             contentHeight: totalContentHeight,
                             thickness: widget.scrollbarThickness,
                             thumbColor: widget.scrollbarThumbColor,
@@ -503,7 +510,8 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
   }) {
     final effectiveReadOnly = widget.readOnly || widget.controller.isReadOnly;
     final indexInfo = widget.controller.getRowIndexInfo(displayIndex);
-    final isSelected = !effectiveReadOnly && widget.controller.selectedDisplayIndex == displayIndex;
+    final isSelected = !effectiveReadOnly &&
+        widget.controller.selectedDisplayIndex == displayIndex;
 
     final leftPane = computedLayout.leftPane;
     final centerPane = computedLayout.centerPane;
@@ -543,7 +551,9 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
       },
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
-        onTap: effectiveReadOnly ? null : () => handleRowInteraction(isPointerDown: false),
+        onTap: effectiveReadOnly
+            ? null
+            : () => handleRowInteraction(isPointerDown: false),
         child: SizedBox(
           key: ValueKey('grid_pos_row_${indexInfo.originalIndex}'),
           height: widget.rowHeight,
@@ -562,17 +572,9 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                     groups: leftPane.groups,
                     columnWidths: leftPane.widths,
                     columnOffsets: leftPane.offsets,
-                    rowHeight: widget.rowHeight,
                     isSelected: isSelected,
                     readOnly: effectiveReadOnly,
-                    selectedColor: widget.selectedRowColor,
-                    alternateRowColor: widget.alternateRowColor,
-                    evenRowColor: widget.evenRowColor,
-                    oddRowColor: widget.oddRowColor,
-                    gridLineColor: widget.gridLineColor,
-                    showHorizontalGridLines: widget.showHorizontalGridLines,
-                    showVerticalGridLines: widget.showVerticalGridLines,
-                    verticalGridLineColor: widget.verticalGridLineColor,
+                    style: widget.style,
                   ),
                 ),
 
@@ -582,22 +584,15 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                   child: ClipRect(
                     child: _CenterPaneRow<T>(
                       controller: widget.controller,
-                      horizontalScrollController: widget.horizontalScrollController,
+                      horizontalScrollController:
+                          widget.horizontalScrollController,
                       centerPane: centerPane,
                       centerViewportWidth: centerViewportWidth,
                       centerContentWidth: centerContentWidth,
                       indexInfo: indexInfo,
                       isSelected: isSelected,
                       readOnly: effectiveReadOnly,
-                      rowHeight: widget.rowHeight,
-                      selectedColor: widget.selectedRowColor,
-                      alternateRowColor: widget.alternateRowColor,
-                      evenRowColor: widget.evenRowColor,
-                      oddRowColor: widget.oddRowColor,
-                      gridLineColor: widget.gridLineColor,
-                      showHorizontalGridLines: widget.showHorizontalGridLines,
-                      showVerticalGridLines: widget.showVerticalGridLines,
-                      verticalGridLineColor: widget.verticalGridLineColor,
+                      style: widget.style,
                     ),
                   ),
                 ),
@@ -615,17 +610,9 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
                     groups: rightPane.groups,
                     columnWidths: rightPane.widths,
                     columnOffsets: rightPane.offsets,
-                    rowHeight: widget.rowHeight,
                     isSelected: isSelected,
                     readOnly: effectiveReadOnly,
-                    selectedColor: widget.selectedRowColor,
-                    alternateRowColor: widget.alternateRowColor,
-                    evenRowColor: widget.evenRowColor,
-                    oddRowColor: widget.oddRowColor,
-                    gridLineColor: widget.gridLineColor,
-                    showHorizontalGridLines: widget.showHorizontalGridLines,
-                    showVerticalGridLines: widget.showVerticalGridLines,
-                    verticalGridLineColor: widget.verticalGridLineColor,
+                    style: widget.style,
                   ),
                 ),
             ],
@@ -634,7 +621,8 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
       ),
     );
 
-    final bool canReorder = widget.enableRowReorder && widget.controller.canReorderRows;
+    final bool canReorder =
+        widget.enableRowReorder && widget.controller.canReorderRows;
     if (!canReorder) {
       return rowContent;
     }
@@ -671,7 +659,7 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>> with TickerProv
         );
       },
     );
-}
+  }
 }
 
 /// A horizontally virtualized center row pane that only updates its horizontal
@@ -685,16 +673,8 @@ class _CenterPaneRow<T> extends StatelessWidget {
   final double centerContentWidth;
   final RowIndexInfo indexInfo;
   final bool isSelected;
-  final double rowHeight;
-  final Color? selectedColor;
-  final Color? alternateRowColor;
-  final Color? evenRowColor;
-  final Color? oddRowColor;
-  final Color? gridLineColor;
-  final bool showHorizontalGridLines;
-  final bool showVerticalGridLines;
-  final Color? verticalGridLineColor;
   final bool readOnly;
+  final AppGridStyle style;
 
   const _CenterPaneRow({
     super.key,
@@ -705,16 +685,8 @@ class _CenterPaneRow<T> extends StatelessWidget {
     required this.centerContentWidth,
     required this.indexInfo,
     required this.isSelected,
-    required this.rowHeight,
-    this.selectedColor,
-    this.alternateRowColor,
-    this.evenRowColor,
-    this.oddRowColor,
-    this.gridLineColor,
-    this.showHorizontalGridLines = true,
-    this.showVerticalGridLines = false,
-    this.verticalGridLineColor,
     this.readOnly = false,
+    this.style = const AppGridStyle(),
   });
 
   @override
@@ -726,25 +698,24 @@ class _CenterPaneRow<T> extends StatelessWidget {
 
     Color? backgroundColor;
     if (showSelected) {
-      backgroundColor = selectedColor ??
+      backgroundColor = style.selectedRowColor ??
           (isDark
               ? theme.colorScheme.primary.withAlpha(75)
               : theme.colorScheme.primary.withAlpha(45));
     } else {
       final isOdd = indexInfo.displayIndex % 2 == 1;
-      if (isOdd) {
-        backgroundColor = oddRowColor ?? alternateRowColor;
-      } else {
-        backgroundColor = evenRowColor;
-      }
+      backgroundColor = isOdd ? style.oddRowColor : style.evenRowColor;
     }
 
-    final horizontalLineColor = gridLineColor ??
+    final horizontalLineColor = style.gridLineColor ??
         (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
+
+    final double effectiveRowHeight =
+        controller.compactMode ? style.rowHeight * 2.0 : style.rowHeight;
 
     return Container(
       width: centerViewportWidth,
-      height: rowHeight,
+      height: effectiveRowHeight,
       decoration: BoxDecoration(
         color: backgroundColor,
       ),
@@ -772,7 +743,7 @@ class _CenterPaneRow<T> extends StatelessWidget {
               : <CompactColumnGroup>[];
 
           if (visibleCenterGroups.isEmpty) {
-            return showHorizontalGridLines
+            return style.showHorizontalGridLines
                 ? Align(
                     alignment: Alignment.bottomCenter,
                     child: Container(height: 1.0, color: horizontalLineColor),
@@ -780,12 +751,13 @@ class _CenterPaneRow<T> extends StatelessWidget {
                 : const SizedBox.shrink();
           }
 
-          final firstOffset = centerPane.offsets[visibleCenterGroups.first.topColumn.id] ?? 0.0;
+          final firstOffset =
+              centerPane.offsets[visibleCenterGroups.first.topColumn.id] ?? 0.0;
 
           return Stack(
             clipBehavior: Clip.hardEdge,
             children: [
-              if (showHorizontalGridLines)
+              if (style.showHorizontalGridLines)
                 Positioned(
                   left: 0,
                   right: 0,
@@ -801,7 +773,8 @@ class _CenterPaneRow<T> extends StatelessWidget {
                 bottom: 0,
                 width: visibleCenterGroups.fold<double>(
                   0.0,
-                  (s, g) => s + (centerPane.widths[g.topColumn.id] ?? g.initialWidth),
+                  (s, g) =>
+                      s + (centerPane.widths[g.topColumn.id] ?? g.initialWidth),
                 ),
                 child: RowWidget<T>(
                   key: ValueKey('row_center_${indexInfo.originalIndex}'),
@@ -811,17 +784,9 @@ class _CenterPaneRow<T> extends StatelessWidget {
                   groups: visibleCenterGroups,
                   columnWidths: centerPane.widths,
                   columnOffsets: centerPane.offsets,
-                  rowHeight: rowHeight,
                   isSelected: showSelected,
                   readOnly: effectiveReadOnly,
-                  selectedColor: selectedColor,
-                  alternateRowColor: alternateRowColor,
-                  evenRowColor: evenRowColor,
-                  oddRowColor: oddRowColor,
-                  gridLineColor: gridLineColor,
-                  showHorizontalGridLines: showHorizontalGridLines,
-                  showVerticalGridLines: showVerticalGridLines,
-                  verticalGridLineColor: verticalGridLineColor,
+                  style: style,
                 ),
               ),
             ],

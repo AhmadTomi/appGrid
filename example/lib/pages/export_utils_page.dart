@@ -26,8 +26,10 @@ class _ExportUtilsPageState extends State<ExportUtilsPage> {
       ],
       columns: [
         GridColumn(id: 'id', label: 'ID', valueGetter: (r) => r['id']),
-        GridColumn(id: 'name', label: 'Company Name', valueGetter: (r) => r['name']),
-        GridColumn(id: 'country', label: 'Country', valueGetter: (r) => r['country']),
+        GridColumn(
+            id: 'name', label: 'Company Name', valueGetter: (r) => r['name']),
+        GridColumn(
+            id: 'country', label: 'Country', valueGetter: (r) => r['country']),
       ],
     );
   }
@@ -47,7 +49,8 @@ class _ExportUtilsPageState extends State<ExportUtilsPage> {
         children: [
           buildDemoHeader(
             title: 'CSV & JSON Data Exporters (REQ-DATA-02)',
-            subtitle: 'Built-in RFC 4180 CSV escaping and formatted JSON exports for active display data.',
+            subtitle:
+                'Built-in RFC 4180 CSV escaping and formatted JSON exports for active display data.',
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -63,7 +66,8 @@ class _ExportUtilsPageState extends State<ExportUtilsPage> {
               ),
               OutlinedButton.icon(
                 onPressed: () {
-                  final jsonStr = DataGridExporter.toJson(controller: _controller, pretty: true);
+                  final jsonStr = DataGridExporter.toJson(
+                      controller: _controller, pretty: true);
                   setState(() => _exportPreview = jsonStr);
                 },
                 icon: const Icon(Icons.code, size: 16),
@@ -82,7 +86,10 @@ class _ExportUtilsPageState extends State<ExportUtilsPage> {
               ),
               child: Text(
                 _exportPreview,
-                style: const TextStyle(color: Colors.greenAccent, fontFamily: 'monospace', fontSize: 12),
+                style: const TextStyle(
+                    color: Colors.greenAccent,
+                    fontFamily: 'monospace',
+                    fontSize: 12),
               ),
             ),
           ],

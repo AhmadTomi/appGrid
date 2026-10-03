@@ -1,7 +1,10 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../models/app_grid_header_config.dart';
 import '../models/grid_column.dart';
 import '../models/compact_column_group.dart';
 import '../models/sort_criteria.dart';
+import '../models/app_grid_style.dart';
 import '../column_layout/column_layout_manager.dart';
 import '../controllers/app_grid_controller.dart';
 import '../rendering_engine/grid_builders.dart';
@@ -19,11 +22,22 @@ class AppGridHeaderCell<T> extends StatefulWidget {
   final GridHeaderBuilder? customHeaderBuilder;
   final void Function(GridColumn column)? onAutoFit;
   final void Function(CompactColumnGroup group)? onAutoFitGroup;
-  final Color? headerBackgroundColor;
-  final Color? gridLineColor;
-  final Color? verticalGridLineColor;
-  final bool showHorizontalGridLines;
-  final bool showVerticalGridLines;
+  final AppGridStyle style;
+  final AppGridHeaderConfig headerConfig;
+
+  TextStyle get headerTextStyle => style.headerTextStyle;
+  TextStyle get menuTextStyle => style.menuTextStyle;
+  Color? get headerBackgroundColor => style.headerBackgroundColor;
+  Color? get gridLineColor => style.gridLineColor;
+  Color? get verticalGridLineColor => style.verticalGridLineColor;
+  bool get showHorizontalGridLines => style.showHorizontalGridLines;
+  bool get showVerticalGridLines => style.showVerticalGridLines;
+  Widget? get columnMenuIcon => style.columnMenuIcon;
+  Widget? get columnAscendingIcon => style.columnAscendingIcon;
+  Widget? get columnDescendingIcon => style.columnDescendingIcon;
+  Color? get iconColor => style.iconColor;
+  double get iconSize => style.iconSize;
+  bool get showPinIcon => style.showPinIcon;
 
   const AppGridHeaderCell({
     super.key,
@@ -36,11 +50,8 @@ class AppGridHeaderCell<T> extends StatefulWidget {
     this.customHeaderBuilder,
     this.onAutoFit,
     this.onAutoFitGroup,
-    this.headerBackgroundColor,
-    this.gridLineColor,
-    this.verticalGridLineColor,
-    this.showHorizontalGridLines = true,
-    this.showVerticalGridLines = false,
+    this.style = const AppGridStyle(),
+    this.headerConfig = const AppGridHeaderConfig(),
   });
 
   @override
@@ -57,7 +68,17 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
   GridColumn? get bottomCol => effectiveGroup.bottomColumn;
   bool get isPair => effectiveGroup.isPair;
   bool get isCompact => widget.controller.compactMode;
-  bool get canSort => !isCompact && topCol.isSortable;
+  AppGridHeaderConfig get effectiveHeaderConfig =>
+      topCol.headerConfig ?? widget.headerConfig;
+  bool get canSort =>
+      !isCompact && topCol.isSortable && effectiveHeaderConfig.enableSort;
+
+  void _onSortToggle() {
+    if (canSort) {
+      widget.controller.sortByColumn(topCol.id);
+      if (mounted) setState(() {});
+    }
+  }
 
   @override
   void initState() {
@@ -92,7 +113,8 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
     required VoidCallback onSortToggle,
     required bool allowSort,
   }) {
-    final columnHeaderBuilder = col.headerBuilder ?? widget.controller.getHeaderBuilder(col.id);
+    final columnHeaderBuilder =
+        col.headerBuilder ?? widget.controller.getHeaderBuilder(col.id);
     if (columnHeaderBuilder != null) {
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -143,9 +165,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             col.label,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: widget.headerTextStyle,
             overflow: TextOverflow.ellipsis,
             textAlign: _textAlignFromAlignment(col.headerAlignment),
           ),
@@ -158,17 +178,12 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final bool effectiveShowPin = widget.showPinIcon;
 
     final sortCrit = widget.controller.sortCriteria;
     final isCurrentSort = !isCompact && sortCrit?.columnId == topCol.id;
-    final sortDirection = isCurrentSort ? sortCrit!.direction : SortDirection.none;
-
-    void onSortToggle() {
-      if (canSort) {
-        widget.controller.sortByColumn(topCol.id);
-        if (mounted) setState(() {});
-      }
-    }
+    final sortDirection =
+        isCurrentSort ? sortCrit!.direction : SortDirection.none;
 
     Widget content;
     final horizontalSubDividerColor = widget.gridLineColor ??
@@ -180,7 +195,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         col: topCol,
         theme: theme,
         sortDirection: SortDirection.none,
-        onSortToggle: onSortToggle,
+        onSortToggle: _onSortToggle,
         allowSort: false,
       );
       final bottomHeader = _buildColumnHeaderContent(
@@ -188,11 +203,13 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         col: bottomCol!,
         theme: theme,
         sortDirection: SortDirection.none,
-        onSortToggle: onSortToggle,
+        onSortToggle: _onSortToggle,
         allowSort: false,
       );
 
-      final bool showMenu = topCol.pin != GridColumnPin.none || _isHovered;
+      final bool showMenu = effectiveHeaderConfig.showIcon &&
+          (effectiveHeaderConfig.enableMenu ||
+              (effectiveShowPin && topCol.pin != GridColumnPin.none));
 
       content = Column(
         children: [
@@ -227,11 +244,15 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         col: topCol,
         theme: theme,
         sortDirection: sortDirection,
-        onSortToggle: onSortToggle,
+        onSortToggle: _onSortToggle,
         allowSort: canSort,
       );
 
-      final bool showMenu = canSort || topCol.pin != GridColumnPin.none || _isHovered;
+      final bool showMenu = effectiveHeaderConfig.showIcon &&
+          (effectiveHeaderConfig.enableMenu ||
+              canSort ||
+              sortDirection != SortDirection.none ||
+              (effectiveShowPin && topCol.pin != GridColumnPin.none));
 
       if (isCompact) {
         // In compact mode with canCompact: false, the header cell has double height (widget.height).
@@ -283,7 +304,9 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
     );
 
     // Wrap with drag target and draggable for reordering if enabled
-    final bool isReorderable = topCol.isReorderable && (bottomCol == null || bottomCol!.isReorderable);
+    final bool isReorderable = topCol.isReorderable &&
+        (bottomCol == null || bottomCol!.isReorderable) &&
+        effectiveHeaderConfig.enableReorder;
     Widget headerNode = content;
     if (isReorderable) {
       headerNode = DragTarget<String>(
@@ -302,8 +325,10 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         },
         builder: (context, candidateData, rejectedData) {
           final isDragHovered = candidateData.isNotEmpty;
-          final labelText = isPair ? '${topCol.label} / ${bottomCol!.label}' : topCol.label;
-          final dragData = isPair ? effectiveGroup.columnIds.join('::') : topCol.id;
+          final labelText =
+              isPair ? '${topCol.label} / ${bottomCol!.label}' : topCol.label;
+          final dragData =
+              isPair ? effectiveGroup.columnIds.join('::') : topCol.id;
           return Draggable<String>(
             data: dragData,
             dragAnchorStrategy: (draggable, context, position) {
@@ -352,7 +377,9 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         widget.gridLineColor ??
         (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
 
-    final bool isResizable = topCol.isResizable && (bottomCol == null || bottomCol!.isResizable);
+    final bool isResizable = topCol.isResizable &&
+        (bottomCol == null || bottomCol!.isResizable) &&
+        effectiveHeaderConfig.enableResize;
 
     return ClipRect(
       child: Container(
@@ -404,6 +431,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
                   child: GestureDetector(
                     behavior: HitTestBehavior.translucent,
                     onDoubleTap: () {
+                      if (!effectiveHeaderConfig.enableAutoFit) return;
                       if (widget.onAutoFitGroup != null) {
                         widget.onAutoFitGroup!(effectiveGroup);
                       } else if (widget.onAutoFit != null) {
@@ -438,58 +466,91 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
   }
 
   Widget _buildSortMenuButton(SortDirection direction) {
-    IconData icon;
-    Color? color;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bool effectiveShowPin = widget.showPinIcon;
 
-    if (isCompact) {
-      if (topCol.pin != GridColumnPin.none) {
-        icon = Icons.push_pin;
-        color = Theme.of(context).colorScheme.primary.withAlpha(200);
+    Widget iconWidget;
+
+    if (direction == SortDirection.ascending) {
+      if (topCol.sortAscendingIcon != null) {
+        iconWidget = topCol.sortAscendingIcon!;
+      } else if (widget.columnAscendingIcon != null) {
+        iconWidget = widget.columnAscendingIcon!;
       } else {
-        icon = Icons.more_vert;
-        color = Colors.grey.withAlpha(140);
+        iconWidget = Transform.rotate(
+          angle: math.pi,
+          child: Icon(
+            Icons.sort,
+            size: widget.iconSize,
+            color: Colors.green,
+          ),
+        );
       }
-    } else if (!topCol.isSortable) {
-      if (topCol.pin != GridColumnPin.none) {
-        icon = Icons.push_pin;
-        color = Theme.of(context).colorScheme.primary.withAlpha(200);
+    } else if (direction == SortDirection.descending) {
+      if (topCol.sortDescendingIcon != null) {
+        iconWidget = topCol.sortDescendingIcon!;
+      } else if (widget.columnDescendingIcon != null) {
+        iconWidget = widget.columnDescendingIcon!;
       } else {
-        icon = Icons.more_vert;
-        color = Colors.grey.withAlpha(140);
+        iconWidget = Icon(
+          Icons.sort,
+          size: widget.iconSize,
+          color: Colors.red,
+        );
       }
     } else {
-      switch (direction) {
-        case SortDirection.ascending:
-          icon = Icons.arrow_upward;
-          color = Theme.of(context).colorScheme.primary;
-          break;
-        case SortDirection.descending:
-          icon = Icons.arrow_downward;
-          color = Theme.of(context).colorScheme.primary;
-          break;
-        case SortDirection.none:
-          if (topCol.pin != GridColumnPin.none) {
-            icon = Icons.push_pin;
-            color = Theme.of(context).colorScheme.primary.withAlpha(200);
-          } else {
-            icon = Icons.unfold_more;
-            color = Colors.grey.withAlpha(140);
-          }
-          break;
+      // SortDirection.none (unsorted context menu)
+      if (topCol.menuIcon != null) {
+        iconWidget = topCol.menuIcon!;
+      } else if (widget.columnMenuIcon != null) {
+        iconWidget = widget.columnMenuIcon!;
+      } else if (effectiveShowPin && topCol.pin != GridColumnPin.none) {
+        iconWidget = Icon(
+          Icons.push_pin,
+          size: widget.iconSize,
+          color: theme.colorScheme.primary.withAlpha(200),
+        );
+      } else if (isCompact) {
+        iconWidget = Icon(
+          Icons.more_vert,
+          size: widget.iconSize,
+          color: Colors.grey.withAlpha(140),
+        );
+      } else {
+        final defaultColor =
+            widget.iconColor ?? (isDark ? Colors.white38 : Colors.black26);
+        final hoverColor = isDark ? Colors.white70 : Colors.black54;
+        iconWidget = Icon(
+          Icons.dehaze,
+          size: widget.iconSize,
+          color: _isHovered ? hoverColor : defaultColor,
+        );
       }
     }
+
+    final bool canClickMenu = effectiveHeaderConfig.enableMenu;
+    final bool canClickSort = canSort;
+    final bool isClickable = canClickMenu || canClickSort;
 
     return Builder(
       builder: (btnContext) {
         return MouseRegion(
-          cursor: SystemMouseCursors.click,
+          cursor: isClickable ? SystemMouseCursors.click : MouseCursor.defer,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => _showColumnMenu(btnContext),
+            onTap: () {
+              if (canClickMenu) {
+                _showColumnMenu(btnContext);
+              } else if (canClickSort) {
+                _onSortToggle();
+              }
+            },
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 4.0, vertical: 4.0),
               color: Colors.transparent,
-              child: Icon(icon, size: 16, color: color),
+              child: iconWidget,
             ),
           ),
         );
@@ -499,7 +560,8 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
 
   void _showColumnMenu(BuildContext buttonContext) {
     final navigator = Navigator.maybeOf(context);
-    final RenderBox? overlay = (navigator?.overlay?.context.findRenderObject() as RenderBox?) ??
+    final RenderBox? overlay = (navigator?.overlay?.context.findRenderObject()
+            as RenderBox?) ??
         (Overlay.maybeOf(context)?.context.findRenderObject() as RenderBox?);
     if (overlay == null) return;
 
@@ -524,40 +586,49 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
     final theme = Theme.of(context);
     final sortCrit = widget.controller.sortCriteria;
     final isCurrentSort = !isCompact && sortCrit?.columnId == topCol.id;
-    final sortDirection = isCurrentSort ? sortCrit!.direction : SortDirection.none;
+    final sortDirection =
+        isCurrentSort ? sortCrit!.direction : SortDirection.none;
 
     final items = <PopupMenuEntry<_HeaderMenuAction>>[];
 
     // Sorting options (strictly disabled when compactMode is active)
+    final baseMenuTextStyle = widget.menuTextStyle;
+
     if (!isCompact && topCol.isSortable) {
+      const ascColor = Colors.green;
+      const descColor = Colors.red;
+
       items.addAll([
         PopupMenuItem<_HeaderMenuAction>(
           value: _HeaderMenuAction.sortAscending,
           child: Row(
             children: [
-              Icon(
-                Icons.arrow_upward,
-                size: 18,
-                color: sortDirection == SortDirection.ascending
-                    ? theme.colorScheme.primary
-                    : null,
+              Transform.rotate(
+                angle: math.pi,
+                child: Icon(
+                  Icons.sort,
+                  size: 18,
+                  color: sortDirection == SortDirection.ascending
+                      ? ascColor
+                      : null,
+                ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Sort Ascending',
-                  style: TextStyle(
+                  style: baseMenuTextStyle.copyWith(
                     fontWeight: sortDirection == SortDirection.ascending
                         ? FontWeight.bold
                         : FontWeight.normal,
                     color: sortDirection == SortDirection.ascending
-                        ? theme.colorScheme.primary
+                        ? ascColor
                         : null,
                   ),
                 ),
               ),
               if (sortDirection == SortDirection.ascending)
-                Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+                const Icon(Icons.check, size: 16, color: ascColor),
             ],
           ),
         ),
@@ -566,39 +637,39 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
           child: Row(
             children: [
               Icon(
-                Icons.arrow_downward,
+                Icons.sort,
                 size: 18,
                 color: sortDirection == SortDirection.descending
-                    ? theme.colorScheme.primary
+                    ? descColor
                     : null,
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Sort Descending',
-                  style: TextStyle(
+                  style: baseMenuTextStyle.copyWith(
                     fontWeight: sortDirection == SortDirection.descending
                         ? FontWeight.bold
                         : FontWeight.normal,
                     color: sortDirection == SortDirection.descending
-                        ? theme.colorScheme.primary
+                        ? descColor
                         : null,
                   ),
                 ),
               ),
               if (sortDirection == SortDirection.descending)
-                Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+                const Icon(Icons.check, size: 16, color: descColor),
             ],
           ),
         ),
         if (sortDirection != SortDirection.none)
-          const PopupMenuItem<_HeaderMenuAction>(
+          PopupMenuItem<_HeaderMenuAction>(
             value: _HeaderMenuAction.clearSort,
             child: Row(
               children: [
-                Icon(Icons.clear, size: 18),
-                SizedBox(width: 8),
-                Expanded(child: Text('Clear Sort')),
+                const Icon(Icons.clear, size: 18),
+                const SizedBox(width: 8),
+                Expanded(child: Text('Clear Sort', style: baseMenuTextStyle)),
               ],
             ),
           ),
@@ -623,7 +694,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
             Expanded(
               child: Text(
                 'Pin to Left',
-                style: TextStyle(
+                style: baseMenuTextStyle.copyWith(
                   fontWeight: topCol.pin == GridColumnPin.left
                       ? FontWeight.bold
                       : FontWeight.normal,
@@ -653,7 +724,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
             Expanded(
               child: Text(
                 'Pin to Right',
-                style: TextStyle(
+                style: baseMenuTextStyle.copyWith(
                   fontWeight: topCol.pin == GridColumnPin.right
                       ? FontWeight.bold
                       : FontWeight.normal,
@@ -677,7 +748,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
             Expanded(
               child: Text(
                 'Unpin (Scrollable)',
-                style: TextStyle(
+                style: baseMenuTextStyle.copyWith(
                   fontWeight: topCol.pin == GridColumnPin.none
                       ? FontWeight.bold
                       : FontWeight.normal,
@@ -691,17 +762,19 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
       ),
     ]);
 
-    final bool isResizable = topCol.isResizable && (bottomCol == null || bottomCol!.isResizable);
-    if (isResizable && (widget.onAutoFit != null || widget.onAutoFitGroup != null)) {
+    final bool isResizable =
+        topCol.isResizable && (bottomCol == null || bottomCol!.isResizable);
+    if (isResizable &&
+        (widget.onAutoFit != null || widget.onAutoFitGroup != null)) {
       items.add(const PopupMenuDivider());
       items.add(
-        const PopupMenuItem<_HeaderMenuAction>(
+        PopupMenuItem<_HeaderMenuAction>(
           value: _HeaderMenuAction.autoFit,
           child: Row(
             children: [
-              Icon(Icons.fit_screen, size: 18),
-              SizedBox(width: 8),
-              Expanded(child: Text('Auto-fit Width')),
+              const Icon(Icons.fit_screen, size: 18),
+              const SizedBox(width: 8),
+              Expanded(child: Text('Auto-fit Width', style: baseMenuTextStyle)),
             ],
           ),
         ),
@@ -728,7 +801,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
                 Expanded(
                   child: Text(
                     'Hide Column',
-                    style: TextStyle(
+                    style: baseMenuTextStyle.copyWith(
                       color: canHideColumn ? null : theme.disabledColor,
                     ),
                   ),
@@ -739,13 +812,14 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         );
       }
       items.add(
-        const PopupMenuItem<_HeaderMenuAction>(
+        PopupMenuItem<_HeaderMenuAction>(
           value: _HeaderMenuAction.manageColumns,
           child: Row(
             children: [
-              Icon(Icons.view_column_outlined, size: 18),
-              SizedBox(width: 8),
-              Expanded(child: Text('Manage Columns...')),
+              const Icon(Icons.view_column_outlined, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                  child: Text('Manage Columns...', style: baseMenuTextStyle)),
             ],
           ),
         ),
@@ -760,15 +834,18 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
       if (selected == null || !mounted) return;
       switch (selected) {
         case _HeaderMenuAction.sortAscending:
-          widget.controller.sortByColumn(topCol.id, direction: SortDirection.ascending);
+          widget.controller
+              .sortByColumn(topCol.id, direction: SortDirection.ascending);
           if (mounted) setState(() {});
           break;
         case _HeaderMenuAction.sortDescending:
-          widget.controller.sortByColumn(topCol.id, direction: SortDirection.descending);
+          widget.controller
+              .sortByColumn(topCol.id, direction: SortDirection.descending);
           if (mounted) setState(() {});
           break;
         case _HeaderMenuAction.clearSort:
-          widget.controller.sortByColumn(topCol.id, direction: SortDirection.none);
+          widget.controller
+              .sortByColumn(topCol.id, direction: SortDirection.none);
           if (mounted) setState(() {});
           break;
         case _HeaderMenuAction.pinLeft:

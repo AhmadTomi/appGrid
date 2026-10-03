@@ -57,5 +57,6 @@ class SortCriteria {
   int get hashCode => columnId.hashCode ^ direction.hashCode;
 
   @override
-  String toString() => 'SortCriteria(columnId: $columnId, direction: $direction)';
+  String toString() =>
+      'SortCriteria(columnId: $columnId, direction: $direction)';
 }

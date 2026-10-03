@@ -45,7 +45,8 @@ class CustomizationPage extends StatelessWidget {
                 onPressed: () {
                   Navigator.of(context).push(
                     MaterialPageRoute(
-                      builder: (_) => const TableCustomizationPage(isStandalone: true),
+                      builder: (_) =>
+                          const TableCustomizationPage(isStandalone: true),
                     ),
                   );
                 },
@@ -63,35 +64,38 @@ class CustomizationPage extends StatelessWidget {
 
 typedef CustomizationShowcaseDemo = CustomizationPage;
 
-const String customizationSnippet = '''// AppGrid Custom Styling & Viewport Sizing:
+const String customizationSnippet =
+    '''// AppGrid Custom Styling & Viewport Sizing:
 // Wrap AppGrid in a SizedBox to constrain scroll height, or use Expanded.
 SizedBox(
   height: 400.0, // Fixed scroll container height
   child: AppGrid<InventoryItem>(
-    controller: controller,
-
-    // 1. Dimensions & Sizing:
+  controller: controller,
+  // 1. Dimensions & Sizing:
     rowHeight: 48.0,
-    headerHeight: 48.0,
-    footerHeight: 40.0,
-    scrollbarThickness: 10.0,
-    compactMode: false, // Set to true to merge adjacent canCompact columns 2-in-1
+  compactMode: false,
+  // Set to true to merge adjacent canCompact columns 2-in-1
 
     // 2. Custom Color Palette:
     headerBackgroundColor: const Color(0xFF1E293B),
+  // Zebra stripes
+    selectedRowColor: const Color(0xFFBAE6FD),
+  // 3. Scroll Behaviors & Physics:
+    autoStretch: true,
+  enableMouseDragScroll: true,
+  physics: const ClampingScrollPhysics(),
+  style: const AppGridStyle(
+    headerHeight: 48.0,
+    footerHeight: 40.0,
+    scrollbarThickness: 10.0,
     borderColor: const Color(0xFF0F172A),
     gridLineColor: const Color(0xFFE2E8F0),
     evenRowColor: Colors.white,
-    oddRowColor: const Color(0xFFF8FAFC), // Zebra stripes
-    selectedRowColor: const Color(0xFFBAE6FD),
+    oddRowColor: const Color(0xFFF8FAFC),
     scrollbarThumbColor: const Color(0xFF64748B),
     scrollbarTrackColor: const Color(0x1A64748B),
-
-    // 3. Scroll Behaviors & Physics:
-    autoStretch: true,
-    enableMouseDragScroll: true,
     showHorizontalScrollbar: true,
     showVerticalScrollbar: true,
-    physics: const ClampingScrollPhysics(),
   ),
+),
 );''';

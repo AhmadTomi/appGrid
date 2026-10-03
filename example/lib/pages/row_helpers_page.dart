@@ -25,10 +25,26 @@ class _RowHelpersPageState extends State<RowHelpersPage> {
         {'id': 'usr_3', 'name': 'Matt Smith', 'level': 3, 'score': 420},
       ],
       columns: [
-        GridColumn(id: 'id', label: 'User ID', initialWidth: 100, valueGetter: (r) => r['id']),
-        GridColumn(id: 'name', label: 'Name', initialWidth: 160, valueGetter: (r) => r['name']),
-        GridColumn(id: 'level', label: 'Level', initialWidth: 100, valueGetter: (r) => r['level']),
-        GridColumn(id: 'score', label: 'Score', initialWidth: 100, valueGetter: (r) => r['score']),
+        GridColumn(
+            id: 'id',
+            label: 'User ID',
+            initialWidth: 100,
+            valueGetter: (r) => r['id']),
+        GridColumn(
+            id: 'name',
+            label: 'Name',
+            initialWidth: 160,
+            valueGetter: (r) => r['name']),
+        GridColumn(
+            id: 'level',
+            label: 'Level',
+            initialWidth: 100,
+            valueGetter: (r) => r['level']),
+        GridColumn(
+            id: 'score',
+            label: 'Score',
+            initialWidth: 100,
+            valueGetter: (r) => r['score']),
       ],
     );
   }
@@ -48,7 +64,8 @@ class _RowHelpersPageState extends State<RowHelpersPage> {
         children: [
           buildDemoHeader(
             title: 'Developer Row & Batch Mutation Helpers',
-            subtitle: 'Direct helper methods on AppGridController so you never have to loop cells manually.',
+            subtitle:
+                'Direct helper methods on AppGridController so you never have to loop cells manually.',
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -57,29 +74,47 @@ class _RowHelpersPageState extends State<RowHelpersPage> {
             children: [
               OutlinedButton.icon(
                 onPressed: () {
-                  _controller.updateRow(0, {'id': 'usr_1', 'name': 'Emma (Updated)', 'level': 5, 'score': 999});
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('updateRow(0, ...) executed!'), duration: Duration(seconds: 1)));
+                  _controller.updateRow(0, {
+                    'id': 'usr_1',
+                    'name': 'Emma (Updated)',
+                    'level': 5,
+                    'score': 999
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('updateRow(0, ...) executed!'),
+                      duration: Duration(seconds: 1)));
                 },
                 icon: const Icon(Icons.edit, size: 16),
                 label: const Text('updateRow(0)'),
               ),
               OutlinedButton.icon(
                 onPressed: () {
-                  _controller.patchRow(1, (prev) => {
-                    'id': prev['id'],
-                    'name': prev['name'],
-                    'level': (prev['level'] as int) + 1,
-                    'score': (prev['score'] as int) + 50,
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('patchRow(1) executed (Level + 1)!'), duration: Duration(seconds: 1)));
+                  _controller.patchRow(
+                      1,
+                      (prev) => {
+                            'id': prev['id'],
+                            'name': prev['name'],
+                            'level': (prev['level'] as int) + 1,
+                            'score': (prev['score'] as int) + 50,
+                          });
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('patchRow(1) executed (Level + 1)!'),
+                      duration: Duration(seconds: 1)));
                 },
                 icon: const Icon(Icons.auto_fix_high, size: 16),
                 label: const Text('patchRow(1)'),
               ),
               OutlinedButton.icon(
                 onPressed: () {
-                  _controller.updateRowById('usr_3', {'id': 'usr_3', 'name': 'Matt Smith (VIP)', 'level': 99, 'score': 9999});
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("updateRowById('usr_3', ...) executed!"), duration: Duration(seconds: 1)));
+                  _controller.updateRowById('usr_3', {
+                    'id': 'usr_3',
+                    'name': 'Matt Smith (VIP)',
+                    'level': 99,
+                    'score': 9999
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text("updateRowById('usr_3', ...) executed!"),
+                      duration: Duration(seconds: 1)));
                 },
                 icon: const Icon(Icons.badge, size: 16),
                 label: const Text("updateRowById('usr_3')"),
@@ -87,11 +122,28 @@ class _RowHelpersPageState extends State<RowHelpersPage> {
               OutlinedButton.icon(
                 onPressed: () {
                   _controller.batchUpdateRows({
-                    0: {'id': 'usr_1', 'name': 'Emma W.', 'level': 10, 'score': 1200},
-                    1: {'id': 'usr_2', 'name': 'David T.', 'level': 20, 'score': 2400},
-                    2: {'id': 'usr_3', 'name': 'Matt S.', 'level': 30, 'score': 3600},
+                    0: {
+                      'id': 'usr_1',
+                      'name': 'Emma W.',
+                      'level': 10,
+                      'score': 1200
+                    },
+                    1: {
+                      'id': 'usr_2',
+                      'name': 'David T.',
+                      'level': 20,
+                      'score': 2400
+                    },
+                    2: {
+                      'id': 'usr_3',
+                      'name': 'Matt S.',
+                      'level': 30,
+                      'score': 3600
+                    },
                   });
-                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('batchUpdateRows(...) executed!'), duration: Duration(seconds: 1)));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('batchUpdateRows(...) executed!'),
+                      duration: Duration(seconds: 1)));
                 },
                 icon: const Icon(Icons.dynamic_feed, size: 16),
                 label: const Text('batchUpdateRows()'),

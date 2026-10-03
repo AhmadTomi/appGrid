@@ -53,10 +53,11 @@ class GridState {
       sortCriteria: map['sortCriteria'] != null
           ? SortCriteria.fromJson(map['sortCriteria'] as Map<String, dynamic>)
           : null,
-      columnVisibility: (map['columnVisibility'] as Map<dynamic, dynamic>?)?.map(
-            (k, v) => MapEntry(k.toString(), v as bool),
-          ) ??
-          const {},
+      columnVisibility:
+          (map['columnVisibility'] as Map<dynamic, dynamic>?)?.map(
+                (k, v) => MapEntry(k.toString(), v as bool),
+              ) ??
+              const {},
       compactMode: (map['compactMode'] as bool?) ?? false,
     );
   }
@@ -88,8 +89,8 @@ class GridState {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(Object.hashAll(columnOrder), sortCriteria, Object.hashAll(columnVisibility.entries), compactMode);
+  int get hashCode => Object.hash(Object.hashAll(columnOrder), sortCriteria,
+      Object.hashAll(columnVisibility.entries), compactMode);
 
   @override
   String toString() =>

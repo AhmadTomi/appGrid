@@ -7,7 +7,11 @@ void main() {
     test('Sorts 100 rows in under 10 milliseconds', () async {
       final items = List.generate(
         100,
-        (i) => {'id': i, 'name': 'Item ${(100 - i) * 31 % 100}', 'score': (i * 17) % 100},
+        (i) => {
+          'id': i,
+          'name': 'Item ${(100 - i) * 31 % 100}',
+          'score': (i * 17) % 100
+        },
       );
 
       final controller = AppGridController<Map<String, dynamic>>(
@@ -15,12 +19,14 @@ void main() {
         columns: [
           GridColumn(id: 'id', label: 'ID', valueGetter: (r) => r['id']),
           GridColumn(id: 'name', label: 'Name', valueGetter: (r) => r['name']),
-          GridColumn(id: 'score', label: 'Score', valueGetter: (r) => r['score']),
+          GridColumn(
+              id: 'score', label: 'Score', valueGetter: (r) => r['score']),
         ],
       );
 
       final stopwatch = Stopwatch()..start();
-      await controller.sortByColumn('score', direction: SortDirection.ascending);
+      await controller.sortByColumn('score',
+          direction: SortDirection.ascending);
       stopwatch.stop();
 
       expect(stopwatch.elapsedMilliseconds, lessThan(20));
@@ -29,7 +35,8 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('Header click immediately sorts without dropping clicks', (tester) async {
+    testWidgets('Header click immediately sorts without dropping clicks',
+        (tester) async {
       final items = List.generate(
         100,
         (i) => {'id': i, 'score': 100 - i},
@@ -38,7 +45,8 @@ void main() {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: items,
         columns: [
-          GridColumn(id: 'score', label: 'Score', valueGetter: (r) => r['score']),
+          GridColumn(
+              id: 'score', label: 'Score', valueGetter: (r) => r['score']),
         ],
       );
 
@@ -66,20 +74,24 @@ void main() {
       await tester.pumpAndSettle();
 
       // First tap: Ascending (score 1 to 100)
-      expect(controller.sortCriteria?.direction, equals(SortDirection.ascending));
+      expect(
+          controller.sortCriteria?.direction, equals(SortDirection.ascending));
       expect(controller.getRowByDisplayIndex(0)['score'], equals(1));
 
       // Second tap: Descending (score 100 to 1)
       await tester.tap(headerFinder);
       await tester.pumpAndSettle();
 
-      expect(controller.sortCriteria?.direction, equals(SortDirection.descending));
+      expect(
+          controller.sortCriteria?.direction, equals(SortDirection.descending));
       expect(controller.getRowByDisplayIndex(0)['score'], equals(100));
 
       controller.dispose();
     });
 
-    test('Automatically sorts Map rows by column id if valueGetter is not explicitly defined', () async {
+    test(
+        'Automatically sorts Map rows by column id if valueGetter is not explicitly defined',
+        () async {
       final items = List.generate(
         100,
         (i) => {'id': i, 'score': 100 - i},
@@ -88,11 +100,13 @@ void main() {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: items,
         columns: [
-          const GridColumn(id: 'score', label: 'Score'), // No valueGetter provided!
+          const GridColumn(
+              id: 'score', label: 'Score'), // No valueGetter provided!
         ],
       );
 
-      await controller.sortByColumn('score', direction: SortDirection.ascending);
+      await controller.sortByColumn('score',
+          direction: SortDirection.ascending);
       expect(controller.getRowByDisplayIndex(0)['score'], equals(1));
       expect(controller.getRowByDisplayIndex(99)['score'], equals(100));
 
@@ -123,4 +137,3 @@ void main() {
     });
   });
 }
-

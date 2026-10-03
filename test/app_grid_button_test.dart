@@ -31,7 +31,8 @@ void main() {
       expect(clicked, isTrue);
     });
 
-    testWidgets('Disabled state prevents click and applies disabled style', (tester) async {
+    testWidgets('Disabled state prevents click and applies disabled style',
+        (tester) async {
       var clicked = false;
 
       await tester.pumpWidget(
@@ -91,17 +92,30 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('BENCHMARK: 100 rows with AppGridButton in cellBuilder mount and sort fast', (tester) async {
-      final data = List.generate(100, (i) => {
-        'id': 'ID-$i',
-        'price': 100.0 + (i * 7) % 50,
-      });
+    testWidgets(
+        'BENCHMARK: 100 rows with AppGridButton in cellBuilder mount and sort fast',
+        (tester) async {
+      final data = List.generate(
+          100,
+          (i) => {
+                'id': 'ID-$i',
+                'price': 100.0 + (i * 7) % 50,
+              });
 
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: data,
         columns: [
-          GridColumn(id: 'id', label: 'ID', initialWidth: 100, pin: GridColumnPin.left, valueGetter: (r) => r['id']),
-          GridColumn(id: 'price', label: 'Price', initialWidth: 120, valueGetter: (r) => r['price']),
+          GridColumn(
+              id: 'id',
+              label: 'ID',
+              initialWidth: 100,
+              pin: GridColumnPin.left,
+              valueGetter: (r) => r['id']),
+          GridColumn(
+              id: 'price',
+              label: 'Price',
+              initialWidth: 120,
+              valueGetter: (r) => r['price']),
           GridColumn(
             id: 'trade',
             label: 'Trade',
@@ -140,7 +154,8 @@ void main() {
 
       // Sort must be fast
       final swSort = Stopwatch()..start();
-      await controller.sortByColumn('price', direction: SortDirection.ascending);
+      await controller.sortByColumn('price',
+          direction: SortDirection.ascending);
       await tester.pumpAndSettle();
       swSort.stop();
 

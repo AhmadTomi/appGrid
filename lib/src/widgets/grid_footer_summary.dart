@@ -28,7 +28,8 @@ class GridFooter {
         padding: const EdgeInsets.symmetric(horizontal: 12.0),
         child: Text(
           '$prefix$formatted$suffix',
-          style: style ?? const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          style: style ??
+              const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
         ),
@@ -52,7 +53,8 @@ class GridFooter {
           padding: const EdgeInsets.symmetric(horizontal: 12.0),
           child: Text(
             '${prefix}0$suffix',
-            style: style ?? const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            style: style ??
+                const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           ),
         );
       }
@@ -68,7 +70,8 @@ class GridFooter {
         padding: const EdgeInsets.symmetric(horizontal: 12.0),
         child: Text(
           '$prefix$formatted$suffix',
-          style: style ?? const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          style: style ??
+              const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
         ),
@@ -89,7 +92,8 @@ class GridFooter {
         padding: const EdgeInsets.symmetric(horizontal: 12.0),
         child: Text(
           '$prefix${visibleItems.length}$suffix',
-          style: style ?? const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+          style: style ??
+              const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
         ),

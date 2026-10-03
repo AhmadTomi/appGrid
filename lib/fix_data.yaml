@@ -1,0 +1,40 @@
+version: 1
+transforms:
+  - title: 'Rename AppGridStyleConfig to AppGridStyle'
+    date: 2026-10-03
+    element:
+      uris: ['package:app_grid/app_grid.dart']
+      typedef: 'AppGridStyleConfig'
+    changes:
+      - kind: 'rename'
+        newName: 'AppGridStyle'
+
+  - title: 'Rename isHideable to canHide'
+    date: 2026-10-03
+    element:
+      uris: ['package:app_grid/app_grid.dart']
+      getter: 'isHideable'
+      inClass: 'GridColumn'
+    changes:
+      - kind: 'rename'
+        newName: 'canHide'
+
+  - title: 'Rename cellTextStyle to rowTextStyle'
+    date: 2026-10-03
+    element:
+      uris: ['package:app_grid/app_grid.dart']
+      getter: 'cellTextStyle'
+      inClass: 'AppGridStyle'
+    changes:
+      - kind: 'rename'
+        newName: 'rowTextStyle'
+
+  - title: 'Rename alternateRowColor to oddRowColor'
+    date: 2026-10-03
+    element:
+      uris: ['package:app_grid/app_grid.dart']
+      getter: 'alternateRowColor'
+      inClass: 'AppGridStyle'
+    changes:
+      - kind: 'rename'
+        newName: 'oddRowColor'

@@ -25,12 +25,54 @@ class InventoryItem {
 
 /// Pre-configured color presets for instant styling showcase.
 enum GridThemePreset {
-  corporateNavy('Corporate Navy', Color(0xFF1E293B), Color(0xFF0F172A), Color(0xFFE2E8F0), Color(0xFFF8FAFC), Color(0xFFFFFFFF), Color(0xFFBAE6FD)),
-  emeraldForest('Emerald Forest', Color(0xFF064E3B), Color(0xFF022C22), Color(0xFFA7F3D0), Color(0xFFF0FDF4), Color(0xFFFFFFFF), Color(0xFF6EE7B7)),
-  sunsetAmber('Sunset Amber', Color(0xFF7C2D12), Color(0xFF431407), Color(0xFFFED7AA), Color(0xFFFFFBEB), Color(0xFFFFFFFF), Color(0xFFFDE68A)),
-  cyberDark('Cyber Dark', Color(0xFF18181B), Color(0xFF09090B), Color(0xFF27272A), Color(0xFF1F1F23), Color(0xFF141416), Color(0xFF3F3F46)),
-  cleanLight('Clean Light', Color(0xFFF1F5F9), Color(0xFFCBD5E1), Color(0xFFE2E8F0), Color(0xFFF8FAFC), Color(0xFFFFFFFF), Color(0xFFE0E7FF)),
-  monochromeDark('Monochrome Slate', Color(0xFF334155), Color(0xFF1E293B), Color(0xFF475569), Color(0xFF1E293B), Color(0xFF0F172A), Color(0xFF64748B)),
+  corporateNavy(
+      'Corporate Navy',
+      Color(0xFF1E293B),
+      Color(0xFF0F172A),
+      Color(0xFFE2E8F0),
+      Color(0xFFF8FAFC),
+      Color(0xFFFFFFFF),
+      Color(0xFFBAE6FD)),
+  emeraldForest(
+      'Emerald Forest',
+      Color(0xFF064E3B),
+      Color(0xFF022C22),
+      Color(0xFFA7F3D0),
+      Color(0xFFF0FDF4),
+      Color(0xFFFFFFFF),
+      Color(0xFF6EE7B7)),
+  sunsetAmber(
+      'Sunset Amber',
+      Color(0xFF7C2D12),
+      Color(0xFF431407),
+      Color(0xFFFED7AA),
+      Color(0xFFFFFBEB),
+      Color(0xFFFFFFFF),
+      Color(0xFFFDE68A)),
+  cyberDark(
+      'Cyber Dark',
+      Color(0xFF18181B),
+      Color(0xFF09090B),
+      Color(0xFF27272A),
+      Color(0xFF1F1F23),
+      Color(0xFF141416),
+      Color(0xFF3F3F46)),
+  cleanLight(
+      'Clean Light',
+      Color(0xFFF1F5F9),
+      Color(0xFFCBD5E1),
+      Color(0xFFE2E8F0),
+      Color(0xFFF8FAFC),
+      Color(0xFFFFFFFF),
+      Color(0xFFE0E7FF)),
+  monochromeDark(
+      'Monochrome Slate',
+      Color(0xFF334155),
+      Color(0xFF1E293B),
+      Color(0xFF475569),
+      Color(0xFF1E293B),
+      Color(0xFF0F172A),
+      Color(0xFF64748B)),
   custom('Custom', null, null, null, null, null, null);
 
   final String label;
@@ -64,7 +106,8 @@ class TableCustomizationPage extends StatefulWidget {
   State<TableCustomizationPage> createState() => _TableCustomizationPageState();
 }
 
-class _TableCustomizationPageState extends State<TableCustomizationPage> with SingleTickerProviderStateMixin {
+class _TableCustomizationPageState extends State<TableCustomizationPage>
+    with SingleTickerProviderStateMixin {
   late final AppGridController<InventoryItem> _controller;
   late final TabController _tabController;
 
@@ -97,28 +140,135 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
   // Scroll & Behavior Toggles
   bool _autoStretch = true;
   bool _enableMouseDragScroll = true;
-  AppGridScrollbarVisibility _horizontalScrollbarVisibility = AppGridScrollbarVisibility.onHover;
-  AppGridScrollbarVisibility _verticalScrollbarVisibility = AppGridScrollbarVisibility.onHover;
+  AppGridScrollbarVisibility _horizontalScrollbarVisibility =
+      AppGridScrollbarVisibility.onHover;
+  AppGridScrollbarVisibility _verticalScrollbarVisibility =
+      AppGridScrollbarVisibility.onHover;
   bool _useBouncingPhysics = false;
   bool _readOnly = false;
   bool _compactMode = false;
 
   static const List<InventoryItem> _sampleData = [
-    InventoryItem(sku: 'SKU-001', name: 'MacBook Pro 16" M3 Max', category: 'Laptops', stock: 45, price: 3499.00, rating: 4.9, status: 'In Stock'),
-    InventoryItem(sku: 'SKU-002', name: 'Dell UltraSharp 32 4K Monitor', category: 'Displays', stock: 18, price: 899.50, rating: 4.7, status: 'In Stock'),
-    InventoryItem(sku: 'SKU-003', name: 'Sony WH-1000XM5 Headphones', category: 'Audio', stock: 82, price: 398.00, rating: 4.8, status: 'In Stock'),
-    InventoryItem(sku: 'SKU-004', name: 'Logitech MX Master 3S Mouse', category: 'Accessories', stock: 120, price: 99.99, rating: 4.9, status: 'In Stock'),
-    InventoryItem(sku: 'SKU-005', name: 'Keychron Q1 Pro Wireless Keyboard', category: 'Accessories', stock: 34, price: 199.00, rating: 4.6, status: 'In Stock'),
-    InventoryItem(sku: 'SKU-006', name: 'Apple iPad Pro 13" M4 OLED', category: 'Tablets', stock: 12, price: 1299.00, rating: 4.9, status: 'Low Stock'),
-    InventoryItem(sku: 'SKU-007', name: 'Samsung Galaxy Tab S9 Ultra', category: 'Tablets', stock: 8, price: 1199.99, rating: 4.5, status: 'Low Stock'),
-    InventoryItem(sku: 'SKU-008', name: 'Elgato Stream Deck MK.2', category: 'Streaming', stock: 55, price: 149.99, rating: 4.7, status: 'In Stock'),
-    InventoryItem(sku: 'SKU-009', name: 'Shure SM7B Vocal Microphone', category: 'Audio', stock: 24, price: 399.00, rating: 4.9, status: 'In Stock'),
-    InventoryItem(sku: 'SKU-010', name: 'CalDigit TS4 Thunderbolt Dock', category: 'Docks', stock: 5, price: 399.95, rating: 4.8, status: 'Low Stock'),
-    InventoryItem(sku: 'SKU-011', name: 'LG 27" UltraGear OLED Gaming Monitor', category: 'Displays', stock: 0, price: 799.00, rating: 4.6, status: 'Out of Stock'),
-    InventoryItem(sku: 'SKU-012', name: 'Bose QuietComfort Ultra Earbuds', category: 'Audio', stock: 40, price: 299.00, rating: 4.4, status: 'In Stock'),
-    InventoryItem(sku: 'SKU-013', name: 'Anker Prime 27,650mAh Power Bank', category: 'Power', stock: 95, price: 179.99, rating: 4.8, status: 'In Stock'),
-    InventoryItem(sku: 'SKU-014', name: 'Razer Blade 16 Gaming Laptop', category: 'Laptops', stock: 6, price: 2999.99, rating: 4.5, status: 'Low Stock'),
-    InventoryItem(sku: 'SKU-015', name: 'Herman Miller Embody Gaming Chair', category: 'Furniture', stock: 3, price: 1795.00, rating: 4.9, status: 'Low Stock'),
+    InventoryItem(
+        sku: 'SKU-001',
+        name: 'MacBook Pro 16" M3 Max',
+        category: 'Laptops',
+        stock: 45,
+        price: 3499.00,
+        rating: 4.9,
+        status: 'In Stock'),
+    InventoryItem(
+        sku: 'SKU-002',
+        name: 'Dell UltraSharp 32 4K Monitor',
+        category: 'Displays',
+        stock: 18,
+        price: 899.50,
+        rating: 4.7,
+        status: 'In Stock'),
+    InventoryItem(
+        sku: 'SKU-003',
+        name: 'Sony WH-1000XM5 Headphones',
+        category: 'Audio',
+        stock: 82,
+        price: 398.00,
+        rating: 4.8,
+        status: 'In Stock'),
+    InventoryItem(
+        sku: 'SKU-004',
+        name: 'Logitech MX Master 3S Mouse',
+        category: 'Accessories',
+        stock: 120,
+        price: 99.99,
+        rating: 4.9,
+        status: 'In Stock'),
+    InventoryItem(
+        sku: 'SKU-005',
+        name: 'Keychron Q1 Pro Wireless Keyboard',
+        category: 'Accessories',
+        stock: 34,
+        price: 199.00,
+        rating: 4.6,
+        status: 'In Stock'),
+    InventoryItem(
+        sku: 'SKU-006',
+        name: 'Apple iPad Pro 13" M4 OLED',
+        category: 'Tablets',
+        stock: 12,
+        price: 1299.00,
+        rating: 4.9,
+        status: 'Low Stock'),
+    InventoryItem(
+        sku: 'SKU-007',
+        name: 'Samsung Galaxy Tab S9 Ultra',
+        category: 'Tablets',
+        stock: 8,
+        price: 1199.99,
+        rating: 4.5,
+        status: 'Low Stock'),
+    InventoryItem(
+        sku: 'SKU-008',
+        name: 'Elgato Stream Deck MK.2',
+        category: 'Streaming',
+        stock: 55,
+        price: 149.99,
+        rating: 4.7,
+        status: 'In Stock'),
+    InventoryItem(
+        sku: 'SKU-009',
+        name: 'Shure SM7B Vocal Microphone',
+        category: 'Audio',
+        stock: 24,
+        price: 399.00,
+        rating: 4.9,
+        status: 'In Stock'),
+    InventoryItem(
+        sku: 'SKU-010',
+        name: 'CalDigit TS4 Thunderbolt Dock',
+        category: 'Docks',
+        stock: 5,
+        price: 399.95,
+        rating: 4.8,
+        status: 'Low Stock'),
+    InventoryItem(
+        sku: 'SKU-011',
+        name: 'LG 27" UltraGear OLED Gaming Monitor',
+        category: 'Displays',
+        stock: 0,
+        price: 799.00,
+        rating: 4.6,
+        status: 'Out of Stock'),
+    InventoryItem(
+        sku: 'SKU-012',
+        name: 'Bose QuietComfort Ultra Earbuds',
+        category: 'Audio',
+        stock: 40,
+        price: 299.00,
+        rating: 4.4,
+        status: 'In Stock'),
+    InventoryItem(
+        sku: 'SKU-013',
+        name: 'Anker Prime 27,650mAh Power Bank',
+        category: 'Power',
+        stock: 95,
+        price: 179.99,
+        rating: 4.8,
+        status: 'In Stock'),
+    InventoryItem(
+        sku: 'SKU-014',
+        name: 'Razer Blade 16 Gaming Laptop',
+        category: 'Laptops',
+        stock: 6,
+        price: 2999.99,
+        rating: 4.5,
+        status: 'Low Stock'),
+    InventoryItem(
+        sku: 'SKU-015',
+        name: 'Herman Miller Embody Gaming Chair',
+        category: 'Furniture',
+        stock: 3,
+        price: 1795.00,
+        rating: 4.9,
+        status: 'Low Stock'),
   ];
 
   @override
@@ -159,7 +309,8 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
           initialWidth: 110,
           minWidth: 90,
           valueGetter: (item) => (item as InventoryItem).stock,
-          footerBuilder: GridFooter.sum<InventoryItem>((item) => item.stock, prefix: 'Sum: '),
+          footerBuilder: GridFooter.sum<InventoryItem>((item) => item.stock,
+              prefix: 'Sum: '),
         ),
         GridColumn(
           id: 'price',
@@ -167,14 +318,16 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
           initialWidth: 120,
           minWidth: 90,
           valueGetter: (item) => (item as InventoryItem).price,
-          footerBuilder: GridFooter.average<InventoryItem>((item) => item.price, prefix: 'Avg: \$', precision: 2),
+          footerBuilder: GridFooter.average<InventoryItem>((item) => item.price,
+              prefix: 'Avg: \$', precision: 2),
           cellBuilder: (context, item, info) {
             final inv = item as InventoryItem;
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
                 '\$${inv.price.toStringAsFixed(2)}',
-                style: const TextStyle(fontWeight: FontWeight.w600, fontFamily: 'monospace'),
+                style: const TextStyle(
+                    fontWeight: FontWeight.w600, fontFamily: 'monospace'),
               ),
             );
           },
@@ -194,7 +347,9 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                 children: [
                   const Icon(Icons.star, size: 14, color: Colors.amber),
                   const SizedBox(width: 4),
-                  Text('${inv.rating}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  Text('${inv.rating}',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold, fontSize: 12)),
                 ],
               ),
             );
@@ -210,7 +365,9 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
             final inv = item as InventoryItem;
             final isOut = inv.status == 'Out of Stock';
             final isLow = inv.status == 'Low Stock';
-            final color = isOut ? Colors.red : (isLow ? Colors.amber.shade800 : Colors.teal);
+            final color = isOut
+                ? Colors.red
+                : (isLow ? Colors.amber.shade800 : Colors.teal);
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Container(
@@ -249,7 +406,8 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         _selectedRowColor = preset.selection!;
 
         // Adjust scrollbar color to match theme
-        if (preset == GridThemePreset.cyberDark || preset == GridThemePreset.monochromeDark) {
+        if (preset == GridThemePreset.cyberDark ||
+            preset == GridThemePreset.monochromeDark) {
           _scrollbarThumbColor = const Color(0xFF71717A);
           _scrollbarTrackColor = const Color(0xFF27272A);
         } else if (preset == GridThemePreset.emeraldForest) {
@@ -291,7 +449,9 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                   child: _buildPreviewArea(isFlexible: true),
                 ),
               ),
-              VerticalDivider(width: 1, color: Theme.of(context).dividerColor.withAlpha(60)),
+              VerticalDivider(
+                  width: 1,
+                  color: Theme.of(context).dividerColor.withAlpha(60)),
               // 2. Right: Interactive Customization Controls Panel
               Expanded(
                 flex: 4,
@@ -332,8 +492,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
               onPressed: () {
                 _applyPresetColors(GridThemePreset.corporateNavy);
                 for (final col in _controller.columns) {
-                  _controller.setColumnHeaderAlignment(col.id, Alignment.center);
-                  _controller.setColumnCellAlignment(col.id, Alignment.centerLeft);
+                  _controller.setColumnHeaderAlignment(
+                      col.id, Alignment.center);
+                  _controller.setColumnCellAlignment(
+                      col.id, Alignment.centerLeft);
                 }
                 setState(() {
                   _isFixedHeight = false;
@@ -348,8 +510,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                   _verticalGridLineColor = const Color(0xFFE2E8F0);
                   _autoStretch = true;
                   _enableMouseDragScroll = true;
-                  _horizontalScrollbarVisibility = AppGridScrollbarVisibility.onHover;
-                  _verticalScrollbarVisibility = AppGridScrollbarVisibility.onHover;
+                  _horizontalScrollbarVisibility =
+                      AppGridScrollbarVisibility.onHover;
+                  _verticalScrollbarVisibility =
+                      AppGridScrollbarVisibility.onHover;
                   _useBouncingPhysics = false;
                   _readOnly = false;
                   _compactMode = false;
@@ -372,29 +536,32 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
     // Build the grid widget with all reactive customizations
     final gridWidget = AppGrid<InventoryItem>(
       controller: _controller,
-      headerHeight: _headerHeight,
-      rowHeight: _rowHeight,
-      footerHeight: _showFooter ? _footerHeight : null,
-      headerBackgroundColor: _headerBackgroundColor,
-      borderColor: _borderColor,
-      gridLineColor: _gridLineColor,
-      showHorizontalGridLines: _showHorizontalGridLines,
-      showVerticalGridLines: _showVerticalGridLines,
-      verticalGridLineColor: _verticalGridLineColor,
-      evenRowColor: _evenRowColor,
-      oddRowColor: _useZebraStripes ? _oddRowColor : _evenRowColor,
-      selectedRowColor: _selectedRowColor,
       readOnly: _readOnly,
       compactMode: _compactMode,
-
-      scrollbarThickness: _scrollbarThickness,
-      scrollbarThumbColor: _scrollbarThumbColor,
-      scrollbarTrackColor: _scrollbarTrackColor,
-      horizontalScrollbarVisibility: _horizontalScrollbarVisibility,
-      verticalScrollbarVisibility: _verticalScrollbarVisibility,
       autoStretch: _autoStretch,
       enableMouseDragScroll: _enableMouseDragScroll,
-      physics: _useBouncingPhysics ? const BouncingScrollPhysics() : const ClampingScrollPhysics(),
+      physics: _useBouncingPhysics
+          ? const BouncingScrollPhysics()
+          : const ClampingScrollPhysics(),
+      style: AppGridStyle(
+        headerHeight: _headerHeight,
+        rowHeight: _rowHeight,
+        footerHeight: _showFooter ? _footerHeight : null,
+        headerBackgroundColor: _headerBackgroundColor,
+        borderColor: _borderColor,
+        gridLineColor: _gridLineColor,
+        showHorizontalGridLines: _showHorizontalGridLines,
+        showVerticalGridLines: _showVerticalGridLines,
+        verticalGridLineColor: _verticalGridLineColor,
+        evenRowColor: _evenRowColor,
+        oddRowColor: _useZebraStripes ? _oddRowColor : _evenRowColor,
+        selectedRowColor: _selectedRowColor,
+        scrollbarThickness: _scrollbarThickness,
+        scrollbarThumbColor: _scrollbarThumbColor,
+        scrollbarTrackColor: _scrollbarTrackColor,
+        horizontalScrollbarVisibility: _horizontalScrollbarVisibility,
+        verticalScrollbarVisibility: _verticalScrollbarVisibility,
+      ),
     );
 
     return Column(
@@ -417,7 +584,8 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                 ),
                 for (final preset in GridThemePreset.values)
                   ChoiceChip(
-                    label: Text(preset.label, style: const TextStyle(fontSize: 12)),
+                    label: Text(preset.label,
+                        style: const TextStyle(fontSize: 12)),
                     selected: _currentPreset == preset,
                     onSelected: (selected) {
                       if (selected) _applyPresetColors(preset);
@@ -426,9 +594,12 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                 const SizedBox(width: 8),
                 FilterChip(
                   avatar: Icon(
-                    _compactMode ? Icons.view_compact : Icons.view_compact_outlined,
+                    _compactMode
+                        ? Icons.view_compact
+                        : Icons.view_compact_outlined,
                     size: 16,
-                    color: _compactMode ? Colors.white : theme.colorScheme.primary,
+                    color:
+                        _compactMode ? Colors.white : theme.colorScheme.primary,
                   ),
                   label: Text(
                     'Compact Mode: ${_compactMode ? "ON" : "OFF"}',
@@ -467,7 +638,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                 Expanded(
                   child: Text(
                     'Compact Mode Active: Adjacent columns are merged 2-in-1 (SKU + Name, Stock + Price, Rating + Status). "Category" has canCompact: false and stands alone. Header & row heights auto-double (2x). Drag headers to move pairs together. Sort & hide are disabled.',
-                    style: TextStyle(fontSize: 11.5, color: Colors.indigo.shade800, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        fontSize: 11.5,
+                        color: Colors.indigo.shade800,
+                        fontWeight: FontWeight.w500),
                   ),
                 ),
               ],
@@ -492,7 +666,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                 Expanded(
                   child: Text(
                     'Scroll Container Height: ${_tableContainerHeight.toInt()} px (Fixed Bounded Viewport)',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.blue),
+                    style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -522,9 +699,15 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
           tabAlignment: TabAlignment.start,
           tabs: const [
             Tab(icon: Icon(Icons.palette_outlined, size: 18), text: 'Colors'),
-            Tab(icon: Icon(Icons.format_align_center, size: 18), text: 'Alignment'),
-            Tab(icon: Icon(Icons.straighten, size: 18), text: 'Heights & Sizing'),
-            Tab(icon: Icon(Icons.touch_app_outlined, size: 18), text: 'Scroll & Toggles'),
+            Tab(
+                icon: Icon(Icons.format_align_center, size: 18),
+                text: 'Alignment'),
+            Tab(
+                icon: Icon(Icons.straighten, size: 18),
+                text: 'Heights & Sizing'),
+            Tab(
+                icon: Icon(Icons.touch_app_outlined, size: 18),
+                text: 'Scroll & Toggles'),
             Tab(icon: Icon(Icons.code, size: 18), text: 'Code Snippet'),
           ],
         ),
@@ -568,8 +751,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         ),
         SwitchListTile(
           dense: true,
-          title: const Text('Show Horizontal Row Dividers', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-          subtitle: const Text('Render horizontal divider lines between rows', style: TextStyle(fontSize: 11)),
+          title: const Text('Show Horizontal Row Dividers',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          subtitle: const Text('Render horizontal divider lines between rows',
+              style: TextStyle(fontSize: 11)),
           value: _showHorizontalGridLines,
           onChanged: (v) => setState(() => _showHorizontalGridLines = v),
         ),
@@ -584,8 +769,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
           ),
         SwitchListTile(
           dense: true,
-          title: const Text('Show Vertical Column Dividers', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-          subtitle: const Text('Render vertical divider lines between columns', style: TextStyle(fontSize: 11)),
+          title: const Text('Show Vertical Column Dividers',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          subtitle: const Text('Render vertical divider lines between columns',
+              style: TextStyle(fontSize: 11)),
           value: _showVerticalGridLines,
           onChanged: (v) => setState(() => _showVerticalGridLines = v),
         ),
@@ -610,8 +797,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         ),
         SwitchListTile(
           dense: true,
-          title: const Text('Enable Zebra Striping (Odd Rows)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-          subtitle: const Text('Alternating background color on odd index rows', style: TextStyle(fontSize: 11)),
+          title: const Text('Enable Zebra Striping (Odd Rows)',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          subtitle: const Text('Alternating background color on odd index rows',
+              style: TextStyle(fontSize: 11)),
           value: _useZebraStripes,
           onChanged: (v) => setState(() => _useZebraStripes = v),
         ),
@@ -672,8 +861,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
               onPressed: () {
                 setState(() {
                   for (final col in columns) {
-                    _controller.setColumnHeaderAlignment(col.id, Alignment.center);
-                    _controller.setColumnCellAlignment(col.id, Alignment.centerLeft);
+                    _controller.setColumnHeaderAlignment(
+                        col.id, Alignment.center);
+                    _controller.setColumnCellAlignment(
+                        col.id, Alignment.centerLeft);
                   }
                 });
               },
@@ -684,8 +875,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
               onPressed: () {
                 setState(() {
                   for (final col in columns) {
-                    _controller.setColumnHeaderAlignment(col.id, Alignment.centerLeft);
-                    _controller.setColumnCellAlignment(col.id, Alignment.centerLeft);
+                    _controller.setColumnHeaderAlignment(
+                        col.id, Alignment.centerLeft);
+                    _controller.setColumnCellAlignment(
+                        col.id, Alignment.centerLeft);
                   }
                 });
               },
@@ -696,8 +889,10 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
               onPressed: () {
                 setState(() {
                   for (final col in columns) {
-                    _controller.setColumnHeaderAlignment(col.id, Alignment.center);
-                    _controller.setColumnCellAlignment(col.id, Alignment.center);
+                    _controller.setColumnHeaderAlignment(
+                        col.id, Alignment.center);
+                    _controller.setColumnCellAlignment(
+                        col.id, Alignment.center);
                   }
                 });
               },
@@ -709,14 +904,20 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                 setState(() {
                   for (final col in columns) {
                     if (col.id == 'stock' || col.id == 'price') {
-                      _controller.setColumnHeaderAlignment(col.id, Alignment.centerRight);
-                      _controller.setColumnCellAlignment(col.id, Alignment.centerRight);
+                      _controller.setColumnHeaderAlignment(
+                          col.id, Alignment.centerRight);
+                      _controller.setColumnCellAlignment(
+                          col.id, Alignment.centerRight);
                     } else if (col.id == 'rating' || col.id == 'status') {
-                      _controller.setColumnHeaderAlignment(col.id, Alignment.center);
-                      _controller.setColumnCellAlignment(col.id, Alignment.center);
+                      _controller.setColumnHeaderAlignment(
+                          col.id, Alignment.center);
+                      _controller.setColumnCellAlignment(
+                          col.id, Alignment.center);
                     } else {
-                      _controller.setColumnHeaderAlignment(col.id, Alignment.centerLeft);
-                      _controller.setColumnCellAlignment(col.id, Alignment.centerLeft);
+                      _controller.setColumnHeaderAlignment(
+                          col.id, Alignment.centerLeft);
+                      _controller.setColumnCellAlignment(
+                          col.id, Alignment.centerLeft);
                     }
                   }
                 });
@@ -753,12 +954,14 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
               children: [
                 Text(
                   col.label,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 13),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   '(${col.id})',
-                  style: TextStyle(fontSize: 11, color: Theme.of(context).hintColor),
+                  style: TextStyle(
+                      fontSize: 11, color: Theme.of(context).hintColor),
                 ),
               ],
             ),
@@ -792,7 +995,8 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                     selected: {col.headerAlignment},
                     onSelectionChanged: (Set<Alignment> selection) {
                       setState(() {
-                        _controller.setColumnHeaderAlignment(col.id, selection.first);
+                        _controller.setColumnHeaderAlignment(
+                            col.id, selection.first);
                       });
                     },
                     style: const ButtonStyle(
@@ -833,7 +1037,8 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                     selected: {col.cellAlignment},
                     onSelectionChanged: (Set<Alignment> selection) {
                       setState(() {
-                        _controller.setColumnCellAlignment(col.id, selection.first);
+                        _controller.setColumnCellAlignment(
+                            col.id, selection.first);
                       });
                     },
                     style: const ButtonStyle(
@@ -858,9 +1063,12 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         _buildSectionHeader('Table Container & Scroll Height'),
         SwitchListTile(
           dense: true,
-          title: const Text('Constrain Viewport Height', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          title: const Text('Constrain Viewport Height',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
           subtitle: Text(
-            _isFixedHeight ? 'Fixed height container (${_tableContainerHeight.toInt()} px)' : 'Expand to fill available space',
+            _isFixedHeight
+                ? 'Fixed height container (${_tableContainerHeight.toInt()} px)'
+                : 'Expand to fill available space',
             style: const TextStyle(fontSize: 11),
           ),
           value: _isFixedHeight,
@@ -868,7 +1076,8 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         ),
         if (_isFixedHeight) ...[
           _buildSlider(
-            label: 'Container Scroll Height: ${_tableContainerHeight.toInt()} px',
+            label:
+                'Container Scroll Height: ${_tableContainerHeight.toInt()} px',
             value: _tableContainerHeight,
             min: 200,
             max: 600,
@@ -877,9 +1086,15 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
           Wrap(
             spacing: 8,
             children: [
-              ActionChip(label: const Text('260 px (Compact)'), onPressed: () => setState(() => _tableContainerHeight = 260)),
-              ActionChip(label: const Text('380 px (Medium)'), onPressed: () => setState(() => _tableContainerHeight = 380)),
-              ActionChip(label: const Text('520 px (Tall)'), onPressed: () => setState(() => _tableContainerHeight = 520)),
+              ActionChip(
+                  label: const Text('260 px (Compact)'),
+                  onPressed: () => setState(() => _tableContainerHeight = 260)),
+              ActionChip(
+                  label: const Text('380 px (Medium)'),
+                  onPressed: () => setState(() => _tableContainerHeight = 380)),
+              ActionChip(
+                  label: const Text('520 px (Tall)'),
+                  onPressed: () => setState(() => _tableContainerHeight = 520)),
             ],
           ),
         ],
@@ -897,9 +1112,15 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         Wrap(
           spacing: 8,
           children: [
-            ActionChip(label: const Text('34 px (Dense)'), onPressed: () => setState(() => _rowHeight = 34)),
-            ActionChip(label: const Text('48 px (Standard)'), onPressed: () => setState(() => _rowHeight = 48)),
-            ActionChip(label: const Text('64 px (Spacious)'), onPressed: () => setState(() => _rowHeight = 64)),
+            ActionChip(
+                label: const Text('34 px (Dense)'),
+                onPressed: () => setState(() => _rowHeight = 34)),
+            ActionChip(
+                label: const Text('48 px (Standard)'),
+                onPressed: () => setState(() => _rowHeight = 48)),
+            ActionChip(
+                label: const Text('64 px (Spacious)'),
+                onPressed: () => setState(() => _rowHeight = 64)),
           ],
         ),
         const SizedBox(height: 12),
@@ -915,16 +1136,23 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         Wrap(
           spacing: 8,
           children: [
-            ActionChip(label: const Text('36 px'), onPressed: () => setState(() => _headerHeight = 36)),
-            ActionChip(label: const Text('48 px'), onPressed: () => setState(() => _headerHeight = 48)),
-            ActionChip(label: const Text('60 px'), onPressed: () => setState(() => _headerHeight = 60)),
+            ActionChip(
+                label: const Text('36 px'),
+                onPressed: () => setState(() => _headerHeight = 36)),
+            ActionChip(
+                label: const Text('48 px'),
+                onPressed: () => setState(() => _headerHeight = 48)),
+            ActionChip(
+                label: const Text('60 px'),
+                onPressed: () => setState(() => _headerHeight = 60)),
           ],
         ),
         const Divider(height: 24),
         _buildSectionHeader('Footer & Scrollbar Sizing'),
         SwitchListTile(
           dense: true,
-          title: const Text('Display Footer Bar', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          title: const Text('Display Footer Bar',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
           value: _showFooter,
           onChanged: (v) => setState(() => _showFooter = v),
         ),
@@ -956,8 +1184,11 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         SwitchListTile(
           dense: true,
           secondary: const Icon(Icons.view_compact, color: Colors.indigo),
-          title: const Text('Compact Mode (2-Level Stacked Columns)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-          subtitle: const Text('Combines pairs of adjacent canCompact columns vertically into 2-level stacked headers and cells. Doubles row & header heights (2x) to save 50% horizontal table width.', style: TextStyle(fontSize: 11)),
+          title: const Text('Compact Mode (2-Level Stacked Columns)',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          subtitle: const Text(
+              'Combines pairs of adjacent canCompact columns vertically into 2-level stacked headers and cells. Doubles row & header heights (2x) to save 50% horizontal table width.',
+              style: TextStyle(fontSize: 11)),
           value: _compactMode,
           onChanged: (v) {
             setState(() {
@@ -970,15 +1201,21 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
         _buildSectionHeader('Interactive Scrolling Behaviors'),
         SwitchListTile(
           dense: true,
-          title: const Text('Auto-Stretch Columns', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-          subtitle: const Text('Stretches columns proportionally to fill available viewport width with zero empty space', style: TextStyle(fontSize: 11)),
+          title: const Text('Auto-Stretch Columns',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          subtitle: const Text(
+              'Stretches columns proportionally to fill available viewport width with zero empty space',
+              style: TextStyle(fontSize: 11)),
           value: _autoStretch,
           onChanged: (v) => setState(() => _autoStretch = v),
         ),
         SwitchListTile(
           dense: true,
-          title: const Text('Enable Mouse Drag Scroll', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-          subtitle: const Text('Click and drag with mouse pointer anywhere on grid to pan 2D smoothly with ballistic inertia', style: TextStyle(fontSize: 11)),
+          title: const Text('Enable Mouse Drag Scroll',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          subtitle: const Text(
+              'Click and drag with mouse pointer anywhere on grid to pan 2D smoothly with ballistic inertia',
+              style: TextStyle(fontSize: 11)),
           value: _enableMouseDragScroll,
           onChanged: (v) => setState(() => _enableMouseDragScroll = v),
         ),
@@ -987,13 +1224,15 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Horizontal Scrollbar Visibility', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+              const Text('Horizontal Scrollbar Visibility',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               SegmentedButton<AppGridScrollbarVisibility>(
                 segments: const [
                   ButtonSegment(
                     value: AppGridScrollbarVisibility.onHover,
-                    label: Text('Hover (Default)', style: TextStyle(fontSize: 11)),
+                    label:
+                        Text('Hover (Default)', style: TextStyle(fontSize: 11)),
                     icon: Icon(Icons.mouse_outlined, size: 14),
                   ),
                   ButtonSegment(
@@ -1008,7 +1247,8 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                   ),
                 ],
                 selected: {_horizontalScrollbarVisibility},
-                onSelectionChanged: (set) => setState(() => _horizontalScrollbarVisibility = set.first),
+                onSelectionChanged: (set) =>
+                    setState(() => _horizontalScrollbarVisibility = set.first),
               ),
             ],
           ),
@@ -1018,13 +1258,15 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Vertical Scrollbar Visibility', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+              const Text('Vertical Scrollbar Visibility',
+                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
               const SizedBox(height: 6),
               SegmentedButton<AppGridScrollbarVisibility>(
                 segments: const [
                   ButtonSegment(
                     value: AppGridScrollbarVisibility.onHover,
-                    label: Text('Hover (Default)', style: TextStyle(fontSize: 11)),
+                    label:
+                        Text('Hover (Default)', style: TextStyle(fontSize: 11)),
                     icon: Icon(Icons.mouse_outlined, size: 14),
                   ),
                   ButtonSegment(
@@ -1039,22 +1281,29 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
                   ),
                 ],
                 selected: {_verticalScrollbarVisibility},
-                onSelectionChanged: (set) => setState(() => _verticalScrollbarVisibility = set.first),
+                onSelectionChanged: (set) =>
+                    setState(() => _verticalScrollbarVisibility = set.first),
               ),
             ],
           ),
         ),
         SwitchListTile(
           dense: true,
-          title: const Text('Use Bouncing Scroll Physics', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-          subtitle: const Text('iOS-style bouncy physics vs standard Clamping scroll physics', style: TextStyle(fontSize: 11)),
+          title: const Text('Use Bouncing Scroll Physics',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          subtitle: const Text(
+              'iOS-style bouncy physics vs standard Clamping scroll physics',
+              style: TextStyle(fontSize: 11)),
           value: _useBouncingPhysics,
           onChanged: (v) => setState(() => _useBouncingPhysics = v),
         ),
         SwitchListTile(
           dense: true,
-          title: const Text('Read-Only Mode', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
-          subtitle: const Text('Completely disables row selection and hides selected row styling', style: TextStyle(fontSize: 11)),
+          title: const Text('Read-Only Mode',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
+          subtitle: const Text(
+              'Completely disables row selection and hides selected row styling',
+              style: TextStyle(fontSize: 11)),
           value: _readOnly,
           onChanged: (v) => setState(() => _readOnly = v),
         ),
@@ -1064,15 +1313,24 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
 
   // 4. Live Dart Code Snippet Tab
   Widget _buildCodeSnippetTab() {
-    final hexHeader = '#${_headerBackgroundColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
-    final hexBorder = '#${_borderColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
-    final hexGridLine = '#${_gridLineColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
-    final hexVertical = '#${_verticalGridLineColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
-    final hexEven = '#${_evenRowColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
-    final hexOdd = '#${_oddRowColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
-    final hexSelected = '#${_selectedRowColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
-    final hexThumb = '#${_scrollbarThumbColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
-    final hexTrack = '#${_scrollbarTrackColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    final hexHeader =
+        '#${_headerBackgroundColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    final hexBorder =
+        '#${_borderColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    final hexGridLine =
+        '#${_gridLineColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    final hexVertical =
+        '#${_verticalGridLineColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    final hexEven =
+        '#${_evenRowColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    final hexOdd =
+        '#${_oddRowColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    final hexSelected =
+        '#${_selectedRowColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    final hexThumb =
+        '#${_scrollbarThumbColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
+    final hexTrack =
+        '#${_scrollbarTrackColor.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}';
 
     String alignStr(Alignment a) {
       if (a == Alignment.centerLeft) return 'Alignment.centerLeft';
@@ -1085,7 +1343,8 @@ class _TableCustomizationPageState extends State<TableCustomizationPage> with Si
       return "    GridColumn(id: '${c.id}', label: '${c.label}', headerAlignment: ${alignStr(c.headerAlignment)}, cellAlignment: ${alignStr(c.cellAlignment)}),";
     }).join('\n');
 
-    final code = '''// 1. Column Definitions with Custom Header & Cell Alignments:
+    final code =
+        '''// 1. Column Definitions with Custom Header & Cell Alignments:
 final controller = AppGridController<InventoryItem>(
   initialData: inventoryItems,
   columns: [
@@ -1098,31 +1357,31 @@ ${_isFixedHeight ? '// Bounded container for fixed scroll height:\nSizedBox(\n  
   controller: controller,
   // Heights & Sizing:
   rowHeight: ${_rowHeight.toInt()}.0,
-  headerHeight: ${_headerHeight.toInt()}.0,
   ${_showFooter ? 'footerHeight: ${_footerHeight.toInt()}.0,' : '// footerHeight: null,'}
   scrollbarThickness: ${_scrollbarThickness.toInt()}.0,
-
   // Colors & Themes:
   headerBackgroundColor: const Color(0x$hexHeader),
-  borderColor: const Color(0x$hexBorder),
-  showHorizontalGridLines: $_showHorizontalGridLines,
   ${_showHorizontalGridLines ? 'gridLineColor: const Color(0x$hexGridLine),' : '// gridLineColor: null,'}
   showVerticalGridLines: $_showVerticalGridLines,
   ${_showVerticalGridLines ? 'verticalGridLineColor: const Color(0x$hexVertical),' : '// verticalGridLineColor: null,'}
   evenRowColor: const Color(0x$hexEven),
   ${_useZebraStripes ? 'oddRowColor: const Color(0x$hexOdd),' : '// oddRowColor omitted (no zebra stripes)'}
   selectedRowColor: const Color(0x$hexSelected),
-  scrollbarThumbColor: const Color(0x$hexThumb),
-  scrollbarTrackColor: const Color(0x$hexTrack),
-
   // Scroll Behaviors & Physics:
   autoStretch: $_autoStretch,
   enableMouseDragScroll: $_enableMouseDragScroll,
-  horizontalScrollbarVisibility: ScrollbarVisibility.${_horizontalScrollbarVisibility.name},
-  verticalScrollbarVisibility: ScrollbarVisibility.${_verticalScrollbarVisibility.name},
   physics: ${_useBouncingPhysics ? 'const BouncingScrollPhysics()' : 'const ClampingScrollPhysics()'},
   compactMode: $_compactMode,
   readOnly: $_readOnly,
+  style: const AppGridStyle(
+    headerHeight: ${_headerHeight.toInt()}.0,
+    borderColor: const Color(0x$hexBorder),
+    showHorizontalGridLines: $_showHorizontalGridLines,
+    scrollbarThumbColor: const Color(0x$hexThumb),
+    scrollbarTrackColor: const Color(0x$hexTrack),
+    horizontalScrollbarVisibility: ScrollbarVisibility.${_horizontalScrollbarVisibility.name},
+    verticalScrollbarVisibility: ScrollbarVisibility.${_verticalScrollbarVisibility.name},
+  ),
 )${_isFixedHeight ? ',\n)' : ''};''';
 
     return Padding(
@@ -1133,7 +1392,8 @@ ${_isFixedHeight ? '// Bounded container for fixed scroll height:\nSizedBox(\n  
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Generated AppGrid Code:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const Text('Generated AppGrid Code:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
               ElevatedButton.icon(
                 icon: const Icon(Icons.copy, size: 16),
                 label: const Text('Copy to Clipboard'),
@@ -1141,7 +1401,8 @@ ${_isFixedHeight ? '// Bounded container for fixed scroll height:\nSizedBox(\n  
                   Clipboard.setData(ClipboardData(text: code));
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('AppGrid customization code copied to clipboard!'),
+                      content: Text(
+                          'AppGrid customization code copied to clipboard!'),
                       duration: Duration(seconds: 2),
                     ),
                   );
@@ -1158,12 +1419,14 @@ ${_isFixedHeight ? '// Bounded container for fixed scroll height:\nSizedBox(\n  
                     ? const Color(0xFF18181B)
                     : const Color(0xFFF4F4F5),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Theme.of(context).dividerColor.withAlpha(60)),
+                border: Border.all(
+                    color: Theme.of(context).dividerColor.withAlpha(60)),
               ),
               child: SingleChildScrollView(
                 child: SelectableText(
                   code,
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 12, height: 1.4),
+                  style: const TextStyle(
+                      fontFamily: 'monospace', fontSize: 12, height: 1.4),
                 ),
               ),
             ),
@@ -1198,7 +1461,8 @@ ${_isFixedHeight ? '// Bounded container for fixed scroll height:\nSizedBox(\n  
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        Text(label,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
         Slider(
           value: value,
           min: min,
@@ -1244,7 +1508,8 @@ ${_isFixedHeight ? '// Bounded container for fixed scroll height:\nSizedBox(\n  
     return ListTile(
       dense: true,
       contentPadding: EdgeInsets.zero,
-      title: Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+      title: Text(title,
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -1281,7 +1546,9 @@ ${_isFixedHeight ? '// Bounded container for fixed scroll height:\nSizedBox(\n  
                               color: c,
                               borderRadius: BorderRadius.circular(4),
                               border: Border.all(
-                                color: color == c ? Colors.blue : Colors.grey.shade300,
+                                color: color == c
+                                    ? Colors.blue
+                                    : Colors.grey.shade300,
                                 width: color == c ? 2 : 1,
                               ),
                             ),

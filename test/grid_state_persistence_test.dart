@@ -29,7 +29,14 @@ void main() {
       expect(jsonStr.contains('width'), isFalse);
 
       // Check allowed keys only
-      expect(decodedMap.keys.toSet(), equals({'columnOrder', 'sortCriteria', 'columnVisibility', 'compactMode'}));
+      expect(
+          decodedMap.keys.toSet(),
+          equals({
+            'columnOrder',
+            'sortCriteria',
+            'columnVisibility',
+            'compactMode'
+          }));
       expect(decodedMap['columnOrder'], equals(['col_b', 'col_c', 'col_a']));
       expect(decodedMap['columnVisibility']['col_b'], equals(false));
       expect(decodedMap['sortCriteria']['columnId'], equals('col_c'));
@@ -38,7 +45,8 @@ void main() {
       controller.dispose();
     });
 
-    test('Restoring state applies columnOrder, sortCriteria, and visibility', () {
+    test('Restoring state applies columnOrder, sortCriteria, and visibility',
+        () {
       final controller = AppGridController<Map<String, dynamic>>(
         columns: const [
           GridColumn(id: 'id', label: 'ID'),
@@ -53,9 +61,11 @@ void main() {
 
       controller.restoreState(importedState);
 
-      expect(controller.visibleColumns.map((c) => c.id).toList(), equals(['score', 'name']));
+      expect(controller.visibleColumns.map((c) => c.id).toList(),
+          equals(['score', 'name']));
       expect(controller.sortCriteria?.columnId, equals('score'));
-      expect(controller.sortCriteria?.direction, equals(SortDirection.descending));
+      expect(
+          controller.sortCriteria?.direction, equals(SortDirection.descending));
 
       controller.dispose();
     });

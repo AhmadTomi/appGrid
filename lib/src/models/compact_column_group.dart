@@ -22,7 +22,8 @@ class CompactColumnGroup {
   bool get isPair => bottomColumn != null;
 
   /// Unique composite identifier for this group.
-  String get id => isPair ? '${topColumn.id}__${bottomColumn!.id}' : topColumn.id;
+  String get id =>
+      isPair ? '${topColumn.id}__${bottomColumn!.id}' : topColumn.id;
 
   /// All column IDs participating in this group.
   List<String> get columnIds => [
@@ -40,12 +41,14 @@ class CompactColumnGroup {
   GridColumnPin get pin => topColumn.pin;
 
   /// Combined minimum width: max of both columns' minWidth.
-  double get minWidth =>
-      isPair ? math.max(topColumn.minWidth, bottomColumn!.minWidth) : topColumn.minWidth;
+  double get minWidth => isPair
+      ? math.max(topColumn.minWidth, bottomColumn!.minWidth)
+      : topColumn.minWidth;
 
   /// Combined initial width: max of both columns' initialWidth.
-  double get initialWidth =>
-      isPair ? math.max(topColumn.initialWidth, bottomColumn!.initialWidth) : topColumn.initialWidth;
+  double get initialWidth => isPair
+      ? math.max(topColumn.initialWidth, bottomColumn!.initialWidth)
+      : topColumn.initialWidth;
 
   /// Combined maximum width cap: max of both columns' maxWidth (or whichever is specified).
   double? get maxWidth {
@@ -86,7 +89,8 @@ class CompactColumnGroup {
       if (current.canCompact && i + 1 < columns.length) {
         final next = columns[i + 1];
         if (next.canCompact && current.pin == next.pin) {
-          groups.add(CompactColumnGroup(topColumn: current, bottomColumn: next));
+          groups
+              .add(CompactColumnGroup(topColumn: current, bottomColumn: next));
           i += 2;
           continue;
         }
@@ -110,6 +114,7 @@ class CompactColumnGroup {
   int get hashCode => topColumn.hashCode ^ (bottomColumn?.hashCode ?? 0);
 
   @override
-  String toString() =>
-      isPair ? 'CompactColumnGroup(pair: ${topColumn.id} / ${bottomColumn!.id})' : 'CompactColumnGroup(single: ${topColumn.id})';
+  String toString() => isPair
+      ? 'CompactColumnGroup(pair: ${topColumn.id} / ${bottomColumn!.id})'
+      : 'CompactColumnGroup(single: ${topColumn.id})';
 }

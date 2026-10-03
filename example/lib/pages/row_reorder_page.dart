@@ -14,14 +14,62 @@ class _RowReorderPageState extends State<RowReorderPage> {
   final List<String> _reorderLogs = [];
 
   final List<Map<String, dynamic>> _initialTasks = [
-    {'id': 'TSK-101', 'title': 'Design high-performance 2D viewport', 'priority': 'High', 'assignee': 'Ahmad', 'status': 'Done'},
-    {'id': 'TSK-102', 'title': 'Implement granular row reactivity', 'priority': 'High', 'assignee': 'Sarah', 'status': 'Done'},
-    {'id': 'TSK-103', 'title': 'Add frame-synced batch throttler', 'priority': 'Medium', 'assignee': 'Budi', 'status': 'Done'},
-    {'id': 'TSK-104', 'title': 'Manual row drag-and-drop reordering', 'priority': 'High', 'assignee': 'Ahmad', 'status': 'In Progress'},
-    {'id': 'TSK-105', 'title': 'Disable drag handles on active sort', 'priority': 'Medium', 'assignee': 'Sarah', 'status': 'In Progress'},
-    {'id': 'TSK-106', 'title': 'Add getReorderedData helper utility', 'priority': 'Low', 'assignee': 'Budi', 'status': 'In Progress'},
-    {'id': 'TSK-107', 'title': 'Write comprehensive test suite', 'priority': 'High', 'assignee': 'Ahmad', 'status': 'Pending'},
-    {'id': 'TSK-108', 'title': 'Release AppGrid version 1.5.0', 'priority': 'Medium', 'assignee': 'Team', 'status': 'Pending'},
+    {
+      'id': 'TSK-101',
+      'title': 'Design high-performance 2D viewport',
+      'priority': 'High',
+      'assignee': 'Ahmad',
+      'status': 'Done'
+    },
+    {
+      'id': 'TSK-102',
+      'title': 'Implement granular row reactivity',
+      'priority': 'High',
+      'assignee': 'Sarah',
+      'status': 'Done'
+    },
+    {
+      'id': 'TSK-103',
+      'title': 'Add frame-synced batch throttler',
+      'priority': 'Medium',
+      'assignee': 'Budi',
+      'status': 'Done'
+    },
+    {
+      'id': 'TSK-104',
+      'title': 'Manual row drag-and-drop reordering',
+      'priority': 'High',
+      'assignee': 'Ahmad',
+      'status': 'In Progress'
+    },
+    {
+      'id': 'TSK-105',
+      'title': 'Disable drag handles on active sort',
+      'priority': 'Medium',
+      'assignee': 'Sarah',
+      'status': 'In Progress'
+    },
+    {
+      'id': 'TSK-106',
+      'title': 'Add getReorderedData helper utility',
+      'priority': 'Low',
+      'assignee': 'Budi',
+      'status': 'In Progress'
+    },
+    {
+      'id': 'TSK-107',
+      'title': 'Write comprehensive test suite',
+      'priority': 'High',
+      'assignee': 'Ahmad',
+      'status': 'Pending'
+    },
+    {
+      'id': 'TSK-108',
+      'title': 'Release AppGrid version 1.5.0',
+      'priority': 'Medium',
+      'assignee': 'Team',
+      'status': 'Pending'
+    },
   ];
 
   @override
@@ -86,7 +134,8 @@ class _RowReorderPageState extends State<RowReorderPage> {
               ),
               child: Text(
                 p,
-                style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: color, fontSize: 12, fontWeight: FontWeight.bold),
               ),
             );
           },
@@ -136,11 +185,11 @@ class _RowReorderPageState extends State<RowReorderPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Row(
+        title: const Row(
           children: [
-            const Icon(Icons.playlist_play, color: Colors.blue),
-            const SizedBox(width: 8),
-            const Text('Modified Data (getReorderedData())'),
+            Icon(Icons.playlist_play, color: Colors.blue),
+            SizedBox(width: 8),
+            Text('Modified Data (getReorderedData())'),
           ],
         ),
         content: SizedBox(
@@ -156,8 +205,11 @@ class _RowReorderPageState extends State<RowReorderPage> {
                   radius: 14,
                   child: Text('${i + 1}', style: const TextStyle(fontSize: 12)),
                 ),
-                title: Text(task['title'] as String, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-                subtitle: Text('${task['id']} • ${task['assignee']} • ${task['priority']}'),
+                title: Text(task['title'] as String,
+                    style: const TextStyle(
+                        fontSize: 13, fontWeight: FontWeight.w600)),
+                subtitle: Text(
+                    '${task['id']} • ${task['assignee']} • ${task['priority']}'),
                 dense: true,
               );
             },
@@ -186,7 +238,8 @@ class _RowReorderPageState extends State<RowReorderPage> {
         children: [
           buildDemoHeader(
             title: 'Manual Row Reordering (Drag & Drop)',
-            subtitle: 'Drag and drop rows using the dedicated drag handle. Automatically disabled when column sorting is active.',
+            subtitle:
+                'Drag and drop rows using the dedicated drag handle. Automatically disabled when column sorting is active.',
           ),
           const SizedBox(height: 12),
 
@@ -198,7 +251,8 @@ class _RowReorderPageState extends State<RowReorderPage> {
             children: [
               // Sorting Status Banner
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: canReorder
                       ? Colors.green.withAlpha(30)
@@ -214,7 +268,9 @@ class _RowReorderPageState extends State<RowReorderPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      canReorder ? Icons.check_circle : Icons.warning_amber_rounded,
+                      canReorder
+                          ? Icons.check_circle
+                          : Icons.warning_amber_rounded,
                       size: 16,
                       color: canReorder ? Colors.green : Colors.orange,
                     ),
@@ -226,7 +282,9 @@ class _RowReorderPageState extends State<RowReorderPage> {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: canReorder ? Colors.green.shade700 : Colors.orange.shade800,
+                        color: canReorder
+                            ? Colors.green.shade700
+                            : Colors.orange.shade800,
                       ),
                     ),
                   ],
@@ -238,32 +296,38 @@ class _RowReorderPageState extends State<RowReorderPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: theme.colorScheme.primary,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                   onPressed: () {
                     if (sortCriteria != null) {
-                      _controller.sortByColumn(sortCriteria.columnId, direction: SortDirection.none);
+                      _controller.sortByColumn(sortCriteria.columnId,
+                          direction: SortDirection.none);
                     }
                   },
                   icon: const Icon(Icons.sort, size: 16),
-                  label: const Text('Reset Sort to Re-enable Drag', style: TextStyle(fontSize: 12)),
+                  label: const Text('Reset Sort to Re-enable Drag',
+                      style: TextStyle(fontSize: 12)),
                 ),
 
               OutlinedButton.icon(
                 onPressed: _showModifiedDataDialog,
                 icon: const Icon(Icons.data_object, size: 16),
-                label: const Text('Inspect Modified Data (List<T>)', style: TextStyle(fontSize: 12)),
+                label: const Text('Inspect Modified Data (List<T>)',
+                    style: TextStyle(fontSize: 12)),
               ),
 
               OutlinedButton.icon(
                 onPressed: () {
                   _controller.setRows(_initialTasks);
                   setState(() {
-                    _reorderLogs.insert(0, '[${DateTime.now().toIso8601String().substring(11, 19)}] Reset dataset to initial order');
+                    _reorderLogs.insert(0,
+                        '[${DateTime.now().toIso8601String().substring(11, 19)}] Reset dataset to initial order');
                   });
                 },
                 icon: const Icon(Icons.refresh, size: 16),
-                label: const Text('Reset Initial Order', style: TextStyle(fontSize: 12)),
+                label: const Text('Reset Initial Order',
+                    style: TextStyle(fontSize: 12)),
               ),
             ],
           ),
@@ -279,9 +343,11 @@ class _RowReorderPageState extends State<RowReorderPage> {
               child: AppGrid<Map<String, dynamic>>(
                 controller: _controller,
                 enableRowReorder: true,
-                rowHeight: 46,
-                headerHeight: 44,
-                showVerticalGridLines: true,
+                style: const AppGridStyle(
+                  rowHeight: 46,
+                  headerHeight: 44,
+                  showVerticalGridLines: true,
+                ),
               ),
             ),
           ),
@@ -294,12 +360,14 @@ class _RowReorderPageState extends State<RowReorderPage> {
             children: [
               Text(
                 'onRowReorder Event Logs',
-                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.bold),
               ),
               if (_reorderLogs.isNotEmpty)
                 TextButton(
                   onPressed: () => setState(() => _reorderLogs.clear()),
-                  child: const Text('Clear Logs', style: TextStyle(fontSize: 12)),
+                  child:
+                      const Text('Clear Logs', style: TextStyle(fontSize: 12)),
                 ),
             ],
           ),
@@ -317,14 +385,16 @@ class _RowReorderPageState extends State<RowReorderPage> {
                 ? Center(
                     child: Text(
                       'Drag any row using the grab handle on the left to test the onRowReorder callback.',
-                      style: theme.textTheme.bodySmall?.copyWith(color: theme.hintColor),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(color: theme.hintColor),
                     ),
                   )
                 : ListView.builder(
                     itemCount: _reorderLogs.length,
                     itemBuilder: (ctx, idx) => Text(
                       _reorderLogs[idx],
-                      style: const TextStyle(fontSize: 11.5, fontFamily: 'monospace'),
+                      style: const TextStyle(
+                          fontSize: 11.5, fontFamily: 'monospace'),
                     ),
                   ),
           ),

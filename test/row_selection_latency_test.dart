@@ -5,7 +5,9 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Zero-Latency Row Selection & Conflict-Free Double Tap Tests', () {
-    testWidgets('Row selection triggers immediately on pointer down without waiting for pointer up (0ms delay)', (tester) async {
+    testWidgets(
+        'Row selection triggers immediately on pointer down without waiting for pointer up (0ms delay)',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -18,8 +20,16 @@ void main() {
           (i) => {'id': i, 'name': 'Item $i'},
         ),
         columns: [
-          GridColumn(id: 'id', label: 'ID', initialWidth: 100, valueGetter: (r) => r['id']),
-          GridColumn(id: 'name', label: 'Name', initialWidth: 200, valueGetter: (r) => r['name']),
+          GridColumn(
+              id: 'id',
+              label: 'ID',
+              initialWidth: 100,
+              valueGetter: (r) => r['id']),
+          GridColumn(
+              id: 'name',
+              label: 'Name',
+              initialWidth: 200,
+              valueGetter: (r) => r['name']),
         ],
         onRowSelected: (info) {
           selectedInfo = info;
@@ -44,7 +54,8 @@ void main() {
       // Start gesture (pointer down) on 'Item 3' WITHOUT releasing pointer up
       final item3Finder = find.text('Item 3');
       final location = tester.getCenter(item3Finder);
-      final gesture = await tester.startGesture(location, pointer: 1, kind: PointerDeviceKind.mouse);
+      final gesture = await tester.startGesture(location,
+          pointer: 1, kind: PointerDeviceKind.mouse);
       await tester.pump();
 
       // Row must be selected IMMEDIATELY on pointer down (0ms latency, no wait for pointer up)
@@ -63,7 +74,9 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('onRowDoubleTap triggers on second click while single click still selects immediately', (tester) async {
+    testWidgets(
+        'onRowDoubleTap triggers on second click while single click still selects immediately',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -77,8 +90,16 @@ void main() {
           (i) => {'id': i, 'name': 'Item $i'},
         ),
         columns: [
-          GridColumn(id: 'id', label: 'ID', initialWidth: 100, valueGetter: (r) => r['id']),
-          GridColumn(id: 'name', label: 'Name', initialWidth: 200, valueGetter: (r) => r['name']),
+          GridColumn(
+              id: 'id',
+              label: 'ID',
+              initialWidth: 100,
+              valueGetter: (r) => r['id']),
+          GridColumn(
+              id: 'name',
+              label: 'Name',
+              initialWidth: 200,
+              valueGetter: (r) => r['name']),
         ],
       );
 
@@ -100,7 +121,8 @@ void main() {
       final location = tester.getCenter(item2Finder);
 
       // 1st click:
-      final gesture1 = await tester.startGesture(location, pointer: 1, kind: PointerDeviceKind.mouse);
+      final gesture1 = await tester.startGesture(location,
+          pointer: 1, kind: PointerDeviceKind.mouse);
       await tester.pump();
 
       // Row selected immediately on 1st down!
@@ -112,7 +134,8 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
 
       // 2nd click within 300ms:
-      final gesture2 = await tester.startGesture(location, pointer: 2, kind: PointerDeviceKind.mouse);
+      final gesture2 = await tester.startGesture(location,
+          pointer: 2, kind: PointerDeviceKind.mouse);
       await tester.pump();
 
       // onRowDoubleTap triggers on the 2nd click!

@@ -5,7 +5,9 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('AppGrid Read-Only Mode Tests', () {
-    testWidgets('Clicking row in readOnly mode does not select and does not trigger onRowSelected', (tester) async {
+    testWidgets(
+        'Clicking row in readOnly mode does not select and does not trigger onRowSelected',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -44,9 +46,11 @@ void main() {
             body: AppGrid<Map<String, dynamic>>(
               controller: controller,
               readOnly: true,
-              selectedRowColor: selectedColor,
-              evenRowColor: evenColor,
-              oddRowColor: oddColor,
+              style: const AppGridStyle(
+                selectedRowColor: selectedColor,
+                evenRowColor: evenColor,
+                oddRowColor: oddColor,
+              ),
             ),
           ),
         ),
@@ -66,9 +70,11 @@ void main() {
       expect(selectedInfo, isNull);
 
       // Verify row decoration does NOT have selectedColor
-      final rowWidgets = tester.widgetList<RowWidget<Map<String, dynamic>>>(
-        find.byType(RowWidget<Map<String, dynamic>>),
-      ).toList();
+      final rowWidgets = tester
+          .widgetList<RowWidget<Map<String, dynamic>>>(
+            find.byType(RowWidget<Map<String, dynamic>>),
+          )
+          .toList();
       final row0 = rowWidgets.firstWhere((r) => r.indexInfo.displayIndex == 0);
       expect(row0.isSelected, isFalse);
 
@@ -82,7 +88,8 @@ void main() {
       expect(boxDec0.color, isNot(equals(selectedColor)));
     });
 
-    testWidgets('Keyboard navigation does not select rows in readOnly mode', (tester) async {
+    testWidgets('Keyboard navigation does not select rows in readOnly mode',
+        (tester) async {
       final items = List.generate(20, (i) => 'Item $i');
       RowIndexInfo? selectedInfo;
 
@@ -137,7 +144,9 @@ void main() {
       expect(controller.selectedDisplayIndex, isNull);
     });
 
-    test('AppGridController isReadOnly disables selectRow and selectRowByOriginalIndex', () {
+    test(
+        'AppGridController isReadOnly disables selectRow and selectRowByOriginalIndex',
+        () {
       final controller = AppGridController<String>(
         initialData: ['A', 'B', 'C'],
         columns: const [GridColumn(id: 'c', label: 'C')],
@@ -157,7 +166,9 @@ void main() {
       expect(controller.selectedRowInfo, isNull);
     });
 
-    testWidgets('Toggling controller.isReadOnly dynamically clears active selection and updates UI', (tester) async {
+    testWidgets(
+        'Toggling controller.isReadOnly dynamically clears active selection and updates UI',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -182,8 +193,10 @@ void main() {
           home: Scaffold(
             body: AppGrid<String>(
               controller: controller,
-              selectedRowColor: selectedColor,
-              evenRowColor: evenColor,
+              style: const AppGridStyle(
+                selectedRowColor: selectedColor,
+                evenRowColor: evenColor,
+              ),
             ),
           ),
         ),
@@ -196,9 +209,11 @@ void main() {
       expect(controller.selectedDisplayIndex, equals(0));
 
       // Verify row 0 has selectedColor
-      var rowWidgets = tester.widgetList<RowWidget<String>>(
-        find.byType(RowWidget<String>),
-      ).toList();
+      var rowWidgets = tester
+          .widgetList<RowWidget<String>>(
+            find.byType(RowWidget<String>),
+          )
+          .toList();
       var row0 = rowWidgets.firstWhere((r) => r.indexInfo.displayIndex == 0);
       expect(row0.isSelected, isTrue);
 
@@ -206,7 +221,8 @@ void main() {
         of: find.byWidget(row0),
         matching: find.byType(Container),
       );
-      var boxDec0 = tester.widget<Container>(containerFinder.first).decoration as BoxDecoration;
+      var boxDec0 = tester.widget<Container>(containerFinder.first).decoration
+          as BoxDecoration;
       expect(boxDec0.color, equals(selectedColor));
 
       // 2. Enable isReadOnly on controller
@@ -218,9 +234,11 @@ void main() {
       expect(controller.selectedOriginalIndex, isNull);
 
       // Verify row 0 no longer has selectedColor
-      rowWidgets = tester.widgetList<RowWidget<String>>(
-        find.byType(RowWidget<String>),
-      ).toList();
+      rowWidgets = tester
+          .widgetList<RowWidget<String>>(
+            find.byType(RowWidget<String>),
+          )
+          .toList();
       row0 = rowWidgets.firstWhere((r) => r.indexInfo.displayIndex == 0);
       expect(row0.isSelected, isFalse);
 
@@ -228,7 +246,8 @@ void main() {
         of: find.byWidget(row0),
         matching: find.byType(Container),
       );
-      boxDec0 = tester.widget<Container>(containerFinder.first).decoration as BoxDecoration;
+      boxDec0 = tester.widget<Container>(containerFinder.first).decoration
+          as BoxDecoration;
       expect(boxDec0.color, equals(evenColor));
       expect(boxDec0.color, isNot(equals(selectedColor)));
 
@@ -241,7 +260,9 @@ void main() {
       expect(controller.selectedDisplayIndex, equals(1));
     });
 
-    testWidgets('Toggling AppGrid(readOnly: true) via widget update clears selection and disables interactions', (tester) async {
+    testWidgets(
+        'Toggling AppGrid(readOnly: true) via widget update clears selection and disables interactions',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -272,7 +293,9 @@ void main() {
                 return AppGrid<String>(
                   controller: controller,
                   readOnly: isReadOnly,
-                  selectedRowColor: selectedColor,
+                  style: const AppGridStyle(
+                    selectedRowColor: selectedColor,
+                  ),
                 );
               },
             ),
@@ -299,7 +322,8 @@ void main() {
       expect(controller.selectedDisplayIndex, isNull);
     });
 
-    testWidgets('Pinned freeze columns do not select row when readOnly is true', (tester) async {
+    testWidgets('Pinned freeze columns do not select row when readOnly is true',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -309,8 +333,17 @@ void main() {
           {'pinned': 'PIN_1', 'center': 'CENTER_1'},
         ],
         columns: [
-          GridColumn(id: 'pinned', label: 'Pinned', initialWidth: 120, pin: GridColumnPin.left, valueGetter: (row) => row['pinned']),
-          GridColumn(id: 'center', label: 'Center', initialWidth: 250, valueGetter: (row) => row['center']),
+          GridColumn(
+              id: 'pinned',
+              label: 'Pinned',
+              initialWidth: 120,
+              pin: GridColumnPin.left,
+              valueGetter: (row) => row['pinned']),
+          GridColumn(
+              id: 'center',
+              label: 'Center',
+              initialWidth: 250,
+              valueGetter: (row) => row['center']),
         ],
       );
 

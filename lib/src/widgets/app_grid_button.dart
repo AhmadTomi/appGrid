@@ -136,7 +136,8 @@ class _AppGridButtonState extends State<AppGridButton> {
             Icon(
               ic.icon,
               size: ic.size ?? 14.0,
-              color: ic.color ?? (widget.disabled ? defaultFg.withAlpha(100) : defaultFg),
+              color: ic.color ??
+                  (widget.disabled ? defaultFg.withAlpha(100) : defaultFg),
             ),
           );
         } else {
@@ -220,9 +221,8 @@ class _AppGridButtonState extends State<AppGridButton> {
             color: bg,
             borderRadius: radius,
             border: Border.all(
-              color: _isPressed
-                  ? (widget.borderColor ?? primary)
-                  : defaultBorder,
+              color:
+                  _isPressed ? (widget.borderColor ?? primary) : defaultBorder,
               width: 1.0,
             ),
           ),

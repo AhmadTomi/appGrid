@@ -19,7 +19,10 @@ class TestUser {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is TestUser && id == other.id && name == other.name && age == other.age;
+      other is TestUser &&
+          id == other.id &&
+          name == other.name &&
+          age == other.age;
 
   @override
   int get hashCode => id.hashCode ^ name.hashCode ^ age.hashCode;
@@ -37,9 +40,14 @@ void main() {
           const TestUser(id: 'u3', name: 'Charlie', age: 35),
         ],
         columns: [
-          GridColumn(id: 'id', label: 'ID', valueGetter: (u) => (u as TestUser).id),
-          GridColumn(id: 'name', label: 'Name', valueGetter: (u) => (u as TestUser).name),
-          GridColumn(id: 'age', label: 'Age', valueGetter: (u) => (u as TestUser).age),
+          GridColumn(
+              id: 'id', label: 'ID', valueGetter: (u) => (u as TestUser).id),
+          GridColumn(
+              id: 'name',
+              label: 'Name',
+              valueGetter: (u) => (u as TestUser).name),
+          GridColumn(
+              id: 'age', label: 'Age', valueGetter: (u) => (u as TestUser).age),
         ],
         rowIdGetter: (user) => user.id,
       );
@@ -54,14 +62,16 @@ void main() {
       var notificationCount = 0;
       notifier.addListener(() => notificationCount++);
 
-      controller.updateRow(1, const TestUser(id: 'u2', name: 'Robert', age: 31));
+      controller.updateRow(
+          1, const TestUser(id: 'u2', name: 'Robert', age: 31));
 
       expect(controller.getRowByOriginalIndex(1).name, equals('Robert'));
       expect(controller.getRowByOriginalIndex(1).age, equals(31));
       expect(notificationCount, equals(1));
     });
 
-    test('updateRowAtDisplayIndex() updates row by visual sequence post-sort', () {
+    test('updateRowAtDisplayIndex() updates row by visual sequence post-sort',
+        () {
       // Sort descending by age: Charlie (35), Bob (30), Alice (25)
       controller.sortByColumn('age', direction: SortDirection.descending);
       expect(controller.getRowByDisplayIndex(0).name, equals('Charlie'));
@@ -76,7 +86,9 @@ void main() {
       expect(controller.getRowByOriginalIndex(2).name, equals('Charles'));
     });
 
-    test('updateRowById() finds item by id and updates without looping cells manually', () {
+    test(
+        'updateRowById() finds item by id and updates without looping cells manually',
+        () {
       controller.updateRowById(
         'u1',
         const TestUser(id: 'u1', name: 'Alicia', age: 26),
@@ -99,9 +111,11 @@ void main() {
         (user) => user.copyWith(name: '${user.name} (Senior)'),
       );
 
-      expect(controller.getRowByOriginalIndex(0).name, equals('Alice')); // unchanged
+      expect(controller.getRowByOriginalIndex(0).name,
+          equals('Alice')); // unchanged
       expect(controller.getRowByOriginalIndex(1).name, equals('Bob (Senior)'));
-      expect(controller.getRowByOriginalIndex(2).name, equals('Charlie (Senior)'));
+      expect(
+          controller.getRowByOriginalIndex(2).name, equals('Charlie (Senior)'));
     });
   });
 }

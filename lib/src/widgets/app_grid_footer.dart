@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/app_grid_style.dart';
 import '../models/grid_column.dart';
 import '../models/compact_column_group.dart';
 import '../rendering_engine/grid_builders.dart';
@@ -11,10 +12,7 @@ class AppGridFooterCell extends StatelessWidget {
   final double height;
   final List<dynamic> currentVisibleData;
   final GridFooterBuilder? customFooterBuilder;
-  final Color? verticalGridLineColor;
-  final Color? gridLineColor;
-  final bool showHorizontalGridLines;
-  final bool showVerticalGridLines;
+  final AppGridStyle style;
 
   const AppGridFooterCell({
     super.key,
@@ -24,13 +22,11 @@ class AppGridFooterCell extends StatelessWidget {
     required this.height,
     required this.currentVisibleData,
     this.customFooterBuilder,
-    this.verticalGridLineColor,
-    this.gridLineColor,
-    this.showHorizontalGridLines = true,
-    this.showVerticalGridLines = false,
+    this.style = const AppGridStyle(),
   });
 
-  Widget _buildSingleFooter(BuildContext context, GridColumn col, ThemeData theme) {
+  Widget _buildSingleFooter(
+      BuildContext context, GridColumn col, ThemeData theme) {
     if (col.footerBuilder != null) {
       return col.footerBuilder!(context, currentVisibleData);
     } else if (customFooterBuilder != null) {
@@ -41,7 +37,8 @@ class AppGridFooterCell extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12.0),
         child: Text(
           'Total: ${currentVisibleData.length}',
-          style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+          style:
+              theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
           overflow: TextOverflow.ellipsis,
         ),
       );
@@ -53,7 +50,7 @@ class AppGridFooterCell extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final horizontalLineColor = gridLineColor ??
+    final horizontalLineColor = style.gridLineColor ??
         (isDark ? const Color(0x3FFFFFFF) : const Color(0x3F000000));
 
     Widget content;
@@ -62,16 +59,18 @@ class AppGridFooterCell extends StatelessWidget {
         children: [
           Expanded(child: _buildSingleFooter(context, group!.topColumn, theme)),
           Container(height: 0.8, color: horizontalLineColor),
-          Expanded(child: _buildSingleFooter(context, group!.bottomColumn!, theme)),
+          Expanded(
+              child: _buildSingleFooter(context, group!.bottomColumn!, theme)),
         ],
       );
     } else {
       content = _buildSingleFooter(context, column, theme);
     }
 
-    final defaultBg = isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEEEEEE);
-    final verticalDividerColor = verticalGridLineColor ??
-        gridLineColor ??
+    final defaultBg =
+        isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEEEEEE);
+    final verticalDividerColor = style.verticalGridLineColor ??
+        style.gridLineColor ??
         (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
 
     return Container(
@@ -84,14 +83,14 @@ class AppGridFooterCell extends StatelessWidget {
           Positioned.fill(
             child: Padding(
               padding: EdgeInsets.only(
-                right: showVerticalGridLines ? 1.0 : 0.0,
-                top: showHorizontalGridLines ? 1.5 : 0.0,
+                right: style.showVerticalGridLines ? 1.0 : 0.0,
+                top: style.showHorizontalGridLines ? 1.5 : 0.0,
               ),
               child: content,
             ),
           ),
           // Horizontal top divider
-          if (showHorizontalGridLines)
+          if (style.showHorizontalGridLines)
             Positioned(
               left: 0,
               right: 0,
@@ -102,7 +101,7 @@ class AppGridFooterCell extends StatelessWidget {
               ),
             ),
           // Vertical right divider rendered on top of horizontal line
-          if (showVerticalGridLines)
+          if (style.showVerticalGridLines)
             Positioned(
               right: 0,
               top: 0,

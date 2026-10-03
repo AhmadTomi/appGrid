@@ -16,7 +16,9 @@ void main() {
       }
     });
 
-    test('AC-03: Descending sort maps visual index 0 to highest raw item and retains originalIndex', () {
+    test(
+        'AC-03: Descending sort maps visual index 0 to highest raw item and retains originalIndex',
+        () {
       final items = [10, 50, 30, 90, 20];
       final map = DualIndexMap(totalCount: items.length);
 

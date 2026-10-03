@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/app_grid_style.dart';
 import '../models/grid_column.dart';
 import '../models/compact_column_group.dart';
 import '../models/row_index_info.dart';
@@ -14,18 +15,10 @@ class RowWidget<T> extends StatelessWidget {
   final List<CompactColumnGroup>? groups;
   final Map<String, double> columnWidths;
   final Map<String, double>? columnOffsets;
-  final double rowHeight;
   final bool isSelected;
   final VoidCallback? onTap;
-  final Color? selectedColor;
-  final Color? alternateRowColor;
-  final Color? evenRowColor;
-  final Color? oddRowColor;
-  final Color? gridLineColor;
-  final bool showHorizontalGridLines;
-  final bool showVerticalGridLines;
-  final Color? verticalGridLineColor;
   final bool readOnly;
+  final AppGridStyle style;
 
   const RowWidget({
     super.key,
@@ -35,18 +28,10 @@ class RowWidget<T> extends StatelessWidget {
     this.groups,
     required this.columnWidths,
     this.columnOffsets,
-    required this.rowHeight,
     required this.isSelected,
     this.onTap,
-    this.selectedColor,
-    this.alternateRowColor,
-    this.evenRowColor,
-    this.oddRowColor,
-    this.gridLineColor,
-    this.showHorizontalGridLines = true,
-    this.showVerticalGridLines = false,
-    this.verticalGridLineColor,
     this.readOnly = false,
+    this.style = const AppGridStyle(),
   });
 
   @override
@@ -58,18 +43,17 @@ class RowWidget<T> extends StatelessWidget {
 
     Color? backgroundColor;
     if (showSelected) {
-      backgroundColor = selectedColor ??
+      backgroundColor = style.selectedRowColor ??
           (isDark
               ? theme.colorScheme.primary.withAlpha(75)
               : theme.colorScheme.primary.withAlpha(45));
     } else {
       final isOdd = indexInfo.displayIndex % 2 == 1;
-      if (isOdd) {
-        backgroundColor = oddRowColor ?? alternateRowColor;
-      } else {
-        backgroundColor = evenRowColor;
-      }
+      backgroundColor = isOdd ? style.oddRowColor : style.evenRowColor;
     }
+
+    final double effectiveRowHeight =
+        controller.compactMode ? style.rowHeight * 2.0 : style.rowHeight;
 
     final children = <Widget>[];
 
@@ -84,24 +68,21 @@ class RowWidget<T> extends StatelessWidget {
               indexInfo: indexInfo,
               group: group,
               width: width,
-              height: rowHeight,
-              showVerticalGridLine: showVerticalGridLines,
-              verticalGridLineColor: verticalGridLineColor,
-              gridLineColor: gridLineColor,
+              height: effectiveRowHeight,
+              style: style,
             ),
           );
         } else {
           children.add(
             CellWidget<T>(
-              key: ValueKey('cell_${indexInfo.originalIndex}_${group.topColumn.id}'),
+              key: ValueKey(
+                  'cell_${indexInfo.originalIndex}_${group.topColumn.id}'),
               controller: controller,
               indexInfo: indexInfo,
               column: group.topColumn,
               width: width,
-              height: rowHeight,
-              showVerticalGridLine: showVerticalGridLines,
-              verticalGridLineColor: verticalGridLineColor,
-              gridLineColor: gridLineColor,
+              height: effectiveRowHeight,
+              style: style,
             ),
           );
         }
@@ -116,10 +97,8 @@ class RowWidget<T> extends StatelessWidget {
             indexInfo: indexInfo,
             column: col,
             width: width,
-            height: rowHeight,
-            showVerticalGridLine: showVerticalGridLines,
-            verticalGridLineColor: verticalGridLineColor,
-            gridLineColor: gridLineColor,
+            height: effectiveRowHeight,
+            style: style,
           ),
         );
       }
@@ -135,16 +114,16 @@ class RowWidget<T> extends StatelessWidget {
             (sum, col) => sum + (columnWidths[col.id] ?? col.initialWidth),
           );
 
-    final horizontalLineColor = gridLineColor ??
+    final horizontalLineColor = style.gridLineColor ??
         (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
 
     final rowContainer = Container(
       width: totalWidth,
-      height: rowHeight,
+      height: effectiveRowHeight,
       decoration: BoxDecoration(
         color: backgroundColor,
       ),
-      child: showHorizontalGridLines
+      child: style.showHorizontalGridLines
           ? Stack(
               clipBehavior: Clip.hardEdge,
               children: [

@@ -4,14 +4,17 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Pagination & setPageData Tests', () {
-    testWidgets('setPageData() updates table cells when navigating between pages', (tester) async {
+    testWidgets(
+        'setPageData() updates table cells when navigating between pages',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
       final controller = AppGridController<Map<String, dynamic>>(
         fetchMode: DataFetchMode.pagination,
-        paginationInfo: const GridPaginationInfo(page: 1, limit: 3, totalCount: 6),
+        paginationInfo:
+            const GridPaginationInfo(page: 1, limit: 3, totalCount: 6),
         initialData: [
           {'id': 'ORD-1', 'name': 'Alpha'},
           {'id': 'ORD-2', 'name': 'Beta'},

@@ -6,15 +6,22 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Compact Mode Grouping & Model Tests', () {
-    test('CompactColumnGroup.buildGroups pairs adjacent canCompact:true columns when compactMode is true', () {
+    test(
+        'CompactColumnGroup.buildGroups pairs adjacent canCompact:true columns when compactMode is true',
+        () {
       const cols = [
-        GridColumn(id: 'c1', label: 'Col 1', canCompact: true, initialWidth: 100),
-        GridColumn(id: 'c2', label: 'Col 2', canCompact: true, initialWidth: 150),
-        GridColumn(id: 'c3', label: 'Col 3', canCompact: false, initialWidth: 80),
-        GridColumn(id: 'c4', label: 'Col 4', canCompact: true, initialWidth: 120),
+        GridColumn(
+            id: 'c1', label: 'Col 1', canCompact: true, initialWidth: 100),
+        GridColumn(
+            id: 'c2', label: 'Col 2', canCompact: true, initialWidth: 150),
+        GridColumn(
+            id: 'c3', label: 'Col 3', canCompact: false, initialWidth: 80),
+        GridColumn(
+            id: 'c4', label: 'Col 4', canCompact: true, initialWidth: 120),
       ];
 
-      final groups = CompactColumnGroup.buildGroups(columns: cols, compactMode: true);
+      final groups =
+          CompactColumnGroup.buildGroups(columns: cols, compactMode: true);
       expect(groups.length, equals(3));
 
       // Group 0: c1 + c2 pair
@@ -36,21 +43,28 @@ void main() {
       expect(groups[2].initialWidth, equals(120.0));
     });
 
-    test('CompactColumnGroup.buildGroups does not pair when compactMode is false', () {
+    test(
+        'CompactColumnGroup.buildGroups does not pair when compactMode is false',
+        () {
       const cols = [
         GridColumn(id: 'c1', label: 'Col 1', canCompact: true),
         GridColumn(id: 'c2', label: 'Col 2', canCompact: true),
       ];
 
-      final groups = CompactColumnGroup.buildGroups(columns: cols, compactMode: false);
+      final groups =
+          CompactColumnGroup.buildGroups(columns: cols, compactMode: false);
       expect(groups.length, equals(2));
       expect(groups[0].isPair, isFalse);
       expect(groups[1].isPair, isFalse);
     });
 
-    test('Groups calculate minWidth, maxWidth, and initialWidth taking max of pair', () {
-      const colA = GridColumn(id: 'a', label: 'A', initialWidth: 100, minWidth: 60, maxWidth: 200);
-      const colB = GridColumn(id: 'b', label: 'B', initialWidth: 140, minWidth: 80, maxWidth: 300);
+    test(
+        'Groups calculate minWidth, maxWidth, and initialWidth taking max of pair',
+        () {
+      const colA = GridColumn(
+          id: 'a', label: 'A', initialWidth: 100, minWidth: 60, maxWidth: 200);
+      const colB = GridColumn(
+          id: 'b', label: 'B', initialWidth: 140, minWidth: 80, maxWidth: 300);
 
       const group = CompactColumnGroup(topColumn: colA, bottomColumn: colB);
       expect(group.isPair, isTrue);
@@ -61,7 +75,9 @@ void main() {
   });
 
   group('Controller & Layout Manager Compact Tests', () {
-    test('Enabling compactMode resets active sort and disables sort/hide/column chooser', () {
+    test(
+        'Enabling compactMode resets active sort and disables sort/hide/column chooser',
+        () {
       final controller = AppGridController<Map<String, dynamic>>(
         columns: const [
           GridColumn(id: 'c1', label: 'Col 1'),
@@ -113,27 +129,46 @@ void main() {
 
       // Initial column order: a, b, c, d
       // Groups: [a, b] and [c, d]
-      expect(controller.visibleColumns.map((c) => c.id).toList(), equals(['a', 'b', 'c', 'd']));
+      expect(controller.visibleColumns.map((c) => c.id).toList(),
+          equals(['a', 'b', 'c', 'd']));
 
       // Reorder group [c, d] before group [a, b] (target: 'a')
-      controller.reorderColumnGroup(draggedIds: ['c', 'd'], targetColumnId: 'a');
-      expect(controller.visibleColumns.map((c) => c.id).toList(), equals(['c', 'd', 'a', 'b']));
+      controller
+          .reorderColumnGroup(draggedIds: ['c', 'd'], targetColumnId: 'a');
+      expect(controller.visibleColumns.map((c) => c.id).toList(),
+          equals(['c', 'd', 'a', 'b']));
 
       // Reorder group [a, b] before group [c, d] (target: 'c')
-      controller.reorderColumnGroup(draggedIds: ['a', 'b'], targetColumnId: 'c');
-      expect(controller.visibleColumns.map((c) => c.id).toList(), equals(['a', 'b', 'c', 'd']));
+      controller
+          .reorderColumnGroup(draggedIds: ['a', 'b'], targetColumnId: 'c');
+      expect(controller.visibleColumns.map((c) => c.id).toList(),
+          equals(['a', 'b', 'c', 'd']));
 
       controller.dispose();
     });
 
-    test('Resizing compact column group assigns identical width to both columns in layout manager', () {
-      final layoutManager = ColumnLayoutManager(autoStretchEnabled: false, compactMode: true);
+    test(
+        'Resizing compact column group assigns identical width to both columns in layout manager',
+        () {
+      final layoutManager =
+          ColumnLayoutManager(autoStretchEnabled: false, compactMode: true);
       const cols = [
-        GridColumn(id: 'c1', label: 'C1', initialWidth: 100, minWidth: 50, maxWidth: 400),
-        GridColumn(id: 'c2', label: 'C2', initialWidth: 120, minWidth: 60, maxWidth: 400),
+        GridColumn(
+            id: 'c1',
+            label: 'C1',
+            initialWidth: 100,
+            minWidth: 50,
+            maxWidth: 400),
+        GridColumn(
+            id: 'c2',
+            label: 'C2',
+            initialWidth: 120,
+            minWidth: 60,
+            maxWidth: 400),
       ];
 
-      final groups = CompactColumnGroup.buildGroups(columns: cols, compactMode: true);
+      final groups =
+          CompactColumnGroup.buildGroups(columns: cols, compactMode: true);
       expect(groups.length, equals(1));
       final pairGroup = groups.first;
 
@@ -151,7 +186,9 @@ void main() {
       layoutManager.dispose();
     });
 
-    test('GridState exports and restores compactMode without persisting column width (REQ-STATE-03)', () {
+    test(
+        'GridState exports and restores compactMode without persisting column width (REQ-STATE-03)',
+        () {
       final controller = AppGridController<Map<String, dynamic>>(
         columns: const [
           GridColumn(id: 'c1', label: 'Col 1'),
@@ -191,21 +228,40 @@ void main() {
   });
 
   group('AppGrid Compact Mode UI & Widget Tests', () {
-    testWidgets('AppGrid in compactMode doubles row height and header height, rendering 2-level headers and cells', (tester) async {
+    testWidgets(
+        'AppGrid in compactMode doubles row height and header height, rendering 2-level headers and cells',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
 
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: const [
-          {'name': 'Alice', 'role': 'Developer', 'dept': 'Eng', 'level': 'Senior'},
-          {'name': 'Bob', 'role': 'Designer', 'dept': 'Product', 'level': 'Lead'},
+          {
+            'name': 'Alice',
+            'role': 'Developer',
+            'dept': 'Eng',
+            'level': 'Senior'
+          },
+          {
+            'name': 'Bob',
+            'role': 'Designer',
+            'dept': 'Product',
+            'level': 'Lead'
+          },
         ],
         columns: const [
-          GridColumn(id: 'name', label: 'Name', canCompact: true, initialWidth: 150),
-          GridColumn(id: 'role', label: 'Role', canCompact: true, initialWidth: 150),
-          GridColumn(id: 'dept', label: 'Department', canCompact: true, initialWidth: 150),
-          GridColumn(id: 'level', label: 'Level', canCompact: true, initialWidth: 150),
+          GridColumn(
+              id: 'name', label: 'Name', canCompact: true, initialWidth: 150),
+          GridColumn(
+              id: 'role', label: 'Role', canCompact: true, initialWidth: 150),
+          GridColumn(
+              id: 'dept',
+              label: 'Department',
+              canCompact: true,
+              initialWidth: 150),
+          GridColumn(
+              id: 'level', label: 'Level', canCompact: true, initialWidth: 150),
         ],
         compactMode: true,
       );
@@ -215,10 +271,12 @@ void main() {
           home: Scaffold(
             body: AppGrid<Map<String, dynamic>>(
               controller: controller,
-              rowHeight: 40.0,
-              headerHeight: 40.0,
               autoStretch: false,
               compactMode: true,
+              style: const AppGridStyle(
+                rowHeight: 40.0,
+                headerHeight: 40.0,
+              ),
             ),
           ),
         ),
@@ -260,7 +318,9 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('Header menu icon does not shift centered text, and canCompact:false icon is on top-right', (tester) async {
+    testWidgets(
+        'Header menu icon does not shift centered text, and canCompact:false icon is on top-right',
+        (tester) async {
       tester.view.physicalSize = const Size(800, 600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -300,10 +360,12 @@ void main() {
           home: Scaffold(
             body: AppGrid<Map<String, dynamic>>(
               controller: controller,
-              rowHeight: 48.0,
-              headerHeight: 48.0,
               autoStretch: false,
               compactMode: true,
+              style: const AppGridStyle(
+                rowHeight: 48.0,
+                headerHeight: 48.0,
+              ),
             ),
           ),
         ),
@@ -312,7 +374,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Hover over first header to reveal menu icon
-      final firstHeaderCell = find.byType(AppGridHeaderCell<Map<String, dynamic>>).first;
+      final firstHeaderCell =
+          find.byType(AppGridHeaderCell<Map<String, dynamic>>).first;
       final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
       await mouse.addPointer(location: tester.getCenter(firstHeaderCell));
       await tester.pumpAndSettle();
@@ -323,13 +386,15 @@ void main() {
       expect(skuCenter.dx, equals(productNameCenter.dx));
 
       // Now hover over the second header cell (cat: canCompact: false)
-      final catHeaderCell = find.byType(AppGridHeaderCell<Map<String, dynamic>>).at(1);
+      final catHeaderCell =
+          find.byType(AppGridHeaderCell<Map<String, dynamic>>).at(1);
       await mouse.moveTo(tester.getCenter(catHeaderCell));
       await tester.pumpAndSettle();
 
       // The Category header cell has total height 96 (2 * 48).
       // Find the menu icon inside catHeaderCell.
-      final menuIcons = find.descendant(of: catHeaderCell, matching: find.byIcon(Icons.more_vert));
+      final menuIcons = find.descendant(
+          of: catHeaderCell, matching: find.byIcon(Icons.more_vert));
       expect(menuIcons, findsOneWidget);
       final catMenuIconCenter = tester.getCenter(menuIcons);
       final catCellRect = tester.getRect(catHeaderCell);

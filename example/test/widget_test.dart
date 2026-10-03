@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:app_grid_example/main.dart';
 
 void main() {
-  testWidgets('Showcase app loads and can switch between feature tabs', (tester) async {
+  testWidgets('Showcase app loads and can switch between feature tabs',
+      (tester) async {
     tester.view.physicalSize = const Size(1280, 900);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(() => tester.view.resetPhysicalSize());
@@ -40,7 +41,8 @@ void main() {
     await tester.tap(find.text('Discrete Pagination'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Data Ingestion: Discrete Pagination (REQ-DATA-01)'), findsOneWidget);
+    expect(find.text('Data Ingestion: Discrete Pagination (REQ-DATA-01)'),
+        findsOneWidget);
     expect(find.text('Page 1 of 12'), findsOneWidget);
     expect(find.text('Showing 1–10 of 120 orders'), findsOneWidget);
     expect(find.text('ORD-1001'), findsOneWidget);
@@ -71,7 +73,8 @@ void main() {
     await tester.tap(find.text('Infinite Scroll'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Data Ingestion: Infinite Scroll (REQ-DATA-01)'), findsOneWidget);
+    expect(find.text('Data Ingestion: Infinite Scroll (REQ-DATA-01)'),
+        findsOneWidget);
     expect(find.text('Loaded: 30 / 200 items'), findsOneWidget);
 
     // Switch to 100,000 Rows x 50 Cols tab

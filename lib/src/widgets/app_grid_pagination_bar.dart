@@ -50,7 +50,8 @@ class AppGridPaginationBar<T> extends StatelessWidget {
             color: isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF9FAFB),
             border: Border(
               top: BorderSide(
-                color: isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000),
+                color:
+                    isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000),
                 width: 1.0,
               ),
             ),
@@ -78,13 +79,16 @@ class AppGridPaginationBar<T> extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   DropdownButton<int>(
-                    value: pageSizeOptions.contains(limit) ? limit : pageSizeOptions.first,
+                    value: pageSizeOptions.contains(limit)
+                        ? limit
+                        : pageSizeOptions.first,
                     isDense: true,
                     underline: const SizedBox(),
                     items: pageSizeOptions.map((size) {
                       return DropdownMenuItem<int>(
                         value: size,
-                        child: Text('$size', style: const TextStyle(fontSize: 12)),
+                        child:
+                            Text('$size', style: const TextStyle(fontSize: 12)),
                       );
                     }).toList(),
                     onChanged: (newSize) {
@@ -99,7 +103,8 @@ class AppGridPaginationBar<T> extends StatelessWidget {
                   icon: const Icon(Icons.first_page, size: 20),
                   tooltip: 'First Page',
                   visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints:
+                      const BoxConstraints(minWidth: 32, minHeight: 32),
                   onPressed: currentPage > 1
                       ? () => onPageChanged?.call(1, limit)
                       : null,
@@ -108,13 +113,15 @@ class AppGridPaginationBar<T> extends StatelessWidget {
                   icon: const Icon(Icons.chevron_left, size: 20),
                   tooltip: 'Previous Page',
                   visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints:
+                      const BoxConstraints(minWidth: 32, minHeight: 32),
                   onPressed: currentPage > 1
                       ? () => onPageChanged?.call(currentPage - 1, limit)
                       : null,
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withAlpha(25),
                     borderRadius: BorderRadius.circular(6),
@@ -132,7 +139,8 @@ class AppGridPaginationBar<T> extends StatelessWidget {
                   icon: const Icon(Icons.chevron_right, size: 20),
                   tooltip: 'Next Page',
                   visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints:
+                      const BoxConstraints(minWidth: 32, minHeight: 32),
                   onPressed: currentPage < totalPages
                       ? () => onPageChanged?.call(currentPage + 1, limit)
                       : null,
@@ -141,7 +149,8 @@ class AppGridPaginationBar<T> extends StatelessWidget {
                   icon: const Icon(Icons.last_page, size: 20),
                   tooltip: 'Last Page',
                   visualDensity: VisualDensity.compact,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints:
+                      const BoxConstraints(minWidth: 32, minHeight: 32),
                   onPressed: currentPage < totalPages
                       ? () => onPageChanged?.call(totalPages, limit)
                       : null,

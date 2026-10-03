@@ -4,21 +4,39 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Column Freezing Load & Performance Tests', () {
-    testWidgets('Column Freezing page mounts with full base widths, zero overflow, and fast load', (tester) async {
-      final data = List.generate(30, (i) => {
-        'id': 'ID-$i',
-        'name': 'Client $i',
-        for (var c = 1; c <= 10; c++) 'metric_$c': (i * c * 13) % 100,
-        'actions': 'Action $i',
-      });
+    testWidgets(
+        'Column Freezing page mounts with full base widths, zero overflow, and fast load',
+        (tester) async {
+      final data = List.generate(
+          30,
+          (i) => {
+                'id': 'ID-$i',
+                'name': 'Client $i',
+                for (var c = 1; c <= 10; c++) 'metric_$c': (i * c * 13) % 100,
+                'actions': 'Action $i',
+              });
 
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: data,
         columns: [
-          GridColumn(id: 'id', label: 'Frozen ID', initialWidth: 100, pin: GridColumnPin.left, valueGetter: (r) => r['id']),
-          GridColumn(id: 'name', label: 'Frozen Name', initialWidth: 140, pin: GridColumnPin.left, valueGetter: (r) => r['name']),
+          GridColumn(
+              id: 'id',
+              label: 'Frozen ID',
+              initialWidth: 100,
+              pin: GridColumnPin.left,
+              valueGetter: (r) => r['id']),
+          GridColumn(
+              id: 'name',
+              label: 'Frozen Name',
+              initialWidth: 140,
+              pin: GridColumnPin.left,
+              valueGetter: (r) => r['name']),
           for (var c = 1; c <= 10; c++)
-            GridColumn(id: 'metric_$c', label: 'Metric #$c', initialWidth: 120, valueGetter: (r) => r['metric_$c']),
+            GridColumn(
+                id: 'metric_$c',
+                label: 'Metric #$c',
+                initialWidth: 120,
+                valueGetter: (r) => r['metric_$c']),
           GridColumn(
             id: 'actions',
             label: 'Frozen Action',
@@ -74,4 +92,3 @@ void main() {
     });
   });
 }
-

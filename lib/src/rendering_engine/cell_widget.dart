@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/app_grid_style.dart';
 import '../models/grid_column.dart';
 import '../models/row_index_info.dart';
 import '../controllers/app_grid_controller.dart';
@@ -17,9 +18,7 @@ class CellWidget<T> extends StatelessWidget {
   final GridColumn column;
   final double width;
   final double height;
-  final bool showVerticalGridLine;
-  final Color? verticalGridLineColor;
-  final Color? gridLineColor;
+  final AppGridStyle style;
 
   const CellWidget({
     super.key,
@@ -28,9 +27,7 @@ class CellWidget<T> extends StatelessWidget {
     required this.column,
     required this.width,
     required this.height,
-    this.showVerticalGridLine = false,
-    this.verticalGridLineColor,
-    this.gridLineColor,
+    this.style = const AppGridStyle(),
   });
 
   @override
@@ -38,7 +35,7 @@ class CellWidget<T> extends StatelessWidget {
     final notifier = controller.getRowNotifier(indexInfo.originalIndex);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final hasVerticalDivider = showVerticalGridLine;
+    final hasVerticalDivider = style.showVerticalGridLines;
 
     final cellContent = ValueListenableBuilder<T>(
       valueListenable: notifier,
@@ -74,9 +71,8 @@ class CellWidget<T> extends StatelessWidget {
         }
 
         // Default cell presentation
-        final rawValue = column.valueGetter != null
-            ? column.valueGetter!(rowData)
-            : null;
+        final rawValue =
+            column.valueGetter != null ? column.valueGetter!(rowData) : null;
         if (rawValue == null || (rawValue is String && rawValue.isEmpty)) {
           return Align(
             alignment: column.cellAlignment,
@@ -91,6 +87,7 @@ class CellWidget<T> extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12.0),
           child: Text(
             displayText,
+            style: style.rowTextStyle,
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
             textAlign: _textAlignFromAlignment(column.cellAlignment),
@@ -107,8 +104,8 @@ class CellWidget<T> extends StatelessWidget {
       );
     }
 
-    final dividerColor = verticalGridLineColor ??
-        gridLineColor ??
+    final dividerColor = style.verticalGridLineColor ??
+        style.gridLineColor ??
         (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
 
     return SizedBox(

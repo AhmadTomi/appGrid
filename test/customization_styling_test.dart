@@ -4,7 +4,9 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Table Customization & Styling Tests', () {
-    testWidgets('AppGrid applies custom headerBackgroundColor, borderColor, and gridLineColor', (tester) async {
+    testWidgets(
+        'AppGrid applies custom headerBackgroundColor, borderColor, and gridLineColor',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Alpha', 'category': 'A'},
@@ -32,17 +34,19 @@ void main() {
               height: 400,
               child: AppGrid<Map<String, dynamic>>(
                 controller: controller,
-                headerHeight: 56.0,
-                rowHeight: 52.0,
-                headerBackgroundColor: customHeaderBg,
-                borderColor: customBorderColor,
-                gridLineColor: customGridLineColor,
-                selectedRowColor: customSelectedColor,
-                evenRowColor: customEvenColor,
-                oddRowColor: customOddColor,
-                scrollbarThickness: 12.0,
-                scrollbarThumbColor: Colors.blueAccent,
-                scrollbarTrackColor: Colors.grey.shade200,
+                style: const AppGridStyle(
+                  headerHeight: 56.0,
+                  rowHeight: 52.0,
+                  headerBackgroundColor: customHeaderBg,
+                  borderColor: customBorderColor,
+                  gridLineColor: customGridLineColor,
+                  selectedRowColor: customSelectedColor,
+                  evenRowColor: customEvenColor,
+                  oddRowColor: customOddColor,
+                  scrollbarThickness: 12.0,
+                  scrollbarThumbColor: Colors.blueAccent,
+                  scrollbarTrackColor: Color(0xFFEEEEEE),
+                ),
               ),
             ),
           ),
@@ -54,7 +58,8 @@ void main() {
       final containerFinder = find.byWidgetPredicate((w) {
         if (w is Container && w.decoration is BoxDecoration) {
           final box = w.decoration as BoxDecoration;
-          if (box.border != null && box.border!.top.color == customBorderColor) {
+          if (box.border != null &&
+              box.border!.top.color == customBorderColor) {
             return true;
           }
         }
@@ -63,7 +68,8 @@ void main() {
       expect(containerFinder, findsOneWidget);
 
       // Verify header cells have customHeaderBg
-      final headerCellFinder = find.byType(AppGridHeaderCell<Map<String, dynamic>>);
+      final headerCellFinder =
+          find.byType(AppGridHeaderCell<Map<String, dynamic>>);
       expect(headerCellFinder, findsNWidgets(3));
 
       for (final element in headerCellFinder.evaluate()) {
@@ -77,16 +83,19 @@ void main() {
       final rowFinder = find.byType(RowWidget<Map<String, dynamic>>);
       expect(rowFinder, findsWidgets);
 
-      final firstRow = tester.widget<RowWidget<Map<String, dynamic>>>(rowFinder.first);
-      expect(firstRow.rowHeight, equals(52.0));
-      expect(firstRow.evenRowColor, equals(customEvenColor));
-      expect(firstRow.oddRowColor, equals(customOddColor));
-      expect(firstRow.gridLineColor, equals(customGridLineColor));
+      final firstRow =
+          tester.widget<RowWidget<Map<String, dynamic>>>(rowFinder.first);
+      expect(firstRow.style.rowHeight, equals(52.0));
+      expect(firstRow.style.evenRowColor, equals(customEvenColor));
+      expect(firstRow.style.oddRowColor, equals(customOddColor));
+      expect(firstRow.style.gridLineColor, equals(customGridLineColor));
 
       controller.dispose();
     });
 
-    testWidgets('AppGrid applies optional vertical grid dividers and verticalGridLineColor to cells and headers', (tester) async {
+    testWidgets(
+        'AppGrid applies optional vertical grid dividers and verticalGridLineColor to cells and headers',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Item A'},
@@ -108,8 +117,10 @@ void main() {
               height: 400,
               child: AppGrid<Map<String, dynamic>>(
                 controller: controller,
-                showVerticalGridLines: true,
-                verticalGridLineColor: customVerticalLineColor,
+                style: const AppGridStyle(
+                  showVerticalGridLines: true,
+                  verticalGridLineColor: customVerticalLineColor,
+                ),
               ),
             ),
           ),
@@ -128,21 +139,25 @@ void main() {
       // Check row widget has showVerticalGridLines and verticalGridLineColor
       final rowFinder = find.byType(RowWidget<Map<String, dynamic>>);
       expect(rowFinder, findsWidgets);
-      final row = tester.widget<RowWidget<Map<String, dynamic>>>(rowFinder.first);
-      expect(row.showVerticalGridLines, isTrue);
-      expect(row.verticalGridLineColor, equals(customVerticalLineColor));
+      final row =
+          tester.widget<RowWidget<Map<String, dynamic>>>(rowFinder.first);
+      expect(row.style.showVerticalGridLines, isTrue);
+      expect(row.style.verticalGridLineColor, equals(customVerticalLineColor));
 
       // Check cell widgets receive showVerticalGridLine and verticalGridLineColor
       final cellFinder = find.byType(CellWidget<Map<String, dynamic>>);
       expect(cellFinder, findsWidgets);
-      final cell = tester.widget<CellWidget<Map<String, dynamic>>>(cellFinder.first);
-      expect(cell.showVerticalGridLine, isTrue);
-      expect(cell.verticalGridLineColor, equals(customVerticalLineColor));
+      final cell =
+          tester.widget<CellWidget<Map<String, dynamic>>>(cellFinder.first);
+      expect(cell.style.showVerticalGridLines, isTrue);
+      expect(cell.style.verticalGridLineColor, equals(customVerticalLineColor));
 
       controller.dispose();
     });
 
-    testWidgets('AppGrid hides vertical grid dividers from headers, cells, and footers when showVerticalGridLines is false', (tester) async {
+    testWidgets(
+        'AppGrid hides vertical grid dividers from headers, cells, and footers when showVerticalGridLines is false',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Item A'},
@@ -161,8 +176,10 @@ void main() {
               height: 400,
               child: AppGrid<Map<String, dynamic>>(
                 controller: controller,
-                showVerticalGridLines: false,
-                footerHeight: 36.0,
+                style: const AppGridStyle(
+                  showVerticalGridLines: false,
+                  footerHeight: 36.0,
+                ),
               ),
             ),
           ),
@@ -181,34 +198,42 @@ void main() {
       // Check row widget has showVerticalGridLines == false
       final rowFinder = find.byType(RowWidget<Map<String, dynamic>>);
       expect(rowFinder, findsWidgets);
-      final row = tester.widget<RowWidget<Map<String, dynamic>>>(rowFinder.first);
-      expect(row.showVerticalGridLines, isFalse);
+      final row =
+          tester.widget<RowWidget<Map<String, dynamic>>>(rowFinder.first);
+      expect(row.style.showVerticalGridLines, isFalse);
 
       // Check cell widgets have showVerticalGridLine == false
       final cellFinder = find.byType(CellWidget<Map<String, dynamic>>);
       expect(cellFinder, findsWidgets);
-      final cell = tester.widget<CellWidget<Map<String, dynamic>>>(cellFinder.first);
-      expect(cell.showVerticalGridLine, isFalse);
+      final cell =
+          tester.widget<CellWidget<Map<String, dynamic>>>(cellFinder.first);
+      expect(cell.style.showVerticalGridLines, isFalse);
 
       // Check footer cells have showVerticalGridLines == false
       final footerFinder = find.byType(AppGridFooterCell);
       expect(footerFinder, findsNWidgets(2));
       for (final el in footerFinder.evaluate()) {
         final cell = el.widget as AppGridFooterCell;
-        expect(cell.showVerticalGridLines, isFalse);
+        expect(cell.style.showVerticalGridLines, isFalse);
       }
 
       controller.dispose();
     });
 
-    testWidgets('AppGrid hides horizontal grid dividers when showHorizontalGridLines is false', (tester) async {
+    testWidgets(
+        'AppGrid hides horizontal grid dividers when showHorizontalGridLines is false',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Item A'},
           {'id': 2, 'name': 'Item B'},
         ],
         columns: const [
-          GridColumn(id: 'id', label: 'ID', initialWidth: 100, pin: GridColumnPin.left),
+          GridColumn(
+              id: 'id',
+              label: 'ID',
+              initialWidth: 100,
+              pin: GridColumnPin.left),
           GridColumn(id: 'name', label: 'Name', initialWidth: 200),
         ],
       );
@@ -221,9 +246,11 @@ void main() {
               height: 400,
               child: AppGrid<Map<String, dynamic>>(
                 controller: controller,
-                showHorizontalGridLines: false,
-                showVerticalGridLines: false,
-                footerHeight: 36.0,
+                style: const AppGridStyle(
+                  showHorizontalGridLines: false,
+                  showVerticalGridLines: false,
+                  footerHeight: 36.0,
+                ),
               ),
             ),
           ),
@@ -245,8 +272,8 @@ void main() {
       expect(rowFinder, findsWidgets);
       for (final el in rowFinder.evaluate()) {
         final row = el.widget as RowWidget<Map<String, dynamic>>;
-        expect(row.showHorizontalGridLines, isFalse);
-        expect(row.showVerticalGridLines, isFalse);
+        expect(row.style.showHorizontalGridLines, isFalse);
+        expect(row.style.showVerticalGridLines, isFalse);
       }
 
       // Check footer cells have showHorizontalGridLines == false
@@ -254,27 +281,49 @@ void main() {
       expect(footerFinder, findsNWidgets(2));
       for (final el in footerFinder.evaluate()) {
         final cell = el.widget as AppGridFooterCell;
-        expect(cell.showHorizontalGridLines, isFalse);
-        expect(cell.showVerticalGridLines, isFalse);
+        expect(cell.style.showHorizontalGridLines, isFalse);
+        expect(cell.style.showVerticalGridLines, isFalse);
       }
 
       controller.dispose();
     });
 
-    testWidgets('Vertical grid dividers are perfectly aligned between header cells and body row cells', (tester) async {
+    testWidgets(
+        'Vertical grid dividers are perfectly aligned between header cells and body row cells',
+        (tester) async {
       final columns = [
-        const GridColumn(id: 'num1', label: '#', minWidth: 40, initialWidth: 40),
-        const GridColumn(id: 'bvol', label: 'B.vol', minWidth: 80, initialWidth: 80),
-        const GridColumn(id: 'bid', label: 'Bid', minWidth: 80, initialWidth: 80),
-        const GridColumn(id: 'offer', label: 'Offer', minWidth: 80, initialWidth: 80),
-        const GridColumn(id: 'ovol', label: 'O.Vol', minWidth: 80, initialWidth: 80),
-        const GridColumn(id: 'num2', label: '#', minWidth: 40, initialWidth: 40),
+        const GridColumn(
+            id: 'num1', label: '#', minWidth: 40, initialWidth: 40),
+        const GridColumn(
+            id: 'bvol', label: 'B.vol', minWidth: 80, initialWidth: 80),
+        const GridColumn(
+            id: 'bid', label: 'Bid', minWidth: 80, initialWidth: 80),
+        const GridColumn(
+            id: 'offer', label: 'Offer', minWidth: 80, initialWidth: 80),
+        const GridColumn(
+            id: 'ovol', label: 'O.Vol', minWidth: 80, initialWidth: 80),
+        const GridColumn(
+            id: 'num2', label: '#', minWidth: 40, initialWidth: 40),
       ];
 
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
-          {'num1': 1, 'bvol': 100, 'bid': 50.5, 'offer': 51.0, 'ovol': 200, 'num2': 1},
-          {'num1': 2, 'bvol': 150, 'bid': 50.4, 'offer': 51.1, 'ovol': 250, 'num2': 2},
+          {
+            'num1': 1,
+            'bvol': 100,
+            'bid': 50.5,
+            'offer': 51.0,
+            'ovol': 200,
+            'num2': 1
+          },
+          {
+            'num1': 2,
+            'bvol': 150,
+            'bid': 50.4,
+            'offer': 51.1,
+            'ovol': 250,
+            'num2': 2
+          },
         ],
         columns: columns,
       );
@@ -288,7 +337,9 @@ void main() {
               child: AppGrid<Map<String, dynamic>>(
                 controller: controller,
                 autoStretch: true,
-                showVerticalGridLines: true,
+                style: const AppGridStyle(
+                  showVerticalGridLines: true,
+                ),
               ),
             ),
           ),
@@ -296,7 +347,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final headerCellFinder = find.byType(AppGridHeaderCell<Map<String, dynamic>>);
+      final headerCellFinder =
+          find.byType(AppGridHeaderCell<Map<String, dynamic>>);
       expect(headerCellFinder, findsNWidgets(6));
 
       for (int i = 0; i < columns.length; i++) {
@@ -312,7 +364,8 @@ void main() {
         expect(headerRect.left, closeTo(cellRect.left, 0.001),
             reason: 'Column ${col.id} left edge must align perfectly');
         expect(headerRect.right, closeTo(cellRect.right, 0.001),
-            reason: 'Column ${col.id} right edge (vertical divider) must align perfectly');
+            reason:
+                'Column ${col.id} right edge (vertical divider) must align perfectly');
         expect(headerRect.width, closeTo(cellRect.width, 0.001),
             reason: 'Column ${col.id} width must be identical');
       }
@@ -320,7 +373,9 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('Vertical grid dividers span full cell height and render on top of horizontal grid lines', (tester) async {
+    testWidgets(
+        'Vertical grid dividers span full cell height and render on top of horizontal grid lines',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Alpha'},
@@ -343,12 +398,14 @@ void main() {
               height: 400,
               child: AppGrid<Map<String, dynamic>>(
                 controller: controller,
-                rowHeight: 48,
-                headerHeight: 40,
-                showVerticalGridLines: true,
-                showHorizontalGridLines: true,
-                verticalGridLineColor: verticalColor,
-                gridLineColor: horizontalColor,
+                style: const AppGridStyle(
+                  rowHeight: 48,
+                  headerHeight: 40,
+                  showVerticalGridLines: true,
+                  showHorizontalGridLines: true,
+                  verticalGridLineColor: verticalColor,
+                  gridLineColor: horizontalColor,
+                ),
               ),
             ),
           ),
@@ -361,7 +418,9 @@ void main() {
       expect(cellWidgetFinder, findsOneWidget);
 
       final cellStack = tester.widget<Stack>(
-        find.descendant(of: cellWidgetFinder, matching: find.byType(Stack)).first,
+        find
+            .descendant(of: cellWidgetFinder, matching: find.byType(Stack))
+            .first,
       );
       // Last child of CellWidget's stack must be the vertical divider
       final lastPositioned = cellStack.children.last as Positioned;
@@ -391,14 +450,19 @@ void main() {
       expect(cellsPositioned.child, isA<Row>());
 
       // 3. Verify in HeaderCell: vertical divider is rendered after horizontal line in Stack
-      final headerCellFinder = find.byType(AppGridHeaderCell<Map<String, dynamic>>).first;
+      final headerCellFinder =
+          find.byType(AppGridHeaderCell<Map<String, dynamic>>).first;
       final headerStack = tester.widget<Stack>(
-        find.descendant(of: headerCellFinder, matching: find.byType(Stack)).first,
+        find
+            .descendant(of: headerCellFinder, matching: find.byType(Stack))
+            .first,
       );
       // Find the vertical divider positioned child
-      final headerPositionedList = headerStack.children.whereType<Positioned>().toList();
+      final headerPositionedList =
+          headerStack.children.whereType<Positioned>().toList();
       final headerVDivider = headerPositionedList.firstWhere(
-        (p) => p.right == 0.0 && p.top == 0.0 && p.bottom == 0.0 && p.width == 1.0,
+        (p) =>
+            p.right == 0.0 && p.top == 0.0 && p.bottom == 0.0 && p.width == 1.0,
       );
       final headerVContainer = headerVDivider.child as Container;
       expect(headerVContainer.color, equals(verticalColor));
@@ -414,10 +478,10 @@ void main() {
       final hLineIdx = headerStack.children.indexOf(headerHLine);
       final vLineIdx = headerStack.children.indexOf(headerVDivider);
       expect(vLineIdx, greaterThan(hLineIdx),
-          reason: 'Vertical divider must be rendered after/on top of horizontal line');
+          reason:
+              'Vertical divider must be rendered after/on top of horizontal line');
 
       controller.dispose();
     });
   });
 }
-

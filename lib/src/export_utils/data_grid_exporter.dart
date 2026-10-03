@@ -19,7 +19,9 @@ class DataGridExporter {
 
     // 1. Headers
     if (includeHeaders) {
-      final headerLine = columns.map((col) => _escapeCsv(col.label, delimiter)).join(delimiter);
+      final headerLine = columns
+          .map((col) => _escapeCsv(col.label, delimiter))
+          .join(delimiter);
       buffer.writeln(headerLine);
     }
 

@@ -43,10 +43,12 @@ class AppGridHorizontalScrollbar extends StatefulWidget {
   });
 
   @override
-  State<AppGridHorizontalScrollbar> createState() => _AppGridHorizontalScrollbarState();
+  State<AppGridHorizontalScrollbar> createState() =>
+      _AppGridHorizontalScrollbarState();
 }
 
-class _AppGridHorizontalScrollbarState extends State<AppGridHorizontalScrollbar> {
+class _AppGridHorizontalScrollbarState
+    extends State<AppGridHorizontalScrollbar> {
   bool _isHoveringThumb = false;
   bool _isHoveringTrack = false;
   bool _isDragging = false;
@@ -137,7 +139,8 @@ class _AppGridHorizontalScrollbarState extends State<AppGridHorizontalScrollbar>
         final trackWidth = widget.trackWidth;
         final contentWidth = math.max(trackWidth, widget.contentWidth);
 
-        final thumbWidth = math.max(28.0, (trackWidth / contentWidth) * trackWidth);
+        final thumbWidth =
+            math.max(28.0, (trackWidth / contentWidth) * trackWidth);
         final maxThumbOffset = math.max(1.0, trackWidth - thumbWidth);
         final thumbOffset = (currentScroll / maxScroll) * maxThumbOffset;
 
@@ -168,8 +171,10 @@ class _AppGridHorizontalScrollbarState extends State<AppGridHorizontalScrollbar>
               onTapDown: (details) {
                 final clickX = details.localPosition.dx;
                 if (clickX < thumbOffset || clickX > thumbOffset + thumbWidth) {
-                  final targetRatio = (clickX - thumbWidth / 2) / maxThumbOffset;
-                  final targetScroll = (targetRatio * maxScroll).clamp(0.0, maxScroll);
+                  final targetRatio =
+                      (clickX - thumbWidth / 2) / maxThumbOffset;
+                  final targetScroll =
+                      (targetRatio * maxScroll).clamp(0.0, maxScroll);
                   widget.controller.jumpTo(targetScroll);
                 }
               },
@@ -184,55 +189,60 @@ class _AppGridHorizontalScrollbarState extends State<AppGridHorizontalScrollbar>
                       child: Container(
                         decoration: BoxDecoration(
                           color: trackColor,
-                          borderRadius: BorderRadius.circular(widget.thickness / 2),
+                          borderRadius:
+                              BorderRadius.circular(widget.thickness / 2),
                         ),
                       ),
                     ),
                   ),
 
-                // Interactive Draggable Thumb
-                Positioned(
-                  left: thumbOffset,
-                  top: 0,
-                  bottom: 0,
-                  width: thumbWidth,
-                  child: MouseRegion(
-                    cursor: _isDragging
-                        ? SystemMouseCursors.grabbing
-                        : SystemMouseCursors.grab,
-                    onEnter: (_) => setState(() => _isHoveringThumb = true),
-                    onExit: (_) => setState(() => _isHoveringThumb = false),
-                    child: GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      onHorizontalDragStart: (_) {
-                        setState(() => _isDragging = true);
-                      },
-                      onHorizontalDragUpdate: (details) {
-                        final deltaScroll = (details.delta.dx / maxThumbOffset) * maxScroll;
-                        final newOffset = (widget.controller.offset + deltaScroll).clamp(0.0, maxScroll);
-                        widget.controller.jumpTo(newOffset);
-                      },
-                      onHorizontalDragEnd: (_) {
-                        setState(() => _isDragging = false);
-                      },
-                      onHorizontalDragCancel: () {
-                        setState(() => _isDragging = false);
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: thumbColor,
-                          borderRadius: BorderRadius.circular(widget.thickness / 2),
+                  // Interactive Draggable Thumb
+                  Positioned(
+                    left: thumbOffset,
+                    top: 0,
+                    bottom: 0,
+                    width: thumbWidth,
+                    child: MouseRegion(
+                      cursor: _isDragging
+                          ? SystemMouseCursors.grabbing
+                          : SystemMouseCursors.grab,
+                      onEnter: (_) => setState(() => _isHoveringThumb = true),
+                      onExit: (_) => setState(() => _isHoveringThumb = false),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onHorizontalDragStart: (_) {
+                          setState(() => _isDragging = true);
+                        },
+                        onHorizontalDragUpdate: (details) {
+                          final deltaScroll =
+                              (details.delta.dx / maxThumbOffset) * maxScroll;
+                          final newOffset =
+                              (widget.controller.offset + deltaScroll)
+                                  .clamp(0.0, maxScroll);
+                          widget.controller.jumpTo(newOffset);
+                        },
+                        onHorizontalDragEnd: (_) {
+                          setState(() => _isDragging = false);
+                        },
+                        onHorizontalDragCancel: () {
+                          setState(() => _isDragging = false);
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: thumbColor,
+                            borderRadius:
+                                BorderRadius.circular(widget.thickness / 2),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    },
+        );
+      },
     );
   }
 }
@@ -261,7 +271,8 @@ class AppGridVerticalScrollbar extends StatefulWidget {
   });
 
   @override
-  State<AppGridVerticalScrollbar> createState() => _AppGridVerticalScrollbarState();
+  State<AppGridVerticalScrollbar> createState() =>
+      _AppGridVerticalScrollbarState();
 }
 
 class _AppGridVerticalScrollbarState extends State<AppGridVerticalScrollbar> {
@@ -355,7 +366,8 @@ class _AppGridVerticalScrollbarState extends State<AppGridVerticalScrollbar> {
         final trackHeight = widget.trackHeight;
         final contentHeight = math.max(trackHeight, widget.contentHeight);
 
-        final thumbHeight = math.max(28.0, (trackHeight / contentHeight) * trackHeight);
+        final thumbHeight =
+            math.max(28.0, (trackHeight / contentHeight) * trackHeight);
         final maxThumbOffset = math.max(1.0, trackHeight - thumbHeight);
         final thumbOffset = (currentScroll / maxScroll) * maxThumbOffset;
 
@@ -385,9 +397,12 @@ class _AppGridVerticalScrollbarState extends State<AppGridVerticalScrollbar> {
               behavior: HitTestBehavior.opaque,
               onTapDown: (details) {
                 final clickY = details.localPosition.dy;
-                if (clickY < thumbOffset || clickY > thumbOffset + thumbHeight) {
-                  final targetRatio = (clickY - thumbHeight / 2) / maxThumbOffset;
-                  final targetScroll = (targetRatio * maxScroll).clamp(0.0, maxScroll);
+                if (clickY < thumbOffset ||
+                    clickY > thumbOffset + thumbHeight) {
+                  final targetRatio =
+                      (clickY - thumbHeight / 2) / maxThumbOffset;
+                  final targetScroll =
+                      (targetRatio * maxScroll).clamp(0.0, maxScroll);
                   widget.controller.jumpTo(targetScroll);
                 }
               },
@@ -402,7 +417,8 @@ class _AppGridVerticalScrollbarState extends State<AppGridVerticalScrollbar> {
                       child: Container(
                         decoration: BoxDecoration(
                           color: trackColor,
-                          borderRadius: BorderRadius.circular(widget.thickness / 2),
+                          borderRadius:
+                              BorderRadius.circular(widget.thickness / 2),
                         ),
                       ),
                     ),
@@ -426,8 +442,11 @@ class _AppGridVerticalScrollbarState extends State<AppGridVerticalScrollbar> {
                           setState(() => _isDragging = true);
                         },
                         onVerticalDragUpdate: (details) {
-                          final deltaScroll = (details.delta.dy / maxThumbOffset) * maxScroll;
-                          final newOffset = (widget.controller.offset + deltaScroll).clamp(0.0, maxScroll);
+                          final deltaScroll =
+                              (details.delta.dy / maxThumbOffset) * maxScroll;
+                          final newOffset =
+                              (widget.controller.offset + deltaScroll)
+                                  .clamp(0.0, maxScroll);
                           widget.controller.jumpTo(newOffset);
                         },
                         onVerticalDragEnd: (_) {
@@ -439,7 +458,8 @@ class _AppGridVerticalScrollbarState extends State<AppGridVerticalScrollbar> {
                         child: Container(
                           decoration: BoxDecoration(
                             color: thumbColor,
-                            borderRadius: BorderRadius.circular(widget.thickness / 2),
+                            borderRadius:
+                                BorderRadius.circular(widget.thickness / 2),
                           ),
                         ),
                       ),

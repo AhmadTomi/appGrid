@@ -102,7 +102,8 @@ class AppGridController<T> extends ChangeNotifier {
       _columnOrder.add(col.id);
       _columnVisibility[col.id] = col.isVisible;
       if (col.cellBuilder != null) {
-        _cellBuilders[col.id] ??= (ctx, data, info) => col.cellBuilder!(ctx, data, info);
+        _cellBuilders[col.id] ??=
+            (ctx, data, info) => col.cellBuilder!(ctx, data, info);
       }
       if (col.headerBuilder != null) {
         _headerBuilders[col.id] ??= col.headerBuilder!;
@@ -184,13 +185,15 @@ class AppGridController<T> extends ChangeNotifier {
 
   int? get selectedOriginalIndex => _isReadOnly ? null : _selectedOriginalIndex;
 
-  int? get selectedDisplayIndex => (!_isReadOnly && _selectedOriginalIndex != null)
-      ? _dualIndexMap.getDisplayIndex(_selectedOriginalIndex!)
-      : null;
+  int? get selectedDisplayIndex =>
+      (!_isReadOnly && _selectedOriginalIndex != null)
+          ? _dualIndexMap.getDisplayIndex(_selectedOriginalIndex!)
+          : null;
 
-  RowIndexInfo? get selectedRowInfo => (!_isReadOnly && _selectedOriginalIndex != null)
-      ? _dualIndexMap.getInfoForOriginalIndex(_selectedOriginalIndex!)
-      : null;
+  RowIndexInfo? get selectedRowInfo =>
+      (!_isReadOnly && _selectedOriginalIndex != null)
+          ? _dualIndexMap.getInfoForOriginalIndex(_selectedOriginalIndex!)
+          : null;
 
   /// Whether the table is actively loading initial or async data.
   bool get isLoading => _isLoading;
@@ -227,7 +230,8 @@ class AppGridController<T> extends ChangeNotifier {
   }
 
   /// Returns the registered cell builder for [columnId], if any.
-  ColumnCellBuilder<T>? getCellBuilder(String columnId) => _cellBuilders[columnId];
+  ColumnCellBuilder<T>? getCellBuilder(String columnId) =>
+      _cellBuilders[columnId];
 
   /// Sets or updates the modular header builder for a specific [columnId].
   void setHeaderBuilder(String columnId, ColumnHeaderBuilder builder) {
@@ -243,7 +247,8 @@ class AppGridController<T> extends ChangeNotifier {
   }
 
   /// Returns the registered header builder for [columnId], if any.
-  ColumnHeaderBuilder? getHeaderBuilder(String columnId) => _headerBuilders[columnId];
+  ColumnHeaderBuilder? getHeaderBuilder(String columnId) =>
+      _headerBuilders[columnId];
 
   /// Sets or updates the global header builder fallback.
   void setGlobalHeaderBuilder(GridHeaderBuilder? builder) {
@@ -307,7 +312,8 @@ class AppGridController<T> extends ChangeNotifier {
 
   /// Updates a row matching [id] using [rowIdGetter].
   void updateRowById(Object id, T updatedData) {
-    assert(rowIdGetter != null, 'rowIdGetter must be configured to use updateRowById');
+    assert(rowIdGetter != null,
+        'rowIdGetter must be configured to use updateRowById');
     final index = _data.indexWhere((item) => rowIdGetter!(item) == id);
     if (index != -1) {
       updateRow(index, updatedData);
@@ -324,7 +330,8 @@ class AppGridController<T> extends ChangeNotifier {
 
   /// Functional patch of a row by [id].
   void patchRowById(Object id, T Function(T current) updater) {
-    assert(rowIdGetter != null, 'rowIdGetter must be configured to use patchRowById');
+    assert(rowIdGetter != null,
+        'rowIdGetter must be configured to use patchRowById');
     final index = _data.indexWhere((item) => rowIdGetter!(item) == id);
     if (index != -1) {
       patchRow(index, updater);
@@ -332,7 +339,8 @@ class AppGridController<T> extends ChangeNotifier {
   }
 
   /// Updates rows matching the [predicate].
-  void updateRowWhere(bool Function(T item) predicate, T Function(T current) updater) {
+  void updateRowWhere(
+      bool Function(T item) predicate, T Function(T current) updater) {
     for (var i = 0; i < _data.length; i++) {
       if (predicate(_data[i])) {
         patchRow(i, updater);
@@ -361,7 +369,8 @@ class AppGridController<T> extends ChangeNotifier {
 
   /// High-volume streaming updates queued by row ID.
   void batchUpdateRowsById(Map<Object, T> updatesById) {
-    assert(rowIdGetter != null, 'rowIdGetter must be configured to use batchUpdateRowsById');
+    assert(rowIdGetter != null,
+        'rowIdGetter must be configured to use batchUpdateRowsById');
     final Map<int, T> updatesByIndex = {};
     for (var i = 0; i < _data.length; i++) {
       final id = rowIdGetter!(_data[i]);
@@ -457,16 +466,20 @@ class AppGridController<T> extends ChangeNotifier {
     // ===== 2. STRUCTURAL UPDATE (ADDITIONS, DELETIONS, REORDERING) =====
     // Preserve selection by row ID if rowIdGetter is configured
     Object? selectedRowId;
-    if (rowIdGetter != null && _selectedOriginalIndex != null && _selectedOriginalIndex! < oldLength) {
+    if (rowIdGetter != null &&
+        _selectedOriginalIndex != null &&
+        _selectedOriginalIndex! < oldLength) {
       selectedRowId = rowIdGetter!(_data[_selectedOriginalIndex!]);
     }
 
     _data = List<T>.from(newData);
 
     if (selectedRowId != null) {
-      final newIndex = _data.indexWhere((item) => rowIdGetter!(item) == selectedRowId);
+      final newIndex =
+          _data.indexWhere((item) => rowIdGetter!(item) == selectedRowId);
       _selectedOriginalIndex = newIndex != -1 ? newIndex : null;
-    } else if (_selectedOriginalIndex != null && _selectedOriginalIndex! >= newLength) {
+    } else if (_selectedOriginalIndex != null &&
+        _selectedOriginalIndex! >= newLength) {
       _selectedOriginalIndex = null;
     }
 
@@ -592,15 +605,22 @@ class AppGridController<T> extends ChangeNotifier {
       return;
     }
 
-    _sortCriteria = SortCriteria(columnId: columnId, direction: targetDirection);
+    _sortCriteria =
+        SortCriteria(columnId: columnId, direction: targetDirection);
     final valueGetter = _resolveValueGetter(col);
 
     // Offload heavy sorting to a background Isolate for large datasets (native platforms only)
-    if (!kIsWeb && _data.length >= isolateSortThreshold && valueGetter != null && col.comparator == null && _activeFilter == null) {
+    if (!kIsWeb &&
+        _data.length >= isolateSortThreshold &&
+        valueGetter != null &&
+        col.comparator == null &&
+        _activeFilter == null) {
       _isSorting = true;
       notifyListeners();
       try {
-        final keys = List<dynamic>.generate(_data.length, (i) => valueGetter(_data[i]), growable: false);
+        final keys = List<dynamic>.generate(
+            _data.length, (i) => valueGetter(_data[i]),
+            growable: false);
         final sortedIndices = await IsolateSorter.sortKeysAsync(
           keys: keys,
           isAscending: targetDirection == SortDirection.ascending,
@@ -609,7 +629,8 @@ class AppGridController<T> extends ChangeNotifier {
         return;
       } catch (_) {
         // Fallback to fast in-memory sort if Isolate execution fails or is cancelled
-        _fastSortWithKeys(valueGetter, targetDirection == SortDirection.ascending);
+        _fastSortWithKeys(
+            valueGetter, targetDirection == SortDirection.ascending);
         return;
       } finally {
         _isSorting = false;
@@ -618,8 +639,11 @@ class AppGridController<T> extends ChangeNotifier {
     }
 
     // High-performance pre-extracted keys sort (completes 100k rows in ~15-20ms)
-    if (valueGetter != null && col.comparator == null && _activeFilter == null) {
-      _fastSortWithKeys(valueGetter, targetDirection == SortDirection.ascending);
+    if (valueGetter != null &&
+        col.comparator == null &&
+        _activeFilter == null) {
+      _fastSortWithKeys(
+          valueGetter, targetDirection == SortDirection.ascending);
       notifyListeners();
       return;
     }
@@ -628,11 +652,13 @@ class AppGridController<T> extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _fastSortWithKeys(dynamic Function(T row) valueGetter, bool isAscending) {
+  void _fastSortWithKeys(
+      dynamic Function(T row) valueGetter, bool isAscending) {
     final count = _data.length;
     if (count <= 1) return;
 
-    final keys = List<dynamic>.generate(count, (i) => valueGetter(_data[i]), growable: false);
+    final keys = List<dynamic>.generate(count, (i) => valueGetter(_data[i]),
+        growable: false);
     final indices = List<int>.generate(count, (i) => i);
 
     indices.sort((a, b) {
@@ -665,7 +691,8 @@ class AppGridController<T> extends ChangeNotifier {
 
   void _recomputeIndices() {
     int Function(T a, T b)? comparator;
-    if (_sortCriteria != null && _sortCriteria!.direction != SortDirection.none) {
+    if (_sortCriteria != null &&
+        _sortCriteria!.direction != SortDirection.none) {
       final col = _columns.firstWhere((c) => c.id == _sortCriteria!.columnId);
       final valueGetter = _resolveValueGetter(col);
       if (col.comparator != null) {
@@ -700,7 +727,8 @@ class AppGridController<T> extends ChangeNotifier {
   /// Manual row reordering is strictly permitted only when no column sorting
   /// is active and no background sorting operation is in progress.
   bool get canReorderRows =>
-      (_sortCriteria == null || _sortCriteria!.direction == SortDirection.none) &&
+      (_sortCriteria == null ||
+          _sortCriteria!.direction == SortDirection.none) &&
       !_isSorting;
 
   /// Reorders a row from [oldIndex] to [newIndex] in the dataset.
@@ -726,9 +754,11 @@ class AppGridController<T> extends ChangeNotifier {
     if (_selectedOriginalIndex != null) {
       if (_selectedOriginalIndex == oldIndex) {
         _selectedOriginalIndex = newIndex;
-      } else if (oldIndex < _selectedOriginalIndex! && newIndex >= _selectedOriginalIndex!) {
+      } else if (oldIndex < _selectedOriginalIndex! &&
+          newIndex >= _selectedOriginalIndex!) {
         _selectedOriginalIndex = _selectedOriginalIndex! - 1;
-      } else if (oldIndex > _selectedOriginalIndex! && newIndex <= _selectedOriginalIndex!) {
+      } else if (oldIndex > _selectedOriginalIndex! &&
+          newIndex <= _selectedOriginalIndex!) {
         _selectedOriginalIndex = _selectedOriginalIndex! + 1;
       }
     }
@@ -897,7 +927,8 @@ class AppGridController<T> extends ChangeNotifier {
     }
 
     // 2. Visibility
-    final unhideableIds = _columns.where((c) => !c.canHide).map((c) => c.id).toSet();
+    final unhideableIds =
+        _columns.where((c) => !c.canHide).map((c) => c.id).toSet();
     for (final entry in state.columnVisibility.entries) {
       if (validIds.contains(entry.key)) {
         if (!entry.value && unhideableIds.contains(entry.key)) {
@@ -911,7 +942,8 @@ class AppGridController<T> extends ChangeNotifier {
     // 3. Sort criteria (reset if compactMode is true)
     if (_compactMode) {
       _sortCriteria = null;
-    } else if (state.sortCriteria != null && validIds.contains(state.sortCriteria!.columnId)) {
+    } else if (state.sortCriteria != null &&
+        validIds.contains(state.sortCriteria!.columnId)) {
       _sortCriteria = state.sortCriteria;
     } else {
       _sortCriteria = null;

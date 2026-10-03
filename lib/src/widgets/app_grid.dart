@@ -1,9 +1,11 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../models/app_grid_header_config.dart';
 import '../models/grid_column.dart';
 import '../models/compact_column_group.dart';
 import '../models/row_index_info.dart';
 import '../models/sort_criteria.dart';
+import '../models/app_grid_style.dart';
 import '../controllers/app_grid_controller.dart';
 import '../column_layout/column_layout_manager.dart';
 import '../rendering_engine/grid_builders.dart';
@@ -27,15 +29,16 @@ class AppGridScrollBehavior extends MaterialScrollBehavior {
 
   @override
   Set<PointerDeviceKind> get dragDevices => {
-    PointerDeviceKind.touch,
-    PointerDeviceKind.mouse,
-    PointerDeviceKind.stylus,
-    PointerDeviceKind.invertedStylus,
-    PointerDeviceKind.trackpad,
-  };
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+        PointerDeviceKind.stylus,
+        PointerDeviceKind.invertedStylus,
+        PointerDeviceKind.trackpad,
+      };
 
   @override
-  Widget buildScrollbar(BuildContext context, Widget child, ScrollableDetails details) {
+  Widget buildScrollbar(
+      BuildContext context, Widget child, ScrollableDetails details) {
     // AppGrid manages its own customized, interactive, and synchronized 2D scrollbars
     // (AppGridVerticalScrollbar and AppGridHorizontalScrollbar). Suppress the default
     // platform scrollbar to prevent ghosting or overlapping duplicate scrollbars.
@@ -56,9 +59,15 @@ class AppGrid<T> extends StatefulWidget {
   /// Optional custom equality predicate for comparing rows during auto-diff reconciliation.
   final bool Function(T a, T b)? rowEquality;
 
-  final double rowHeight;
-  final double headerHeight;
-  final double? footerHeight;
+  /// Comprehensive styling configuration for [AppGrid].
+  ///
+  /// Encapsulates row heights, colors, header styling, footer styling,
+  /// grid dividers, scrollbars, and header icons in a single immutable object.
+  final AppGridStyle style;
+
+  /// Header configuration controlling sorting, menu, resizing, reordering, and icons.
+  final AppGridHeaderConfig headerConfig;
+
   final GridHeaderBuilder? headerBuilder;
   final GridFooterBuilder? footerBuilder;
   final ValueChanged<RowIndexInfo>? onRowSelected;
@@ -72,26 +81,12 @@ class AppGrid<T> extends StatefulWidget {
   /// triggers immediately on pointer down without any delay or gesture conflict.
   final ValueChanged<RowIndexInfo>? onRowDoubleTap;
 
-  final Color? selectedRowColor;
-
-  /// Background color for odd rows (index 1, 3, 5, ...).
-  ///
-  /// Deprecated alias: [alternateRowColor] can also be used.
-  final Color? oddRowColor;
-
   /// Whether the grid is in read-only mode.
   ///
   /// When true, rows cannot be selected (via pointer clicks or keyboard navigation)
   /// and no selected row highlighting will be rendered.
   final bool readOnly;
 
-  /// Alternate row background color applied to odd rows (index 1, 3, 5, ...).
-  ///
-  /// For explicit even and odd row coloring, you can also use [evenRowColor] and [oddRowColor].
-  final Color? alternateRowColor;
-
-  /// Background color for even rows (index 0, 2, 4, ...).
-  final Color? evenRowColor;
   final ScrollController? verticalScrollController;
   final ScrollController? horizontalScrollController;
   final FocusNode? focusNode;
@@ -116,50 +111,6 @@ class AppGrid<T> extends StatefulWidget {
   /// smoothly scrolls both horizontally and vertically.
   final bool enableMouseDragScroll;
 
-  /// Whether to display the interactive horizontal scrollbar at the bottom of the center pane.
-  final bool showHorizontalScrollbar;
-
-  /// Whether to display the interactive vertical scrollbar on the right edge.
-  final bool showVerticalScrollbar;
-
-  /// Visibility behavior of the vertical scrollbar.
-  /// Options: [AppGridScrollbarVisibility.onHover] (default), [AppGridScrollbarVisibility.always], [AppGridScrollbarVisibility.hidden].
-  final AppGridScrollbarVisibility? verticalScrollbarVisibility;
-
-  /// Visibility behavior of the horizontal scrollbar.
-  /// Options: [AppGridScrollbarVisibility.onHover] (default), [AppGridScrollbarVisibility.always], [AppGridScrollbarVisibility.hidden].
-  final AppGridScrollbarVisibility? horizontalScrollbarVisibility;
-
-  /// Convenient shorthand visibility behavior for both vertical and horizontal scrollbars.
-  final AppGridScrollbarVisibility? scrollbarVisibility;
-
-  /// Thickness of the horizontal and vertical scrollbars.
-  final double scrollbarThickness;
-
-  /// Custom color for the scrollbar thumb.
-  final Color? scrollbarThumbColor;
-
-  /// Custom color for the scrollbar track background.
-  final Color? scrollbarTrackColor;
-
-  /// Optional background color for header cells.
-  final Color? headerBackgroundColor;
-
-  /// Optional outer border color for the entire table grid.
-  final Color? borderColor;
-
-  /// Optional grid line / divider color between cells, rows, and headers.
-  final Color? gridLineColor;
-
-  /// Whether to render horizontal grid lines / dividers between table rows.
-  final bool showHorizontalGridLines;
-
-  /// Whether to render vertical grid lines / dividers between table columns.
-  final bool showVerticalGridLines;
-
-  /// Optional custom color for vertical grid dividers between cells, headers, and footers.
-  final Color? verticalGridLineColor;
-
   /// Whether the table is currently loading data asynchronously.
   ///
   /// When true, renders a loading overlay over the table body.
@@ -180,30 +131,25 @@ class AppGrid<T> extends StatefulWidget {
   /// Optional callback triggered when a row is manually moved from [oldIndex] to [newIndex].
   final void Function(int oldIndex, int newIndex)? onRowReorder;
 
+  /// Optional scroll physics for the grid's vertical and horizontal viewports.
+  final ScrollPhysics? physics;
+
+  /// Optional clock provider (defaults to [DateTime.now]).
+  final DateTime Function()? clock;
+
   const AppGrid({
     super.key,
     required this.controller,
     this.data,
     this.rowEquality,
-    this.rowHeight = 48.0,
-    this.headerHeight = 48.0,
-    this.footerHeight,
+    this.style = const AppGridStyle(),
+    this.headerConfig = const AppGridHeaderConfig(),
     this.headerBuilder,
     this.footerBuilder,
     this.onRowSelected,
     this.onRowTap,
     this.onRowDoubleTap,
-    this.selectedRowColor,
     this.readOnly = false,
-    this.alternateRowColor,
-    this.evenRowColor,
-    this.oddRowColor,
-    this.headerBackgroundColor,
-    this.borderColor,
-    this.gridLineColor,
-    this.showHorizontalGridLines = true,
-    this.showVerticalGridLines = false,
-    this.verticalGridLineColor,
     this.verticalScrollController,
     this.horizontalScrollController,
     this.focusNode,
@@ -217,41 +163,75 @@ class AppGrid<T> extends StatefulWidget {
     this.showPaginationBar = false,
     this.onPageChanged,
     this.enableMouseDragScroll = true,
-    this.showHorizontalScrollbar = true,
-    this.showVerticalScrollbar = true,
-    this.verticalScrollbarVisibility,
-    this.horizontalScrollbarVisibility,
-    this.scrollbarVisibility,
-    this.scrollbarThickness = 10.0,
-    this.scrollbarThumbColor,
-    this.scrollbarTrackColor,
     this.physics,
     this.clock,
     this.enableRowReorder = false,
     this.onRowReorder,
   });
 
+  /// Row height in logical pixels.
+  double get rowHeight => style.rowHeight;
+
+  /// Header height in logical pixels.
+  double get headerHeight => style.headerHeight;
+
+  /// Default text style for table header labels.
+  TextStyle get headerTextStyle => style.headerTextStyle;
+
+  /// Default text style for table body cells / rows.
+  TextStyle get rowTextStyle => style.rowTextStyle;
+
+  /// Convenient alias for [rowTextStyle].
+  TextStyle get cellTextStyle => style.rowTextStyle;
+
+  /// Default text style for column context menu items.
+  TextStyle get menuTextStyle => style.menuTextStyle;
+
+  /// Whether to render horizontal grid lines / dividers between table rows.
+  bool get showHorizontalGridLines => style.showHorizontalGridLines;
+
+  /// Whether to render vertical grid lines / dividers between table columns.
+  bool get showVerticalGridLines => style.showVerticalGridLines;
+
+  /// Whether to display the interactive horizontal scrollbar at the bottom of the center pane.
+  bool get showHorizontalScrollbar => style.showHorizontalScrollbar;
+
+  /// Whether to display the interactive vertical scrollbar on the right edge.
+  bool get showVerticalScrollbar => style.showVerticalScrollbar;
+
+  /// Thickness of the horizontal and vertical scrollbars.
+  double get scrollbarThickness => style.scrollbarThickness;
+
+  /// Size of header icons.
+  double get iconSize => style.iconSize;
+
   /// Resolves the effective visibility behavior for the vertical scrollbar.
   AppGridScrollbarVisibility get effectiveVerticalScrollbarVisibility {
-    if (verticalScrollbarVisibility != null) return verticalScrollbarVisibility!;
-    if (scrollbarVisibility != null) return scrollbarVisibility!;
-    if (!showVerticalScrollbar) return AppGridScrollbarVisibility.hidden;
+    if (style.verticalScrollbarVisibility != null) {
+      return style.verticalScrollbarVisibility!;
+    }
+    if (style.scrollbarVisibility != null) {
+      return style.scrollbarVisibility!;
+    }
+    if (!style.showVerticalScrollbar) {
+      return AppGridScrollbarVisibility.hidden;
+    }
     return AppGridScrollbarVisibility.onHover;
   }
 
   /// Resolves the effective visibility behavior for the horizontal scrollbar.
   AppGridScrollbarVisibility get effectiveHorizontalScrollbarVisibility {
-    if (horizontalScrollbarVisibility != null) return horizontalScrollbarVisibility!;
-    if (scrollbarVisibility != null) return scrollbarVisibility!;
-    if (!showHorizontalScrollbar) return AppGridScrollbarVisibility.hidden;
+    if (style.horizontalScrollbarVisibility != null) {
+      return style.horizontalScrollbarVisibility!;
+    }
+    if (style.scrollbarVisibility != null) {
+      return style.scrollbarVisibility!;
+    }
+    if (!style.showHorizontalScrollbar) {
+      return AppGridScrollbarVisibility.hidden;
+    }
     return AppGridScrollbarVisibility.onHover;
   }
-
-  /// Optional scroll physics for the grid's vertical and horizontal viewports.
-  final ScrollPhysics? physics;
-
-  /// Optional clock provider (defaults to [DateTime.now]).
-  final DateTime Function()? clock;
 
   @override
   State<AppGrid<T>> createState() => _AppGridState<T>();
@@ -426,7 +406,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     final sortChanged = _lastSortCriteria != currentSort;
     if (sortChanged) {
       _lastSortCriteria = currentSort;
-      if (_verticalScrollController.hasClients && _verticalScrollController.offset != 0.0) {
+      if (_verticalScrollController.hasClients &&
+          _verticalScrollController.offset != 0.0) {
         _verticalScrollController.jumpTo(0.0);
       }
     }
@@ -467,11 +448,13 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     // Measure longest text representation across current data
     double maxTextLength = column.label.length.toDouble();
     final rowCount = widget.controller.displayRowCount;
-    final sampleCount = math.min(rowCount, 200); // Check first 200 rows for speed
+    final sampleCount =
+        math.min(rowCount, 200); // Check first 200 rows for speed
 
     for (var r = 0; r < sampleCount; r++) {
       final rowData = widget.controller.getRowByDisplayIndex(r);
-      final val = column.valueGetter != null ? column.valueGetter!(rowData) : '';
+      final val =
+          column.valueGetter != null ? column.valueGetter!(rowData) : '';
       final strLen = val?.toString().length.toDouble() ?? 0.0;
       if (strLen > maxTextLength) {
         maxTextLength = strLen;
@@ -479,8 +462,10 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     }
 
     // Estimate width at ~9px per character + padding
-    final estimatedWidth = math.max(column.minWidth, maxTextLength * 9.5 + 32.0);
-    _layoutManager.autoFitColumn(column: column, contentWidth: estimatedWidth, horizontalPadding: 0.0);
+    final estimatedWidth =
+        math.max(column.minWidth, maxTextLength * 9.5 + 32.0);
+    _layoutManager.autoFitColumn(
+        column: column, contentWidth: estimatedWidth, horizontalPadding: 0.0);
   }
 
   void _handleAutoFitGroup(CompactColumnGroup group) {
@@ -509,7 +494,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     }
 
     final estimatedWidth = math.max(group.minWidth, maxTextLength * 9.5 + 32.0);
-    _layoutManager.autoFitColumnGroup(group: group, contentWidth: estimatedWidth, horizontalPadding: 0.0);
+    _layoutManager.autoFitColumnGroup(
+        group: group, contentWidth: estimatedWidth, horizontalPadding: 0.0);
   }
 
   @override
@@ -523,18 +509,22 @@ class _AppGridState<T> extends State<AppGrid<T>> {
         final double innerWidth = math.max(0.0, totalWidth - (borderWidth * 2));
 
         final hasFooter = widget.footerBuilder != null ||
-            widget.footerHeight != null ||
-            widget.controller.visibleColumns.any((c) => c.footerBuilder != null);
+            widget.style.footerHeight != null ||
+            widget.controller.visibleColumns
+                .any((c) => c.footerBuilder != null);
         final bool isCompact = widget.controller.compactMode;
-        final double effectiveRowHeight = isCompact ? widget.rowHeight * 2.0 : widget.rowHeight;
-        final double effectiveHeaderHeight = isCompact ? widget.headerHeight * 2.0 : widget.headerHeight;
+        final double effectiveRowHeight =
+            isCompact ? widget.rowHeight * 2.0 : widget.rowHeight;
+        final double effectiveHeaderHeight =
+            isCompact ? widget.headerHeight * 2.0 : widget.headerHeight;
         final footerH = hasFooter
-            ? ((widget.footerHeight ?? 40.0) * (isCompact ? 2.0 : 1.0))
+            ? ((widget.style.footerHeight ?? 40.0) * (isCompact ? 2.0 : 1.0))
             : 0.0;
         final hasPagination = widget.showPaginationBar &&
             widget.controller.fetchMode == DataFetchMode.pagination;
         final paginationH = hasPagination ? 52.0 : 0.0;
-        final viewportHeight = math.max(0.0, totalHeight - effectiveHeaderHeight - footerH - paginationH);
+        final viewportHeight = math.max(
+            0.0, totalHeight - effectiveHeaderHeight - footerH - paginationH);
 
         final computedLayout = _layoutManager.computeLayout(
           visibleColumns: widget.controller.visibleColumns,
@@ -544,8 +534,10 @@ class _AppGridState<T> extends State<AppGrid<T>> {
 
         final double leftWidth = computedLayout.leftPane.totalWidth;
         final double rightWidth = computedLayout.rightPane.totalWidth;
-        final double centerWidth = math.max(0.0, innerWidth - leftWidth - rightWidth);
-        final bool effectiveReadOnly = widget.readOnly || widget.controller.isReadOnly;
+        final double centerWidth =
+            math.max(0.0, innerWidth - leftWidth - rightWidth);
+        final bool effectiveReadOnly =
+            widget.readOnly || widget.controller.isReadOnly;
 
         return ScrollConfiguration(
           behavior: const AppGridScrollBehavior(),
@@ -566,9 +558,12 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                   clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: widget.borderColor ??
+                      color: widget.style.borderColor ??
                           (_focusNode.hasFocus
-                              ? Theme.of(context).colorScheme.primary.withAlpha(120)
+                              ? Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withAlpha(120)
                               : Theme.of(context).dividerColor.withAlpha(60)),
                       width: 1.0,
                     ),
@@ -598,44 +593,39 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                             Expanded(
                               child: Builder(
                                 builder: (context) {
-                                  final effectiveIsLoading = widget.isLoading ?? widget.controller.isLoading;
-                                  final isEmpty = widget.controller.displayRowCount == 0;
+                                  final effectiveIsLoading = widget.isLoading ??
+                                      widget.controller.isLoading;
+                                  final isEmpty =
+                                      widget.controller.displayRowCount == 0;
 
                                   Widget bodyContent;
-                                  if (isEmpty && !effectiveIsLoading && widget.emptyWidget != null) {
+                                  if (isEmpty &&
+                                      !effectiveIsLoading &&
+                                      widget.emptyWidget != null) {
                                     bodyContent = widget.emptyWidget!;
                                   } else {
                                     bodyContent = AppGridViewport<T>(
                                       controller: widget.controller,
                                       layoutManager: _layoutManager,
                                       computedLayout: computedLayout,
-                                      verticalScrollController: _verticalScrollController,
-                                      horizontalScrollController: _horizontalScrollController,
-                                      rowHeight: effectiveRowHeight,
-                                      headerHeight: effectiveHeaderHeight,
-                                      footerHeight: hasFooter ? footerH : null,
+                                      verticalScrollController:
+                                          _verticalScrollController,
+                                      horizontalScrollController:
+                                          _horizontalScrollController,
                                       hasFooter: hasFooter,
-                                      selectedRowColor: widget.selectedRowColor,
+                                      style: widget.style,
                                       readOnly: effectiveReadOnly,
                                       onRowTap: widget.onRowTap,
                                       onRowDoubleTap: widget.onRowDoubleTap,
-                                      alternateRowColor: widget.alternateRowColor,
-                                      evenRowColor: widget.evenRowColor,
-                                      oddRowColor: widget.oddRowColor,
-                                      gridLineColor: widget.gridLineColor,
-                                      showHorizontalGridLines: widget.showHorizontalGridLines,
-                                      showVerticalGridLines: widget.showVerticalGridLines,
-                                      verticalGridLineColor: widget.verticalGridLineColor,
-                                      infiniteScrollThreshold: widget.infiniteScrollThreshold,
-                                      enableMouseDragScroll: widget.enableMouseDragScroll,
-                                      showHorizontalScrollbar: widget.showHorizontalScrollbar,
-                                      showVerticalScrollbar: widget.showVerticalScrollbar,
-                                      horizontalScrollbarVisibility: widget.effectiveHorizontalScrollbarVisibility,
-                                      verticalScrollbarVisibility: widget.effectiveVerticalScrollbarVisibility,
+                                      infiniteScrollThreshold:
+                                          widget.infiniteScrollThreshold,
+                                      enableMouseDragScroll:
+                                          widget.enableMouseDragScroll,
+                                      horizontalScrollbarVisibility: widget
+                                          .effectiveHorizontalScrollbarVisibility,
+                                      verticalScrollbarVisibility: widget
+                                          .effectiveVerticalScrollbarVisibility,
                                       isParentHovered: _isGridHovered,
-                                      scrollbarThickness: widget.scrollbarThickness,
-                                      scrollbarThumbColor: widget.scrollbarThumbColor,
-                                      scrollbarTrackColor: widget.scrollbarTrackColor,
                                       physics: widget.physics,
                                       enableRowReorder: widget.enableRowReorder,
                                       onRowReorder: widget.onRowReorder,
@@ -650,7 +640,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                     children: [
                                       Positioned.fill(child: bodyContent),
                                       Positioned.fill(
-                                        child: widget.loadingWidget ?? const AppGridLoadingOverlay(),
+                                        child: widget.loadingWidget ??
+                                            const AppGridLoadingOverlay(),
                                       ),
                                     ],
                                   );
@@ -675,7 +666,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
 
                             // 4. Built-in Pagination Bar (Optional)
                             if (widget.showPaginationBar &&
-                                widget.controller.fetchMode == DataFetchMode.pagination)
+                                widget.controller.fetchMode ==
+                                    DataFetchMode.pagination)
                               AppGridPaginationBar<T>(
                                 controller: widget.controller,
                                 onPageChanged: widget.onPageChanged,
@@ -732,7 +724,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                               _horizontalScrollController.positions.isNotEmpty
                           ? _horizontalScrollController.positions.first.pixels
                           : 0.0;
-                      final centerGroupRange = VirtualizedGridLayout.computeGroupRange(
+                      final centerGroupRange =
+                          VirtualizedGridLayout.computeGroupRange(
                         scrollOffset: hScroll,
                         viewportWidth: centerWidth,
                         groups: layout.centerPane.groups,
@@ -747,7 +740,9 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           : <CompactColumnGroup>[];
                       if (visibleGroups.isEmpty) return const SizedBox.shrink();
 
-                      final firstOffset = layout.centerPane.offsets[visibleGroups.first.topColumn.id] ?? 0.0;
+                      final firstOffset = layout.centerPane
+                              .offsets[visibleGroups.first.topColumn.id] ??
+                          0.0;
 
                       return Stack(
                         clipBehavior: Clip.hardEdge,
@@ -765,16 +760,14 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                     layoutManager: _layoutManager,
                                     column: grp.topColumn,
                                     group: grp,
-                                    width: layout.centerPane.widths[grp.topColumn.id]!,
+                                    width: layout
+                                        .centerPane.widths[grp.topColumn.id]!,
                                     height: height,
                                     customHeaderBuilder: widget.headerBuilder,
                                     onAutoFit: _handleAutoFit,
                                     onAutoFitGroup: _handleAutoFitGroup,
-                                    headerBackgroundColor: widget.headerBackgroundColor,
-                                    gridLineColor: widget.gridLineColor,
-                                    verticalGridLineColor: widget.verticalGridLineColor,
-                                    showHorizontalGridLines: widget.showHorizontalGridLines,
-                                    showVerticalGridLines: widget.showVerticalGridLines,
+                                    style: widget.style,
+                                    headerConfig: widget.headerConfig,
                                   ),
                               ],
                             ),
@@ -812,11 +805,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           customHeaderBuilder: widget.headerBuilder,
                           onAutoFit: _handleAutoFit,
                           onAutoFitGroup: _handleAutoFitGroup,
-                          headerBackgroundColor: widget.headerBackgroundColor,
-                          gridLineColor: widget.gridLineColor,
-                          verticalGridLineColor: widget.verticalGridLineColor,
-                          showHorizontalGridLines: widget.showHorizontalGridLines,
-                          showVerticalGridLines: widget.showVerticalGridLines,
+                          style: widget.style,
+                          headerConfig: widget.headerConfig,
                         ),
                     ],
                   ),
@@ -849,11 +839,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           customHeaderBuilder: widget.headerBuilder,
                           onAutoFit: _handleAutoFit,
                           onAutoFitGroup: _handleAutoFitGroup,
-                          headerBackgroundColor: widget.headerBackgroundColor,
-                          gridLineColor: widget.gridLineColor,
-                          verticalGridLineColor: widget.verticalGridLineColor,
-                          showHorizontalGridLines: widget.showHorizontalGridLines,
-                          showVerticalGridLines: widget.showVerticalGridLines,
+                          style: widget.style,
+                          headerConfig: widget.headerConfig,
                         ),
                     ],
                   ),
@@ -876,8 +863,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     final visibleData = widget.controller.data;
     final double maxHorizontalScroll =
         math.max(0.0, layout.centerPane.totalWidth - centerWidth);
-    final bool hasHScrollbar =
-        widget.effectiveHorizontalScrollbarVisibility != AppGridScrollbarVisibility.hidden &&
+    final bool hasHScrollbar = widget.effectiveHorizontalScrollbarVisibility !=
+            AppGridScrollbarVisibility.hidden &&
         widget.showHorizontalScrollbar &&
         maxHorizontalScroll > 0;
 
@@ -902,7 +889,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                               _horizontalScrollController.positions.isNotEmpty
                           ? _horizontalScrollController.positions.first.pixels
                           : 0.0;
-                      final centerGroupRange = VirtualizedGridLayout.computeGroupRange(
+                      final centerGroupRange =
+                          VirtualizedGridLayout.computeGroupRange(
                         scrollOffset: hScroll,
                         viewportWidth: centerWidth,
                         groups: layout.centerPane.groups,
@@ -917,7 +905,9 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           : <CompactColumnGroup>[];
                       if (visibleGroups.isEmpty) return const SizedBox.shrink();
 
-                      final firstOffset = layout.centerPane.offsets[visibleGroups.first.topColumn.id] ?? 0.0;
+                      final firstOffset = layout.centerPane
+                              .offsets[visibleGroups.first.topColumn.id] ??
+                          0.0;
 
                       return Stack(
                         clipBehavior: Clip.hardEdge,
@@ -933,14 +923,12 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                   AppGridFooterCell(
                                     column: grp.topColumn,
                                     group: grp,
-                                    width: layout.centerPane.widths[grp.topColumn.id]!,
+                                    width: layout
+                                        .centerPane.widths[grp.topColumn.id]!,
                                     height: footerHeight,
                                     currentVisibleData: visibleData,
                                     customFooterBuilder: widget.footerBuilder,
-                                    verticalGridLineColor: widget.verticalGridLineColor,
-                                    gridLineColor: widget.gridLineColor,
-                                    showHorizontalGridLines: widget.showHorizontalGridLines,
-                                    showVerticalGridLines: widget.showVerticalGridLines,
+                                    style: widget.style,
                                   ),
                               ],
                             ),
@@ -975,10 +963,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           height: footerHeight,
                           currentVisibleData: visibleData,
                           customFooterBuilder: widget.footerBuilder,
-                          verticalGridLineColor: widget.verticalGridLineColor,
-                          gridLineColor: widget.gridLineColor,
-                          showHorizontalGridLines: widget.showHorizontalGridLines,
-                          showVerticalGridLines: widget.showVerticalGridLines,
+                          style: widget.style,
                         ),
                     ],
                   ),
@@ -1008,10 +993,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           height: footerHeight,
                           currentVisibleData: visibleData,
                           customFooterBuilder: widget.footerBuilder,
-                          verticalGridLineColor: widget.verticalGridLineColor,
-                          gridLineColor: widget.gridLineColor,
-                          showHorizontalGridLines: widget.showHorizontalGridLines,
-                          showVerticalGridLines: widget.showVerticalGridLines,
+                          style: widget.style,
                         ),
                     ],
                   ),
@@ -1031,8 +1013,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                 trackWidth: centerWidth,
                 contentWidth: layout.centerPane.totalWidth,
                 thickness: widget.scrollbarThickness,
-                thumbColor: widget.scrollbarThumbColor,
-                trackColor: widget.scrollbarTrackColor,
+                thumbColor: widget.style.scrollbarThumbColor,
+                trackColor: widget.style.scrollbarTrackColor,
                 visibility: widget.effectiveHorizontalScrollbarVisibility,
                 isParentHovered: _isGridHovered,
               ),

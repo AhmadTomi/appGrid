@@ -23,9 +23,8 @@ class AppGridLoadingOverlay extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final defaultBarrier = isDark
-        ? Colors.black.withAlpha(140)
-        : Colors.white.withAlpha(170);
+    final defaultBarrier =
+        isDark ? Colors.black.withAlpha(140) : Colors.white.withAlpha(170);
 
     return Container(
       color: barrierColor ?? defaultBarrier,

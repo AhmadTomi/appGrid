@@ -5,7 +5,9 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Interactive Scroll & Mouse Drag Scrolling Tests', () {
-    testWidgets('Horizontal scrollbar renders when content width exceeds viewport', (tester) async {
+    testWidgets(
+        'Horizontal scrollbar renders when content width exceeds viewport',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -13,10 +15,18 @@ void main() {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: List.generate(
           20,
-          (i) => {'id': i, 'col1': 'Val 1-$i', 'col2': 'Val 2-$i', 'col3': 'Val 3-$i', 'col4': 'Val 4-$i', 'col5': 'Val 5-$i'},
+          (i) => {
+            'id': i,
+            'col1': 'Val 1-$i',
+            'col2': 'Val 2-$i',
+            'col3': 'Val 3-$i',
+            'col4': 'Val 4-$i',
+            'col5': 'Val 5-$i'
+          },
         ),
         columns: const [
-          GridColumn(id: 'id', label: 'ID', initialWidth: 80, pin: GridColumnPin.left),
+          GridColumn(
+              id: 'id', label: 'ID', initialWidth: 80, pin: GridColumnPin.left),
           GridColumn(id: 'col1', label: 'Column 1', initialWidth: 150),
           GridColumn(id: 'col2', label: 'Column 2', initialWidth: 150),
           GridColumn(id: 'col3', label: 'Column 3', initialWidth: 150),
@@ -36,8 +46,10 @@ void main() {
               horizontalScrollController: hController,
               verticalScrollController: vController,
               autoStretch: false,
-              showHorizontalScrollbar: true,
-              showVerticalScrollbar: true,
+              style: const AppGridStyle(
+                showHorizontalScrollbar: true,
+                showVerticalScrollbar: true,
+              ),
             ),
           ),
         ),
@@ -57,7 +69,8 @@ void main() {
       vController.dispose();
     });
 
-    testWidgets('Mouse click-drag smoothly scrolls horizontally and vertically', (tester) async {
+    testWidgets('Mouse click-drag smoothly scrolls horizontally and vertically',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -65,10 +78,15 @@ void main() {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: List.generate(
           50,
-          (i) => {'id': i, 'name': 'Item $i', 'details': 'Long details data for item $i in list'},
+          (i) => {
+            'id': i,
+            'name': 'Item $i',
+            'details': 'Long details data for item $i in list'
+          },
         ),
         columns: const [
-          GridColumn(id: 'id', label: 'ID', initialWidth: 80, pin: GridColumnPin.left),
+          GridColumn(
+              id: 'id', label: 'ID', initialWidth: 80, pin: GridColumnPin.left),
           GridColumn(id: 'name', label: 'Name', initialWidth: 250),
           GridColumn(id: 'details', label: 'Details', initialWidth: 400),
         ],
@@ -112,7 +130,8 @@ void main() {
       vController.dispose();
     });
 
-    testWidgets('Simple mouse click selects row without triggering drag scroll', (tester) async {
+    testWidgets('Simple mouse click selects row without triggering drag scroll',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -125,8 +144,16 @@ void main() {
           (i) => {'id': i, 'name': 'Row $i'},
         ),
         columns: [
-          GridColumn(id: 'id', label: 'ID', initialWidth: 100, valueGetter: (r) => r['id']),
-          GridColumn(id: 'name', label: 'Name', initialWidth: 200, valueGetter: (r) => r['name']),
+          GridColumn(
+              id: 'id',
+              label: 'ID',
+              initialWidth: 100,
+              valueGetter: (r) => r['id']),
+          GridColumn(
+              id: 'name',
+              label: 'Name',
+              initialWidth: 200,
+              valueGetter: (r) => r['name']),
         ],
       );
 
@@ -156,7 +183,8 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('Dragging horizontal scrollbar thumb updates horizontal offset', (tester) async {
+    testWidgets('Dragging horizontal scrollbar thumb updates horizontal offset',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -164,7 +192,12 @@ void main() {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: List.generate(
           5,
-          (i) => {'col1': 'V1-$i', 'col2': 'V2-$i', 'col3': 'V3-$i', 'col4': 'V4-$i'},
+          (i) => {
+            'col1': 'V1-$i',
+            'col2': 'V2-$i',
+            'col3': 'V3-$i',
+            'col4': 'V4-$i'
+          },
         ),
         columns: const [
           GridColumn(id: 'col1', label: 'C1', initialWidth: 200),
@@ -183,7 +216,9 @@ void main() {
               controller: controller,
               horizontalScrollController: hController,
               autoStretch: false,
-              showHorizontalScrollbar: true,
+              style: const AppGridStyle(
+                showHorizontalScrollbar: true,
+              ),
             ),
           ),
         ),
@@ -198,7 +233,8 @@ void main() {
 
       // Drag the scrollbar thumb horizontally to the right
       final scrollbarCenter = tester.getCenter(scrollbarFinder);
-      await tester.dragFrom(scrollbarCenter, const Offset(60, 0), kind: PointerDeviceKind.mouse);
+      await tester.dragFrom(scrollbarCenter, const Offset(60, 0),
+          kind: PointerDeviceKind.mouse);
       await tester.pumpAndSettle();
 
       expect(hController.offset, greaterThan(0.0));
@@ -207,7 +243,9 @@ void main() {
       hController.dispose();
     });
 
-    testWidgets('Mouse click correctly changes row selection after vertical scroll', (tester) async {
+    testWidgets(
+        'Mouse click correctly changes row selection after vertical scroll',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -220,8 +258,16 @@ void main() {
           (i) => {'id': i, 'name': 'Item $i'},
         ),
         columns: [
-          GridColumn(id: 'id', label: 'ID', initialWidth: 100, valueGetter: (r) => r['id'].toString()),
-          GridColumn(id: 'name', label: 'Name', initialWidth: 300, valueGetter: (r) => r['name'].toString()),
+          GridColumn(
+              id: 'id',
+              label: 'ID',
+              initialWidth: 100,
+              valueGetter: (r) => r['id'].toString()),
+          GridColumn(
+              id: 'name',
+              label: 'Name',
+              initialWidth: 300,
+              valueGetter: (r) => r['name'].toString()),
         ],
         onRowSelected: (info) => selectedInfo = info,
       );

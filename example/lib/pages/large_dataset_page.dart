@@ -49,21 +49,27 @@ class _LargeDatasetPageState extends State<LargeDatasetPage> {
         children: [
           buildDemoHeader(
             title: '100,000 Rows x 50 Columns',
-            subtitle: 'AC-01 2D Virtualization: Smooth 60 FPS scrolling with only visible cells (~150) in the widget tree. Fast sorting of 100k rows with zero UI freeze.',
+            subtitle:
+                'AC-01 2D Virtualization: Smooth 60 FPS scrolling with only visible cells (~150) in the widget tree. Fast sorting of 100k rows with zero UI freeze.',
           ),
           const SizedBox(height: 12),
           ListenableBuilder(
             listenable: _controller,
             builder: (context, _) {
               final sortCrit = _controller.sortCriteria;
-              final sortText = sortCrit != null && sortCrit.direction != SortDirection.none
+              final sortText = sortCrit != null &&
+                      sortCrit.direction != SortDirection.none
                   ? 'Active Sort: ${sortCrit.columnId} (${sortCrit.direction.name.toUpperCase()})'
                   : 'Unsorted • Click any header to sort';
 
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer.withAlpha(60),
+                  color: Theme.of(context)
+                      .colorScheme
+                      .primaryContainer
+                      .withAlpha(60),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -78,7 +84,10 @@ class _LargeDatasetPageState extends State<LargeDatasetPage> {
                       const Expanded(
                         child: Text(
                           'Sorting 100,000 rows...',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blue),
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: Colors.blue),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -92,7 +101,8 @@ class _LargeDatasetPageState extends State<LargeDatasetPage> {
                       Expanded(
                         child: Text(
                           'Dataset: 100k rows • 50 cols • Total: 5M cells • $sortText',
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 12),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -114,7 +124,8 @@ class _LargeDatasetPageState extends State<LargeDatasetPage> {
   }
 }
 
-const String largeDatasetSnippet = '''// AC-01: 2D Virtualization for 100,000 Rows x 50 Columns
+const String largeDatasetSnippet =
+    '''// AC-01: 2D Virtualization for 100,000 Rows x 50 Columns
 final controller = AppGridController<int>(
   initialData: List.generate(100000, (i) => i),
   columns: List.generate(
@@ -132,5 +143,7 @@ final controller = AppGridController<int>(
 // Only visible rows (+1 buffer) exist in the Flutter widget tree.
 AppGrid<int>(
   controller: controller,
-  rowHeight: 40.0,
+  style: const AppGridStyle(
+    rowHeight: 40.0,
+  ),
 );''';

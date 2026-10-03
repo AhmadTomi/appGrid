@@ -24,9 +24,21 @@ class _StatePersistencePageState extends State<StatePersistencePage> {
         {'id': 2, 'name': 'Item 2', 'price': 149},
       ],
       columns: [
-        GridColumn(id: 'id', label: 'ID', initialWidth: 100, valueGetter: (r) => r['id']),
-        GridColumn(id: 'name', label: 'Name', initialWidth: 180, valueGetter: (r) => r['name']),
-        GridColumn(id: 'price', label: 'Price', initialWidth: 140, valueGetter: (r) => r['price']),
+        GridColumn(
+            id: 'id',
+            label: 'ID',
+            initialWidth: 100,
+            valueGetter: (r) => r['id']),
+        GridColumn(
+            id: 'name',
+            label: 'Name',
+            initialWidth: 180,
+            valueGetter: (r) => r['name']),
+        GridColumn(
+            id: 'price',
+            label: 'Price',
+            initialWidth: 140,
+            valueGetter: (r) => r['price']),
       ],
     );
   }
@@ -46,7 +58,8 @@ class _StatePersistencePageState extends State<StatePersistencePage> {
         children: [
           buildDemoHeader(
             title: 'Selective State Persistence (AC-05)',
-            subtitle: '1. Click header menu to "Hide Column" or "Manage Columns..." • 2. Click "Export State JSON" • 3. Modify columns and click "Restore State".',
+            subtitle:
+                '1. Click header menu to "Hide Column" or "Manage Columns..." • 2. Click "Export State JSON" • 3. Modify columns and click "Restore State".',
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -66,7 +79,9 @@ class _StatePersistencePageState extends State<StatePersistencePage> {
                     : () {
                         final restored = GridState.fromJson(_savedJson);
                         _controller.restoreState(restored);
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('State restored successfully!')));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('State restored successfully!')));
                       },
                 icon: const Icon(Icons.restore, size: 16),
                 label: const Text('Restore State'),
@@ -83,7 +98,10 @@ class _StatePersistencePageState extends State<StatePersistencePage> {
               ),
               child: Text(
                 _savedJson,
-                style: const TextStyle(color: Colors.greenAccent, fontFamily: 'monospace', fontSize: 12),
+                style: const TextStyle(
+                    color: Colors.greenAccent,
+                    fontFamily: 'monospace',
+                    fontSize: 12),
               ),
             ),
           ],
@@ -99,7 +117,8 @@ class _StatePersistencePageState extends State<StatePersistencePage> {
   }
 }
 
-const String statePersistenceSnippet = '''// REQ-STATE-01, 02, 03 & AC-05: State Persistence
+const String statePersistenceSnippet =
+    '''// REQ-STATE-01, 02, 03 & AC-05: State Persistence
 // STRICT INVARIANT: Column widths are NEVER saved to persistence.
 
 // 1. Export state (strictly: columnOrder, sortCriteria, columnVisibility)

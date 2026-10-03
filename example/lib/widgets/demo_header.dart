@@ -16,9 +16,11 @@ class DemoHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+        Text(title,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
         const SizedBox(height: 2),
-        Text(subtitle, style: const TextStyle(fontSize: 13, color: Colors.grey)),
+        Text(subtitle,
+            style: const TextStyle(fontSize: 13, color: Colors.grey)),
       ],
     );
   }

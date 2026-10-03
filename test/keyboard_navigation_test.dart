@@ -5,7 +5,9 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Keyboard Navigation Tests (REQ-NAV-01 & AC-04)', () {
-    testWidgets('ArrowDown, ArrowUp, Home, End, PageDown navigate selection properly', (tester) async {
+    testWidgets(
+        'ArrowDown, ArrowUp, Home, End, PageDown navigate selection properly',
+        (tester) async {
       // 100 rows, rowHeight: 50, viewportHeight: 500 (10 visible rows per page)
       final items = List.generate(100, (i) => 'Item $i');
       RowIndexInfo? lastSelectedInfo;
@@ -34,8 +36,10 @@ void main() {
               child: AppGrid<String>(
                 controller: controller,
                 focusNode: focusNode,
-                rowHeight: 50.0,
-                headerHeight: 50.0,
+                style: const AppGridStyle(
+                  rowHeight: 50.0,
+                  headerHeight: 50.0,
+                ),
               ),
             ),
           ),
@@ -87,7 +91,9 @@ void main() {
       focusNode.dispose();
     });
 
-    testWidgets('Tapping on a row or grid automatically requests focus and enables keyboard navigation', (tester) async {
+    testWidgets(
+        'Tapping on a row or grid automatically requests focus and enables keyboard navigation',
+        (tester) async {
       final items = List.generate(50, (i) => 'Row $i');
       final controller = AppGridController<String>(
         initialData: items,
@@ -111,9 +117,11 @@ void main() {
               child: AppGrid<String>(
                 controller: controller,
                 focusNode: focusNode,
-                autofocus: false, // verify click-to-focus works even when autofocus is false
-                rowHeight: 50.0,
-                headerHeight: 50.0,
+                autofocus: false,
+                style: const AppGridStyle(
+                  rowHeight: 50.0,
+                  headerHeight: 50.0,
+                ),
               ),
             ),
           ),
@@ -145,7 +153,8 @@ void main() {
       focusNode.dispose();
     });
 
-    testWidgets('autofocus: true automatically acquires focus on mount', (tester) async {
+    testWidgets('autofocus: true automatically acquires focus on mount',
+        (tester) async {
       final items = List.generate(20, (i) => 'Item $i');
       final controller = AppGridController<String>(
         initialData: items,
@@ -170,8 +179,10 @@ void main() {
                 controller: controller,
                 focusNode: focusNode,
                 autofocus: true,
-                rowHeight: 50.0,
-                headerHeight: 50.0,
+                style: const AppGridStyle(
+                  rowHeight: 50.0,
+                  headerHeight: 50.0,
+                ),
               ),
             ),
           ),
@@ -200,7 +211,9 @@ void main() {
       focusNode.dispose();
     });
 
-    testWidgets('Holding arrow key steps smoothly 1-by-1 without skipping or jumping rows', (tester) async {
+    testWidgets(
+        'Holding arrow key steps smoothly 1-by-1 without skipping or jumping rows',
+        (tester) async {
       final items = List.generate(50, (i) => 'Row $i');
       final controller = AppGridController<String>(
         initialData: items,
@@ -227,9 +240,11 @@ void main() {
                 controller: controller,
                 focusNode: focusNode,
                 autofocus: true,
-                rowHeight: 50.0,
-                headerHeight: 50.0,
                 clock: () => testClock,
+                style: const AppGridStyle(
+                  rowHeight: 50.0,
+                  headerHeight: 50.0,
+                ),
               ),
             ),
           ),
@@ -249,19 +264,22 @@ void main() {
       testClock = testClock.add(const Duration(milliseconds: 10));
       await tester.sendKeyRepeatEvent(LogicalKeyboardKey.arrowDown);
       await tester.pump();
-      expect(controller.selectedDisplayIndex, equals(0), reason: 'Repeat too soon (< 45ms) should not jump');
+      expect(controller.selectedDisplayIndex, equals(0),
+          reason: 'Repeat too soon (< 45ms) should not jump');
 
       // 3. After 50ms, the next repeat event advances strictly by 1 row
       testClock = testClock.add(const Duration(milliseconds: 50));
       await tester.sendKeyRepeatEvent(LogicalKeyboardKey.arrowDown);
       await tester.pump();
-      expect(controller.selectedDisplayIndex, equals(1), reason: 'Paced repeat advances strictly 1-by-1 to row 1');
+      expect(controller.selectedDisplayIndex, equals(1),
+          reason: 'Paced repeat advances strictly 1-by-1 to row 1');
 
       // 4. Another 50ms later -> advances strictly to row 2
       testClock = testClock.add(const Duration(milliseconds: 50));
       await tester.sendKeyRepeatEvent(LogicalKeyboardKey.arrowDown);
       await tester.pump();
-      expect(controller.selectedDisplayIndex, equals(2), reason: 'Paced repeat advances strictly 1-by-1 to row 2');
+      expect(controller.selectedDisplayIndex, equals(2),
+          reason: 'Paced repeat advances strictly 1-by-1 to row 2');
 
       // Release key
       await tester.sendKeyUpEvent(LogicalKeyboardKey.arrowDown);
@@ -271,7 +289,9 @@ void main() {
       focusNode.dispose();
     });
 
-    testWidgets('Keyboard arrow selection updates rows without rebuilding root AppGrid', (tester) async {
+    testWidgets(
+        'Keyboard arrow selection updates rows without rebuilding root AppGrid',
+        (tester) async {
       var rootBuildCount = 0;
       final items = List.generate(50, (i) => 'Row $i');
       final controller = AppGridController<String>(
@@ -300,8 +320,10 @@ void main() {
                     controller: controller,
                     focusNode: focusNode,
                     autofocus: true,
-                    rowHeight: 50.0,
-                    headerHeight: 50.0,
+                    style: const AppGridStyle(
+                      rowHeight: 50.0,
+                      headerHeight: 50.0,
+                    ),
                   ),
                 );
               },

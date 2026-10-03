@@ -51,7 +51,8 @@ class _CodeSnippetPanelState extends State<CodeSnippetPanel> {
                 Expanded(
                   child: Row(
                     children: [
-                      const Icon(Icons.code, color: Colors.lightBlueAccent, size: 18),
+                      const Icon(Icons.code,
+                          color: Colors.lightBlueAccent, size: 18),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -70,13 +71,16 @@ class _CodeSnippetPanelState extends State<CodeSnippetPanel> {
                 const SizedBox(width: 8),
                 FilledButton.tonalIcon(
                   style: FilledButton.styleFrom(
-                    backgroundColor: _copied ? Colors.green : const Color(0xFF3F3F46),
+                    backgroundColor:
+                        _copied ? Colors.green : const Color(0xFF3F3F46),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   ),
                   onPressed: () => _copyCode(widget.code),
                   icon: Icon(_copied ? Icons.check : Icons.copy, size: 14),
-                  label: Text(_copied ? 'Copied!' : 'Copy Code', style: const TextStyle(fontSize: 12)),
+                  label: Text(_copied ? 'Copied!' : 'Copy Code',
+                      style: const TextStyle(fontSize: 12)),
                 ),
               ],
             ),

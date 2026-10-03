@@ -53,9 +53,21 @@ class _PaginationPageState extends State<PaginationPage> {
       ),
       initialData: initialRows,
       columns: [
-        GridColumn(id: 'id', label: 'Order ID', initialWidth: 120, valueGetter: (r) => r['id']),
-        GridColumn(id: 'customer', label: 'Customer', initialWidth: 160, valueGetter: (r) => r['customer']),
-        GridColumn(id: 'amount', label: 'Amount', initialWidth: 110, valueGetter: (r) => r['amount']),
+        GridColumn(
+            id: 'id',
+            label: 'Order ID',
+            initialWidth: 120,
+            valueGetter: (r) => r['id']),
+        GridColumn(
+            id: 'customer',
+            label: 'Customer',
+            initialWidth: 160,
+            valueGetter: (r) => r['customer']),
+        GridColumn(
+            id: 'amount',
+            label: 'Amount',
+            initialWidth: 110,
+            valueGetter: (r) => r['amount']),
         GridColumn(
           id: 'status',
           label: 'Status',
@@ -88,7 +100,11 @@ class _PaginationPageState extends State<PaginationPage> {
             );
           },
         ),
-        GridColumn(id: 'channel', label: 'Sales Channel', initialWidth: 150, valueGetter: (r) => r['channel']),
+        GridColumn(
+            id: 'channel',
+            label: 'Sales Channel',
+            initialWidth: 150,
+            valueGetter: (r) => r['channel']),
       ],
     );
   }
@@ -102,7 +118,11 @@ class _PaginationPageState extends State<PaginationPage> {
 
   void _goToPage(int targetPage) {
     final totalPages = (_totalCount / _pageSize).ceil();
-    if (targetPage < 1 || targetPage > totalPages || targetPage == _currentPage) return;
+    if (targetPage < 1 ||
+        targetPage > totalPages ||
+        targetPage == _currentPage) {
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -175,16 +195,21 @@ class _PaginationPageState extends State<PaginationPage> {
         children: [
           buildDemoHeader(
             title: 'Data Ingestion: Discrete Pagination (REQ-DATA-01)',
-            subtitle: 'Discrete page navigation with page, limit, and total count metadata managed via GridPaginationInfo.',
+            subtitle:
+                'Discrete page navigation with page, limit, and total count metadata managed via GridPaginationInfo.',
           ),
           const SizedBox(height: 12),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest.withAlpha(50),
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest
+                  .withAlpha(50),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Theme.of(context).dividerColor.withAlpha(40)),
+              border: Border.all(
+                  color: Theme.of(context).dividerColor.withAlpha(40)),
             ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -192,7 +217,8 @@ class _PaginationPageState extends State<PaginationPage> {
                 children: [
                   Text(
                     'Showing $startItem–$endItem of $_totalCount orders',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 13),
                   ),
                   const SizedBox(width: 16),
                   const Text('Page size: ', style: TextStyle(fontSize: 12)),
@@ -206,25 +232,33 @@ class _PaginationPageState extends State<PaginationPage> {
                       DropdownMenuItem(value: 20, child: Text('20')),
                       DropdownMenuItem(value: 25, child: Text('25')),
                     ],
-                    onChanged: _isLoading ? null : (v) {
-                      if (v != null) _onPageSizeChanged(v);
-                    },
+                    onChanged: _isLoading
+                        ? null
+                        : (v) {
+                            if (v != null) _onPageSizeChanged(v);
+                          },
                   ),
                   const SizedBox(width: 16),
                   IconButton(
                     icon: const Icon(Icons.first_page, size: 20),
                     tooltip: 'First Page',
-                    onPressed: (_currentPage > 1 && !_isLoading) ? () => _goToPage(1) : null,
+                    onPressed: (_currentPage > 1 && !_isLoading)
+                        ? () => _goToPage(1)
+                        : null,
                   ),
                   IconButton(
                     icon: const Icon(Icons.chevron_left, size: 20),
                     tooltip: 'Previous Page',
-                    onPressed: (_currentPage > 1 && !_isLoading) ? () => _goToPage(_currentPage - 1) : null,
+                    onPressed: (_currentPage > 1 && !_isLoading)
+                        ? () => _goToPage(_currentPage - 1)
+                        : null,
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withAlpha(30),
+                      color:
+                          Theme.of(context).colorScheme.primary.withAlpha(30),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -239,12 +273,16 @@ class _PaginationPageState extends State<PaginationPage> {
                   IconButton(
                     icon: const Icon(Icons.chevron_right, size: 20),
                     tooltip: 'Next Page',
-                    onPressed: (_currentPage < totalPages && !_isLoading) ? () => _goToPage(_currentPage + 1) : null,
+                    onPressed: (_currentPage < totalPages && !_isLoading)
+                        ? () => _goToPage(_currentPage + 1)
+                        : null,
                   ),
                   IconButton(
                     icon: const Icon(Icons.last_page, size: 20),
                     tooltip: 'Last Page',
-                    onPressed: (_currentPage < totalPages && !_isLoading) ? () => _goToPage(totalPages) : null,
+                    onPressed: (_currentPage < totalPages && !_isLoading)
+                        ? () => _goToPage(totalPages)
+                        : null,
                   ),
                 ],
               ),

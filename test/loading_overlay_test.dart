@@ -4,12 +4,22 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('AppGrid Loading Overlay Tests', () {
-    testWidgets('Header stays visible and loading overlay renders when isLoading is true on empty dataset', (tester) async {
+    testWidgets(
+        'Header stays visible and loading overlay renders when isLoading is true on empty dataset',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: const [],
         columns: [
-          GridColumn(id: 'name', label: 'Item Name', initialWidth: 200, valueGetter: (r) => r['name']),
-          GridColumn(id: 'price', label: 'Price', initialWidth: 150, valueGetter: (r) => r['price']),
+          GridColumn(
+              id: 'name',
+              label: 'Item Name',
+              initialWidth: 200,
+              valueGetter: (r) => r['name']),
+          GridColumn(
+              id: 'price',
+              label: 'Price',
+              initialWidth: 150,
+              valueGetter: (r) => r['price']),
         ],
         isLoading: true,
       );
@@ -52,14 +62,24 @@ void main() {
       expect(find.text('Orange'), findsOneWidget);
     });
 
-    testWidgets('Direct isLoading property on AppGrid toggles loading overlay on top of existing data', (tester) async {
+    testWidgets(
+        'Direct isLoading property on AppGrid toggles loading overlay on top of existing data',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: const [
           {'name': 'Banana', 'price': 5},
         ],
         columns: [
-          GridColumn(id: 'name', label: 'Item Name', initialWidth: 200, valueGetter: (r) => r['name']),
-          GridColumn(id: 'price', label: 'Price', initialWidth: 150, valueGetter: (r) => r['price']),
+          GridColumn(
+              id: 'name',
+              label: 'Item Name',
+              initialWidth: 200,
+              valueGetter: (r) => r['name']),
+          GridColumn(
+              id: 'price',
+              label: 'Price',
+              initialWidth: 150,
+              valueGetter: (r) => r['price']),
         ],
       );
 
@@ -73,7 +93,8 @@ void main() {
                 body: Column(
                   children: [
                     ElevatedButton(
-                      onPressed: () => setState(() => isLoadingState = !isLoadingState),
+                      onPressed: () =>
+                          setState(() => isLoadingState = !isLoadingState),
                       child: const Text('Toggle Loading'),
                     ),
                     Expanded(
@@ -112,7 +133,8 @@ void main() {
       expect(find.text('Banana'), findsOneWidget);
     });
 
-    testWidgets('Custom loadingWidget is rendered when provided', (tester) async {
+    testWidgets('Custom loadingWidget is rendered when provided',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: const [],
         columns: const [

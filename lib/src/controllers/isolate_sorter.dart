@@ -15,7 +15,8 @@ class IsolateSorter {
     Int32List? activeIndices,
   }) async {
     return Isolate.run<Int32List>(() {
-      final int count = activeIndices != null ? activeIndices.length : keys.length;
+      final int count =
+          activeIndices != null ? activeIndices.length : keys.length;
       final List<int> indices = activeIndices != null
           ? List<int>.from(activeIndices)
           : List<int>.generate(count, (i) => i);

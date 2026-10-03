@@ -4,7 +4,9 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('2D Virtualization & Performance Tests (AC-01 & AC-02)', () {
-    testWidgets('AC-01: 100,000 rows x 50 columns renders strictly visible + buffer rows', (tester) async {
+    testWidgets(
+        'AC-01: 100,000 rows x 50 columns renders strictly visible + buffer rows',
+        (tester) async {
       final rows = List.generate(100000, (i) => 'Row $i');
       final columns = List.generate(
         50,
@@ -33,8 +35,10 @@ void main() {
               height: 500,
               child: AppGrid<String>(
                 controller: controller,
-                rowHeight: 40.0,
-                headerHeight: 48.0,
+                style: const AppGridStyle(
+                  rowHeight: 40.0,
+                  headerHeight: 48.0,
+                ),
               ),
             ),
           ),
@@ -59,7 +63,9 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('AC-02: Cell tick update rebuilds only the cell, not the root AppGrid', (tester) async {
+    testWidgets(
+        'AC-02: Cell tick update rebuilds only the cell, not the root AppGrid',
+        (tester) async {
       var rootBuildCount = 0;
 
       final controller = AppGridController<Map<String, dynamic>>(
@@ -72,7 +78,8 @@ void main() {
             id: 'val',
             label: 'Value',
             initialWidth: 200,
-            cellBuilder: (context, item, info) => Text((item as Map<String, dynamic>)['val'] as String),
+            cellBuilder: (context, item, info) =>
+                Text((item as Map<String, dynamic>)['val'] as String),
           ),
         ],
       );

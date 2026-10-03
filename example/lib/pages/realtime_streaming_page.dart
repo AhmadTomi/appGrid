@@ -22,18 +22,29 @@ class _RealtimeStreamingPageState extends State<RealtimeStreamingPage> {
   @override
   void initState() {
     super.initState();
-    final data = List.generate(50, (i) => {
-      'symbol': 'TICK${100 + i}',
-      'price': (100.0 + i * 2.5),
-      'change': 0.0,
-      'volume': 1000 + i * 50,
-    });
+    final data = List.generate(
+        50,
+        (i) => {
+              'symbol': 'TICK${100 + i}',
+              'price': (100.0 + i * 2.5),
+              'change': 0.0,
+              'volume': 1000 + i * 50,
+            });
 
     _controller = AppGridController<Map<String, dynamic>>(
       initialData: data,
       columns: [
-        GridColumn(id: 'symbol', label: 'Ticker', initialWidth: 100, pin: GridColumnPin.left, valueGetter: (r) => r['symbol']),
-        GridColumn(id: 'price', label: 'Price (\$)', initialWidth: 110, valueGetter: (r) => r['price']),
+        GridColumn(
+            id: 'symbol',
+            label: 'Ticker',
+            initialWidth: 100,
+            pin: GridColumnPin.left,
+            valueGetter: (r) => r['symbol']),
+        GridColumn(
+            id: 'price',
+            label: 'Price (\$)',
+            initialWidth: 110,
+            valueGetter: (r) => r['price']),
         GridColumn(
           id: 'change',
           label: 'Delta',
@@ -55,7 +66,11 @@ class _RealtimeStreamingPageState extends State<RealtimeStreamingPage> {
             );
           },
         ),
-        GridColumn(id: 'volume', label: 'Volume', initialWidth: 110, valueGetter: (r) => r['volume']),
+        GridColumn(
+            id: 'volume',
+            label: 'Volume',
+            initialWidth: 110,
+            valueGetter: (r) => r['volume']),
         GridColumn(
           id: 'trade',
           label: 'Trade Action',
@@ -70,18 +85,24 @@ class _RealtimeStreamingPageState extends State<RealtimeStreamingPage> {
                 icon: Icon(
                   isPos ? Icons.arrow_upward : Icons.arrow_downward,
                   size: 12,
-                  color: isPos ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                  color:
+                      isPos ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
                 ),
                 text: 'Buy \$$price',
-                color: isPos ? const Color(0x1F16A34A) : const Color(0x1FDC2626),
-                hoverColor: isPos ? const Color(0x3D16A34A) : const Color(0x3DDC2626),
-                borderColor: isPos ? const Color(0x7F16A34A) : const Color(0x7FDC2626),
-                foregroundColor: isPos ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
+                color:
+                    isPos ? const Color(0x1F16A34A) : const Color(0x1FDC2626),
+                hoverColor:
+                    isPos ? const Color(0x3D16A34A) : const Color(0x3DDC2626),
+                borderColor:
+                    isPos ? const Color(0x7F16A34A) : const Color(0x7FDC2626),
+                foregroundColor:
+                    isPos ? const Color(0xFF16A34A) : const Color(0xFFDC2626),
                 onPressed: () {
                   ScaffoldMessenger.of(context).hideCurrentSnackBar();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Order executed: Buy ${item['symbol']} at \$$price (Row #${info.displayIndex})'),
+                      content: Text(
+                          'Order executed: Buy ${item['symbol']} at \$$price (Row #${info.displayIndex})'),
                       duration: const Duration(seconds: 1),
                     ),
                   );
@@ -141,7 +162,8 @@ class _RealtimeStreamingPageState extends State<RealtimeStreamingPage> {
         children: [
           buildDemoHeader(
             title: 'Realtime High-Frequency Streaming Ticks',
-            subtitle: 'AC-02: 60 updates/sec isolated to affected cells without root widget rebuild.',
+            subtitle:
+                'AC-02: 60 updates/sec isolated to affected cells without root widget rebuild.',
           ),
           const SizedBox(height: 12),
           Row(
@@ -149,7 +171,8 @@ class _RealtimeStreamingPageState extends State<RealtimeStreamingPage> {
               FilledButton.icon(
                 onPressed: _toggleStreaming,
                 icon: Icon(_isStreaming ? Icons.stop : Icons.play_arrow),
-                label: Text(_isStreaming ? 'Stop Streaming' : 'Start 60 FPS Ticks'),
+                label: Text(
+                    _isStreaming ? 'Stop Streaming' : 'Start 60 FPS Ticks'),
               ),
               const SizedBox(width: 16),
               Text(
@@ -162,7 +185,9 @@ class _RealtimeStreamingPageState extends State<RealtimeStreamingPage> {
           Expanded(
             child: AppGrid<Map<String, dynamic>>(
               controller: _controller,
-              scrollbarVisibility: AppGridScrollbarVisibility.onHover,
+              style: const AppGridStyle(
+                scrollbarVisibility: AppGridScrollbarVisibility.onHover,
+              ),
             ),
           ),
         ],
@@ -171,7 +196,8 @@ class _RealtimeStreamingPageState extends State<RealtimeStreamingPage> {
   }
 }
 
-const String realtimeStreamingSnippet = '''// AC-02: High-Frequency Streaming Ticks (60 FPS)
+const String realtimeStreamingSnippet =
+    '''// AC-02: High-Frequency Streaming Ticks (60 FPS)
 // Cells update directly without rebuilding root AppGrid widget.
 
 final controller = AppGridController<StockQuote>(

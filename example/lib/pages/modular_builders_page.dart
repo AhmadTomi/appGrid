@@ -29,18 +29,78 @@ typedef ModularBuildersDemo = ModularBuildersPage;
 
 class _ModularBuildersPageState extends State<ModularBuildersPage> {
   static const List<FruitData> _sampleFruits = [
-    FruitData(name: 'Honeycrisp Apple', category: 'Orchard', total: 140, price: 2.99, note: 'Fresh Harvest'),
-    FruitData(name: 'Cavendish Banana', category: 'Tropical', total: 250, price: 0.69, note: 'Fair Trade'),
-    FruitData(name: 'Valencia Orange', category: 'Citrus', total: 180, price: 1.49, note: 'High Vitamin C'),
-    FruitData(name: 'Alphonso Mango', category: 'Tropical', total: 75, price: 3.50, note: 'Seasonal Premium'),
-    FruitData(name: 'Sweet Strawberry', category: 'Berry', total: 95, price: 4.20, note: null),
-    FruitData(name: 'Wild Blueberry', category: 'Berry', total: 110, price: 4.99, note: 'Antioxidant Rich'),
-    FruitData(name: 'Crimson Watermelon', category: 'Melon', total: 40, price: 5.99, note: null),
-    FruitData(name: 'Golden Pineapple', category: 'Tropical', total: 60, price: 3.29, note: 'Extra Sweet'),
-    FruitData(name: 'Hass Avocado', category: 'Specialty', total: 130, price: 1.89, note: 'Ripe & Ready'),
-    FruitData(name: 'White Peach', category: 'Stone Fruit', total: 85, price: 2.79, note: null),
-    FruitData(name: 'Autumn Crisp Grape', category: 'Berry', total: 120, price: 3.89, note: 'Seedless'),
-    FruitData(name: 'Golden Kiwi', category: 'Exotic', total: 90, price: 1.25, note: 'New Zealand'),
+    FruitData(
+        name: 'Honeycrisp Apple',
+        category: 'Orchard',
+        total: 140,
+        price: 2.99,
+        note: 'Fresh Harvest'),
+    FruitData(
+        name: 'Cavendish Banana',
+        category: 'Tropical',
+        total: 250,
+        price: 0.69,
+        note: 'Fair Trade'),
+    FruitData(
+        name: 'Valencia Orange',
+        category: 'Citrus',
+        total: 180,
+        price: 1.49,
+        note: 'High Vitamin C'),
+    FruitData(
+        name: 'Alphonso Mango',
+        category: 'Tropical',
+        total: 75,
+        price: 3.50,
+        note: 'Seasonal Premium'),
+    FruitData(
+        name: 'Sweet Strawberry',
+        category: 'Berry',
+        total: 95,
+        price: 4.20,
+        note: null),
+    FruitData(
+        name: 'Wild Blueberry',
+        category: 'Berry',
+        total: 110,
+        price: 4.99,
+        note: 'Antioxidant Rich'),
+    FruitData(
+        name: 'Crimson Watermelon',
+        category: 'Melon',
+        total: 40,
+        price: 5.99,
+        note: null),
+    FruitData(
+        name: 'Golden Pineapple',
+        category: 'Tropical',
+        total: 60,
+        price: 3.29,
+        note: 'Extra Sweet'),
+    FruitData(
+        name: 'Hass Avocado',
+        category: 'Specialty',
+        total: 130,
+        price: 1.89,
+        note: 'Ripe & Ready'),
+    FruitData(
+        name: 'White Peach',
+        category: 'Stone Fruit',
+        total: 85,
+        price: 2.79,
+        note: null),
+    FruitData(
+        name: 'Autumn Crisp Grape',
+        category: 'Berry',
+        total: 120,
+        price: 3.89,
+        note: 'Seedless'),
+    FruitData(
+        name: 'Golden Kiwi',
+        category: 'Exotic',
+        total: 90,
+        price: 1.25,
+        note: 'New Zealand'),
   ];
 
   late final AppGridController<FruitData> _controller;
@@ -55,7 +115,8 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
   void _initController() {
     _controller = AppGridController<FruitData>(
       fetchMode: DataFetchMode.pagination,
-      paginationInfo: const GridPaginationInfo(page: 1, limit: 6, totalCount: 12),
+      paginationInfo:
+          const GridPaginationInfo(page: 1, limit: 6, totalCount: 12),
       initialData: _sampleFruits.take(6).toList(),
       columns: [
         GridColumn(
@@ -76,7 +137,8 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
                   Expanded(
                     child: Text(
                       f.name,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 13),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -140,7 +202,8 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
                   ),
                   if (isLow) ...[
                     const SizedBox(width: 6),
-                    const Icon(Icons.warning_amber_rounded, size: 14, color: Colors.orange),
+                    const Icon(Icons.warning_amber_rounded,
+                        size: 14, color: Colors.orange),
                   ],
                 ],
               ),
@@ -164,7 +227,8 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Text(
                 '\$${f.price.toStringAsFixed(2)}',
-                style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.w600),
+                style: const TextStyle(
+                    fontFamily: 'monospace', fontWeight: FontWeight.w600),
               ),
             );
           },
@@ -183,7 +247,8 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
   void _onPageChanged(int page, int pageSize) {
     final start = (page - 1) * pageSize;
     final end = (start + pageSize).clamp(0, _sampleFruits.length);
-    final slice = _sampleFruits.sublist(start.clamp(0, _sampleFruits.length), end);
+    final slice =
+        _sampleFruits.sublist(start.clamp(0, _sampleFruits.length), end);
 
     _controller.setPageData(
       rows: slice,
@@ -201,7 +266,8 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
       if (_showEmptyState) {
         _controller.setPageData(
           rows: [],
-          pagination: const GridPaginationInfo(page: 1, limit: 6, totalCount: 0),
+          pagination:
+              const GridPaginationInfo(page: 1, limit: 6, totalCount: 0),
         );
       } else {
         _onPageChanged(1, 6);
@@ -224,7 +290,8 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
         children: [
           buildDemoHeader(
             title: 'Modular Column Builders, Summaries & Header Context Menu',
-            subtitle: 'Declare cellBuilder, footer summaries (GridFooter.sum / average / count), and header freeze right on GridColumn.',
+            subtitle:
+                'Declare cellBuilder, footer summaries (GridFooter.sum / average / count), and header freeze right on GridColumn.',
           ),
           const SizedBox(height: 12),
           // Interactive Action Toolbar
@@ -235,11 +302,15 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
             children: [
               ElevatedButton.icon(
                 onPressed: _toggleEmptyState,
-                icon: Icon(_showEmptyState ? Icons.refresh : Icons.hourglass_empty),
-                label: Text(_showEmptyState ? 'Restore Fruit Data' : 'Simulate Empty State'),
+                icon: Icon(
+                    _showEmptyState ? Icons.refresh : Icons.hourglass_empty),
+                label: Text(_showEmptyState
+                    ? 'Restore Fruit Data'
+                    : 'Simulate Empty State'),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.amber.withAlpha(30),
                   borderRadius: BorderRadius.circular(6),
@@ -253,7 +324,8 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
                     Flexible(
                       child: Text(
                         'Click column sort/menu icon to freeze/unpin or sort',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -261,7 +333,8 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.blue.withAlpha(30),
                   borderRadius: BorderRadius.circular(6),
@@ -275,7 +348,8 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
                     Flexible(
                       child: Text(
                         'Click-drag mouse to pan/scroll table 2D',
-                        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.bold),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -288,14 +362,17 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
           Expanded(
             child: AppGrid<FruitData>(
               controller: _controller,
-              rowHeight: 44.0,
-              headerHeight: 44.0,
-              footerHeight: 40.0,
               showPaginationBar: true,
               onPageChanged: _onPageChanged,
               emptyWidget: const AppGridEmptyWidget(
-                message: 'No fruit records found. Tap "Restore Fruit Data" to reload catalog.',
+                message:
+                    'No fruit records found. Tap "Restore Fruit Data" to reload catalog.',
                 icon: Icons.search_off,
+              ),
+              style: const AppGridStyle(
+                rowHeight: 44.0,
+                headerHeight: 44.0,
+                footerHeight: 40.0,
               ),
             ),
           ),
@@ -305,7 +382,8 @@ class _ModularBuildersPageState extends State<ModularBuildersPage> {
   }
 }
 
-const String modularBuildersSnippet = r'''// Custom Data Model (e.g. List<FruitData>)
+const String modularBuildersSnippet =
+    r'''// Custom Data Model (e.g. List<FruitData>)
 class FruitData {
   final String name;
   final String category;

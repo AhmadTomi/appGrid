@@ -3,7 +3,9 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Column Layout & Auto-Stretch Tests (REQ-COL-05 & AC-06)', () {
-    test('AC-06: Columns auto-stretch proportionally when sum(minWidth) < ViewportWidth', () {
+    test(
+        'AC-06: Columns auto-stretch proportionally when sum(minWidth) < ViewportWidth',
+        () {
       const calculator = AutoStretchCalculator();
       const columns = [
         GridColumn(id: 'col1', label: 'C1', minWidth: 100, initialWidth: 100),
@@ -29,7 +31,9 @@ void main() {
       expect(totalCalculated, closeTo(1000.0, 0.001));
     });
 
-    test('Disables auto-stretch when sum(minWidth) exceeds or equals screen width', () {
+    test(
+        'Disables auto-stretch when sum(minWidth) exceeds or equals screen width',
+        () {
       const calculator = AutoStretchCalculator();
       const columns = [
         GridColumn(id: 'col1', label: 'C1', minWidth: 300, initialWidth: 300),
@@ -49,7 +53,8 @@ void main() {
       expect(widths['col3'], equals(300.0));
 
       final total = widths.values.fold(0.0, (sum, w) => sum + w);
-      expect(total, equals(900.0)); // exceeds 600px -> triggers horizontal scroll!
+      expect(
+          total, equals(900.0)); // exceeds 600px -> triggers horizontal scroll!
     });
 
     test('Disables auto-stretch when user resizes any column manually', () {
@@ -110,7 +115,9 @@ void main() {
       expect(manager.hasManualResize, isFalse);
     });
 
-    test('Resizing one column preserves active computed widths of other columns', () {
+    test(
+        'Resizing one column preserves active computed widths of other columns',
+        () {
       final manager = ColumnLayoutManager();
       const columns = [
         GridColumn(id: 'col1', label: 'C1', minWidth: 100, initialWidth: 100),

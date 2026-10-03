@@ -5,7 +5,9 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('AppGrid Scrollbar Visibility Tests', () {
-    testWidgets('Default visibility is onHover: scrollbars are mounted with AnimatedOpacity', (tester) async {
+    testWidgets(
+        'Default visibility is onHover: scrollbars are mounted with AnimatedOpacity',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 300);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -13,7 +15,12 @@ void main() {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: List.generate(
           20,
-          (i) => {'col1': 'V1-$i', 'col2': 'V2-$i', 'col3': 'V3-$i', 'col4': 'V4-$i'},
+          (i) => {
+            'col1': 'V1-$i',
+            'col2': 'V2-$i',
+            'col3': 'V3-$i',
+            'col4': 'V4-$i'
+          },
         ),
         columns: const [
           GridColumn(id: 'col1', label: 'C1', initialWidth: 200),
@@ -43,7 +50,8 @@ void main() {
 
       // Initially without hover, opacity is 0.0
       AnimatedOpacity hOpacity = tester.widget<AnimatedOpacity>(
-        find.descendant(of: hScrollbarFinder, matching: find.byType(AnimatedOpacity)),
+        find.descendant(
+            of: hScrollbarFinder, matching: find.byType(AnimatedOpacity)),
       );
       expect(hOpacity.opacity, equals(0.0));
 
@@ -54,12 +62,14 @@ void main() {
 
       // On hover, opacity animates to 1.0
       hOpacity = tester.widget<AnimatedOpacity>(
-        find.descendant(of: hScrollbarFinder, matching: find.byType(AnimatedOpacity)),
+        find.descendant(
+            of: hScrollbarFinder, matching: find.byType(AnimatedOpacity)),
       );
       expect(hOpacity.opacity, equals(1.0));
 
       AnimatedOpacity vOpacity = tester.widget<AnimatedOpacity>(
-        find.descendant(of: vScrollbarFinder, matching: find.byType(AnimatedOpacity)),
+        find.descendant(
+            of: vScrollbarFinder, matching: find.byType(AnimatedOpacity)),
       );
       expect(vOpacity.opacity, equals(1.0));
 
@@ -69,14 +79,17 @@ void main() {
 
       // After mouse exit, opacity animates back to 0.0
       hOpacity = tester.widget<AnimatedOpacity>(
-        find.descendant(of: hScrollbarFinder, matching: find.byType(AnimatedOpacity)),
+        find.descendant(
+            of: hScrollbarFinder, matching: find.byType(AnimatedOpacity)),
       );
       expect(hOpacity.opacity, equals(0.0));
 
       controller.dispose();
     });
 
-    testWidgets('ScrollbarVisibility.always keeps scrollbars visible without hover', (tester) async {
+    testWidgets(
+        'ScrollbarVisibility.always keeps scrollbars visible without hover',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 300);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -84,7 +97,12 @@ void main() {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: List.generate(
           20,
-          (i) => {'col1': 'V1-$i', 'col2': 'V2-$i', 'col3': 'V3-$i', 'col4': 'V4-$i'},
+          (i) => {
+            'col1': 'V1-$i',
+            'col2': 'V2-$i',
+            'col3': 'V3-$i',
+            'col4': 'V4-$i'
+          },
         ),
         columns: const [
           GridColumn(id: 'col1', label: 'C1', initialWidth: 200),
@@ -100,7 +118,9 @@ void main() {
             body: AppGrid<Map<String, dynamic>>(
               controller: controller,
               autoStretch: false,
-              scrollbarVisibility: ScrollbarVisibility.always,
+              style: const AppGridStyle(
+                scrollbarVisibility: ScrollbarVisibility.always,
+              ),
             ),
           ),
         ),
@@ -113,19 +133,23 @@ void main() {
       expect(vScrollbarFinder, findsOneWidget);
 
       final hOpacity = tester.widget<AnimatedOpacity>(
-        find.descendant(of: hScrollbarFinder, matching: find.byType(AnimatedOpacity)),
+        find.descendant(
+            of: hScrollbarFinder, matching: find.byType(AnimatedOpacity)),
       );
       expect(hOpacity.opacity, equals(1.0));
 
       final vOpacity = tester.widget<AnimatedOpacity>(
-        find.descendant(of: vScrollbarFinder, matching: find.byType(AnimatedOpacity)),
+        find.descendant(
+            of: vScrollbarFinder, matching: find.byType(AnimatedOpacity)),
       );
       expect(vOpacity.opacity, equals(1.0));
 
       controller.dispose();
     });
 
-    testWidgets('ScrollbarVisibility.hidden completely omits scrollbars from the widget tree', (tester) async {
+    testWidgets(
+        'ScrollbarVisibility.hidden completely omits scrollbars from the widget tree',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 300);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -133,7 +157,12 @@ void main() {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: List.generate(
           20,
-          (i) => {'col1': 'V1-$i', 'col2': 'V2-$i', 'col3': 'V3-$i', 'col4': 'V4-$i'},
+          (i) => {
+            'col1': 'V1-$i',
+            'col2': 'V2-$i',
+            'col3': 'V3-$i',
+            'col4': 'V4-$i'
+          },
         ),
         columns: const [
           GridColumn(id: 'col1', label: 'C1', initialWidth: 200),
@@ -149,7 +178,9 @@ void main() {
             body: AppGrid<Map<String, dynamic>>(
               controller: controller,
               autoStretch: false,
-              scrollbarVisibility: ScrollbarVisibility.hidden,
+              style: const AppGridStyle(
+                scrollbarVisibility: ScrollbarVisibility.hidden,
+              ),
             ),
           ),
         ),
@@ -162,7 +193,9 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('Independent vertical and horizontal visibility works correctly', (tester) async {
+    testWidgets(
+        'Independent vertical and horizontal visibility works correctly',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 300);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -170,7 +203,12 @@ void main() {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: List.generate(
           20,
-          (i) => {'col1': 'V1-$i', 'col2': 'V2-$i', 'col3': 'V3-$i', 'col4': 'V4-$i'},
+          (i) => {
+            'col1': 'V1-$i',
+            'col2': 'V2-$i',
+            'col3': 'V3-$i',
+            'col4': 'V4-$i'
+          },
         ),
         columns: const [
           GridColumn(id: 'col1', label: 'C1', initialWidth: 200),
@@ -186,8 +224,10 @@ void main() {
             body: AppGrid<Map<String, dynamic>>(
               controller: controller,
               autoStretch: false,
-              verticalScrollbarVisibility: ScrollbarVisibility.always,
-              horizontalScrollbarVisibility: ScrollbarVisibility.hidden,
+              style: const AppGridStyle(
+                verticalScrollbarVisibility: ScrollbarVisibility.always,
+                horizontalScrollbarVisibility: ScrollbarVisibility.hidden,
+              ),
             ),
           ),
         ),
@@ -201,14 +241,17 @@ void main() {
       final vScrollbarFinder = find.byType(AppGridVerticalScrollbar);
       expect(vScrollbarFinder, findsOneWidget);
       final vOpacity = tester.widget<AnimatedOpacity>(
-        find.descendant(of: vScrollbarFinder, matching: find.byType(AnimatedOpacity)),
+        find.descendant(
+            of: vScrollbarFinder, matching: find.byType(AnimatedOpacity)),
       );
       expect(vOpacity.opacity, equals(1.0));
 
       controller.dispose();
     });
 
-    testWidgets('Backward compatibility: showHorizontalScrollbar: false hides horizontal scrollbar', (tester) async {
+    testWidgets(
+        'Backward compatibility: showHorizontalScrollbar: false hides horizontal scrollbar',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 300);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -216,7 +259,12 @@ void main() {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: List.generate(
           20,
-          (i) => {'col1': 'V1-$i', 'col2': 'V2-$i', 'col3': 'V3-$i', 'col4': 'V4-$i'},
+          (i) => {
+            'col1': 'V1-$i',
+            'col2': 'V2-$i',
+            'col3': 'V3-$i',
+            'col4': 'V4-$i'
+          },
         ),
         columns: const [
           GridColumn(id: 'col1', label: 'C1', initialWidth: 200),
@@ -232,7 +280,9 @@ void main() {
             body: AppGrid<Map<String, dynamic>>(
               controller: controller,
               autoStretch: false,
-              showHorizontalScrollbar: false,
+              style: const AppGridStyle(
+                showHorizontalScrollbar: false,
+              ),
             ),
           ),
         ),
@@ -245,7 +295,9 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('Horizontal scrollbar is positioned at the bottom of the footer when showFooter is true', (tester) async {
+    testWidgets(
+        'Horizontal scrollbar is positioned at the bottom of the footer when showFooter is true',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 300);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -268,9 +320,12 @@ void main() {
             body: AppGrid<Map<String, dynamic>>(
               controller: controller,
               autoStretch: false,
-              footerHeight: 40.0,
-              scrollbarThickness: 10.0,
-              horizontalScrollbarVisibility: AppGridScrollbarVisibility.always,
+              style: const AppGridStyle(
+                footerHeight: 40.0,
+                scrollbarThickness: 10.0,
+                horizontalScrollbarVisibility:
+                    AppGridScrollbarVisibility.always,
+              ),
             ),
           ),
         ),
@@ -296,9 +351,11 @@ void main() {
       final footerCellRect = tester.getRect(footerCellFinder.first);
       final hScrollbarRect = tester.getRect(hScrollbarFinder);
       expect(hScrollbarRect.bottom, closeTo(footerCellRect.bottom, 1.0),
-          reason: 'Horizontal scrollbar must be positioned at the bottom of the footer');
+          reason:
+              'Horizontal scrollbar must be positioned at the bottom of the footer');
       expect(hScrollbarRect.top, greaterThanOrEqualTo(footerCellRect.top),
-          reason: 'Horizontal scrollbar must sit inside/at the bottom of the footer area');
+          reason:
+              'Horizontal scrollbar must sit inside/at the bottom of the footer area');
 
       controller.dispose();
     });

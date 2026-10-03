@@ -7,7 +7,8 @@ class Employee {
   final String name;
   final String department;
 
-  const Employee({required this.id, required this.name, required this.department});
+  const Employee(
+      {required this.id, required this.name, required this.department});
 }
 
 void main() {
@@ -21,9 +22,16 @@ void main() {
           Employee(id: 2, name: 'Jane, "Admin"', department: 'HR & Operations'),
         ],
         columns: [
-          GridColumn(id: 'id', label: 'ID', valueGetter: (r) => (r as Employee).id),
-          GridColumn(id: 'name', label: 'Name', valueGetter: (r) => (r as Employee).name),
-          GridColumn(id: 'department', label: 'Dept', valueGetter: (r) => (r as Employee).department),
+          GridColumn(
+              id: 'id', label: 'ID', valueGetter: (r) => (r as Employee).id),
+          GridColumn(
+              id: 'name',
+              label: 'Name',
+              valueGetter: (r) => (r as Employee).name),
+          GridColumn(
+              id: 'department',
+              label: 'Dept',
+              valueGetter: (r) => (r as Employee).department),
         ],
       );
     });
@@ -32,7 +40,8 @@ void main() {
       controller.dispose();
     });
 
-    test('toCsv generates RFC 4180 compliant CSV escaping quotes and commas', () {
+    test('toCsv generates RFC 4180 compliant CSV escaping quotes and commas',
+        () {
       final csv = DataGridExporter.toCsv(controller: controller);
       final lines = csv.trim().split('\n').map((l) => l.trim()).toList();
 

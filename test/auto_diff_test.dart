@@ -20,7 +20,10 @@ class Product {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is Product && id == other.id && title == other.title && price == other.price;
+      other is Product &&
+          id == other.id &&
+          title == other.title &&
+          price == other.price;
 
   @override
   int get hashCode => id.hashCode ^ title.hashCode ^ price.hashCode;
@@ -38,9 +41,16 @@ void main() {
           const Product(id: 'p3', title: 'Keyboard', price: 79.0),
         ],
         columns: [
-          GridColumn(id: 'id', label: 'ID', valueGetter: (p) => (p as Product).id),
-          GridColumn(id: 'title', label: 'Title', valueGetter: (p) => (p as Product).title),
-          GridColumn(id: 'price', label: 'Price', valueGetter: (p) => (p as Product).price),
+          GridColumn(
+              id: 'id', label: 'ID', valueGetter: (p) => (p as Product).id),
+          GridColumn(
+              id: 'title',
+              label: 'Title',
+              valueGetter: (p) => (p as Product).title),
+          GridColumn(
+              id: 'price',
+              label: 'Price',
+              valueGetter: (p) => (p as Product).price),
         ],
         rowIdGetter: (p) => p.id,
       );
@@ -50,7 +60,9 @@ void main() {
       controller.dispose();
     });
 
-    test('Content update: updates row notifier directly WITHOUT notifying controller listeners', () {
+    test(
+        'Content update: updates row notifier directly WITHOUT notifying controller listeners',
+        () {
       final notifier = controller.getRowNotifier(1); // Mouse
       var notifierFired = 0;
       notifier.addListener(() => notifierFired++);
@@ -96,7 +108,9 @@ void main() {
       expect(p2Fired, equals(1)); // only p2 changed!
     });
 
-    test('Structural addition: handles different length and triggers controller notification', () {
+    test(
+        'Structural addition: handles different length and triggers controller notification',
+        () {
       var controllerFired = 0;
       controller.addListener(() => controllerFired++);
 
@@ -115,7 +129,9 @@ void main() {
       expect(controllerFired, equals(1));
     });
 
-    test('Structural deletion: handles shorter length and prunes out-of-bound notifiers', () {
+    test(
+        'Structural deletion: handles shorter length and prunes out-of-bound notifiers',
+        () {
       final p3Notifier = controller.getRowNotifier(2); // index 2
       expect(p3Notifier.value.title, equals('Keyboard'));
 
@@ -135,11 +151,17 @@ void main() {
       expect(controllerFired, equals(1));
     });
 
-    test('Selection preservation: keeps selection on the same item ID when list is shifted', () {
+    test(
+        'Selection preservation: keeps selection on the same item ID when list is shifted',
+        () {
       // Select index 1 (Mouse: 'p2')
       controller.selectRow(1);
       expect(controller.selectedRowInfo?.originalIndex, equals(1));
-      expect(controller.getRowByOriginalIndex(controller.selectedOriginalIndex!).id, equals('p2'));
+      expect(
+          controller
+              .getRowByOriginalIndex(controller.selectedOriginalIndex!)
+              .id,
+          equals('p2'));
 
       // Insert new item at index 0 (shifts 'p2' to index 2)
       final shiftedList = [
@@ -153,7 +175,11 @@ void main() {
 
       // Selected original index should now track 'p2' at index 2!
       expect(controller.selectedOriginalIndex, equals(2));
-      expect(controller.getRowByOriginalIndex(controller.selectedOriginalIndex!).id, equals('p2'));
+      expect(
+          controller
+              .getRowByOriginalIndex(controller.selectedOriginalIndex!)
+              .id,
+          equals('p2'));
     });
 
     test('Custom rowEquality predicate forces or overrides equality check', () {
@@ -175,11 +201,19 @@ void main() {
   });
 
   group('Declarative AppGrid(data: ...) Widget Tests', () {
-    testWidgets('AppGrid automatically updates and renders when new data list is provided', (tester) async {
+    testWidgets(
+        'AppGrid automatically updates and renders when new data list is provided',
+        (tester) async {
       final controller = AppGridController<Product>(
         columns: [
-          GridColumn(id: 'title', label: 'Title', valueGetter: (p) => (p as Product).title),
-          GridColumn(id: 'price', label: 'Price', valueGetter: (p) => '\$${(p as Product).price}'),
+          GridColumn(
+              id: 'title',
+              label: 'Title',
+              valueGetter: (p) => (p as Product).title),
+          GridColumn(
+              id: 'price',
+              label: 'Price',
+              valueGetter: (p) => '\$${(p as Product).price}'),
         ],
         rowIdGetter: (p) => p.id,
       );

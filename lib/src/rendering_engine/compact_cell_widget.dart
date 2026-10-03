@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/app_grid_style.dart';
 import '../models/compact_column_group.dart';
 import '../models/grid_column.dart';
 import '../models/row_index_info.dart';
@@ -18,9 +19,7 @@ class CompactCellWidget<T> extends StatelessWidget {
   final CompactColumnGroup group;
   final double width;
   final double height;
-  final bool showVerticalGridLine;
-  final Color? verticalGridLineColor;
-  final Color? gridLineColor;
+  final AppGridStyle style;
 
   const CompactCellWidget({
     super.key,
@@ -29,9 +28,7 @@ class CompactCellWidget<T> extends StatelessWidget {
     required this.group,
     required this.width,
     required this.height,
-    this.showVerticalGridLine = false,
-    this.verticalGridLineColor,
-    this.gridLineColor,
+    this.style = const AppGridStyle(),
   });
 
   Widget _buildSubCell({
@@ -75,6 +72,7 @@ class CompactCellWidget<T> extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Text(
         displayText,
+        style: style.rowTextStyle,
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
         textAlign: _textAlignFromAlignment(column.cellAlignment),
@@ -87,7 +85,7 @@ class CompactCellWidget<T> extends StatelessWidget {
     final notifier = controller.getRowNotifier(indexInfo.originalIndex);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final subDividerColor = gridLineColor ??
+    final subDividerColor = style.gridLineColor ??
         (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
 
     final cellContent = ValueListenableBuilder<T>(
@@ -126,7 +124,7 @@ class CompactCellWidget<T> extends StatelessWidget {
       },
     );
 
-    if (!showVerticalGridLine) {
+    if (!style.showVerticalGridLines) {
       return SizedBox(
         width: width,
         height: height,
@@ -134,8 +132,8 @@ class CompactCellWidget<T> extends StatelessWidget {
       );
     }
 
-    final dividerColor = verticalGridLineColor ??
-        gridLineColor ??
+    final dividerColor = style.verticalGridLineColor ??
+        style.gridLineColor ??
         (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));
 
     return SizedBox(

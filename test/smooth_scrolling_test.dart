@@ -5,7 +5,9 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Smooth Mouse Scrolling Engine Tests', () {
-    testWidgets('Kinetic Ballistic Fling continues gliding and decelerating after mouse drag release', (tester) async {
+    testWidgets(
+        'Kinetic Ballistic Fling continues gliding and decelerating after mouse drag release',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -16,8 +18,16 @@ void main() {
           (i) => {'id': i, 'name': 'Item $i'},
         ),
         columns: [
-          GridColumn(id: 'id', label: 'ID', initialWidth: 100, valueGetter: (r) => r['id']),
-          GridColumn(id: 'name', label: 'Name', initialWidth: 300, valueGetter: (r) => r['name']),
+          GridColumn(
+              id: 'id',
+              label: 'ID',
+              initialWidth: 100,
+              valueGetter: (r) => r['id']),
+          GridColumn(
+              id: 'name',
+              label: 'Name',
+              initialWidth: 300,
+              valueGetter: (r) => r['name']),
         ],
       );
 
@@ -43,13 +53,16 @@ void main() {
       final center = tester.getCenter(gridFinder);
 
       // Mouse down
-      final gesture = await tester.startGesture(center, kind: PointerDeviceKind.mouse);
+      final gesture =
+          await tester.startGesture(center, kind: PointerDeviceKind.mouse);
       await tester.pump();
 
       // Move with high velocity
-      await gesture.moveBy(const Offset(0, -50), timeStamp: const Duration(milliseconds: 16));
+      await gesture.moveBy(const Offset(0, -50),
+          timeStamp: const Duration(milliseconds: 16));
       await tester.pump();
-      await gesture.moveBy(const Offset(0, -50), timeStamp: const Duration(milliseconds: 32));
+      await gesture.moveBy(const Offset(0, -50),
+          timeStamp: const Duration(milliseconds: 32));
       await tester.pump();
 
       final offsetAtRelease = vController.offset;
@@ -75,7 +88,8 @@ void main() {
       vController.dispose();
     });
 
-    testWidgets('Pointer down immediately cancels running ballistic fling', (tester) async {
+    testWidgets('Pointer down immediately cancels running ballistic fling',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -86,8 +100,16 @@ void main() {
           (i) => {'id': i, 'name': 'Item $i'},
         ),
         columns: [
-          GridColumn(id: 'id', label: 'ID', initialWidth: 100, valueGetter: (r) => r['id']),
-          GridColumn(id: 'name', label: 'Name', initialWidth: 300, valueGetter: (r) => r['name']),
+          GridColumn(
+              id: 'id',
+              label: 'ID',
+              initialWidth: 100,
+              valueGetter: (r) => r['id']),
+          GridColumn(
+              id: 'name',
+              label: 'Name',
+              initialWidth: 300,
+              valueGetter: (r) => r['name']),
         ],
       );
 
@@ -110,9 +132,12 @@ void main() {
       final center = tester.getCenter(gridFinder);
 
       // Start drag with fling
-      final gesture = await tester.startGesture(center, kind: PointerDeviceKind.mouse);
-      await gesture.moveBy(const Offset(0, -60), timeStamp: const Duration(milliseconds: 16));
-      await gesture.moveBy(const Offset(0, -60), timeStamp: const Duration(milliseconds: 32));
+      final gesture =
+          await tester.startGesture(center, kind: PointerDeviceKind.mouse);
+      await gesture.moveBy(const Offset(0, -60),
+          timeStamp: const Duration(milliseconds: 16));
+      await gesture.moveBy(const Offset(0, -60),
+          timeStamp: const Duration(milliseconds: 32));
       await gesture.up();
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
@@ -121,7 +146,8 @@ void main() {
       expect(offsetDuringFling, greaterThan(60.0));
 
       // Tap on the grid to immediately halt momentum
-      final tapGesture = await tester.startGesture(center, kind: PointerDeviceKind.mouse);
+      final tapGesture =
+          await tester.startGesture(center, kind: PointerDeviceKind.mouse);
       await tester.pump();
       final offsetAtTap = vController.offset;
 
@@ -136,7 +162,9 @@ void main() {
       vController.dispose();
     });
 
-    testWidgets('PointerScrollEvent applies instant 1:1 wheel scroll response matching PlutoGrid', (tester) async {
+    testWidgets(
+        'PointerScrollEvent applies instant 1:1 wheel scroll response matching PlutoGrid',
+        (tester) async {
       tester.view.physicalSize = const Size(500, 400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(() => tester.view.resetPhysicalSize());
@@ -147,8 +175,16 @@ void main() {
           (i) => {'id': i, 'name': 'Item $i'},
         ),
         columns: [
-          GridColumn(id: 'id', label: 'ID', initialWidth: 300, valueGetter: (r) => r['id']),
-          GridColumn(id: 'name', label: 'Name', initialWidth: 400, valueGetter: (r) => r['name']),
+          GridColumn(
+              id: 'id',
+              label: 'ID',
+              initialWidth: 300,
+              valueGetter: (r) => r['id']),
+          GridColumn(
+              id: 'name',
+              label: 'Name',
+              initialWidth: 400,
+              valueGetter: (r) => r['name']),
         ],
       );
 
@@ -172,7 +208,8 @@ void main() {
       expect(vController.offset, equals(0.0));
       expect(hController.offset, equals(0.0));
 
-      final center = tester.getCenter(find.byType(AppGrid<Map<String, dynamic>>));
+      final center =
+          tester.getCenter(find.byType(AppGrid<Map<String, dynamic>>));
 
       // 1. Dispatch mouse wheel scroll event: instant 1:1 tactile response (0ms delay)
       final pointerSignal = PointerScrollEvent(

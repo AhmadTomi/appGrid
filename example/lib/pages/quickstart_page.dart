@@ -19,16 +19,61 @@ class _QuickstartPageState extends State<QuickstartPage> {
     super.initState();
     _controller = AppGridController<Map<String, dynamic>>(
       initialData: [
-        {'id': 101, 'name': 'Sarah Connor', 'role': 'Security Lead', 'status': 'Active', 'salary': 95000},
-        {'id': 102, 'name': 'John Reese', 'role': 'Field Agent', 'status': 'Active', 'salary': 88000},
-        {'id': 103, 'name': 'Harold Finch', 'role': 'Chief Architect', 'status': 'Offline', 'salary': 120000},
-        {'id': 104, 'name': 'Sameen Shaw', 'role': 'Operative', 'status': 'Active', 'salary': 91000},
-        {'id': 105, 'name': 'Root', 'role': 'Analyst', 'status': 'Active', 'salary': 105000},
+        {
+          'id': 101,
+          'name': 'Sarah Connor',
+          'role': 'Security Lead',
+          'status': 'Active',
+          'salary': 95000
+        },
+        {
+          'id': 102,
+          'name': 'John Reese',
+          'role': 'Field Agent',
+          'status': 'Active',
+          'salary': 88000
+        },
+        {
+          'id': 103,
+          'name': 'Harold Finch',
+          'role': 'Chief Architect',
+          'status': 'Offline',
+          'salary': 120000
+        },
+        {
+          'id': 104,
+          'name': 'Sameen Shaw',
+          'role': 'Operative',
+          'status': 'Active',
+          'salary': 91000
+        },
+        {
+          'id': 105,
+          'name': 'Root',
+          'role': 'Analyst',
+          'status': 'Active',
+          'salary': 105000
+        },
       ],
       columns: [
-        GridColumn(id: 'id', label: 'ID', initialWidth: 80, minWidth: 60, valueGetter: (r) => r['id']),
-        GridColumn(id: 'name', label: 'Employee Name', initialWidth: 160, minWidth: 120, valueGetter: (r) => r['name']),
-        GridColumn(id: 'role', label: 'Role', initialWidth: 150, minWidth: 100, valueGetter: (r) => r['role']),
+        GridColumn(
+            id: 'id',
+            label: 'ID',
+            initialWidth: 80,
+            minWidth: 60,
+            valueGetter: (r) => r['id']),
+        GridColumn(
+            id: 'name',
+            label: 'Employee Name',
+            initialWidth: 160,
+            minWidth: 120,
+            valueGetter: (r) => r['name']),
+        GridColumn(
+            id: 'role',
+            label: 'Role',
+            initialWidth: 150,
+            minWidth: 100,
+            valueGetter: (r) => r['role']),
         GridColumn(
           id: 'status',
           label: 'Status',
@@ -44,7 +89,9 @@ class _QuickstartPageState extends State<QuickstartPage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isActive ? Colors.green.withAlpha(40) : Colors.grey.withAlpha(40),
+                  color: isActive
+                      ? Colors.green.withAlpha(40)
+                      : Colors.grey.withAlpha(40),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -59,7 +106,12 @@ class _QuickstartPageState extends State<QuickstartPage> {
             );
           },
         ),
-        GridColumn(id: 'salary', label: 'Salary (\$)', initialWidth: 120, minWidth: 90, valueGetter: (r) => r['salary']),
+        GridColumn(
+            id: 'salary',
+            label: 'Salary (\$)',
+            initialWidth: 120,
+            minWidth: 90,
+            valueGetter: (r) => r['salary']),
       ],
     );
   }
@@ -79,7 +131,8 @@ class _QuickstartPageState extends State<QuickstartPage> {
         children: [
           buildDemoHeader(
             title: 'Overview & Quickstart',
-            subtitle: 'Declarative, type-safe high-performance grid with custom cell rendering.',
+            subtitle:
+                'Declarative, type-safe high-performance grid with custom cell rendering.',
           ),
           const SizedBox(height: 12),
           Expanded(
@@ -131,9 +184,11 @@ class _QuickstartGridExampleState extends State<QuickstartGridExample> {
   @override
   Widget build(BuildContext context) {
     return AppGrid<Map<String, dynamic>>(
-      controller: _controller,
-      rowHeight: 48.0,
-      headerHeight: 48.0,
-    );
+  controller: _controller,
+  style: const AppGridStyle(
+    rowHeight: 48.0,
+    headerHeight: 48.0,
+  ),
+);
   }
 }''';

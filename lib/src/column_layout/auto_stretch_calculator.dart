@@ -54,7 +54,8 @@ class AutoStretchCalculator {
 
     // Rule 2: If total minimum width exceeds or equals the screen width,
     // auto-stretch is disabled to allow natural horizontal scroll.
-    if (totalMinWidth >= availableViewportWidth || availableViewportWidth <= 0) {
+    if (totalMinWidth >= availableViewportWidth ||
+        availableViewportWidth <= 0) {
       return baseWidths;
     }
 
@@ -72,7 +73,8 @@ class AutoStretchCalculator {
         if (i == columns.length - 1) {
           // Last column absorbs rounding delta to guarantee exact fill
           final lastWidth = availableViewportWidth - accumulated;
-          stretchedWidths[col.id] = lastWidth > col.minWidth ? lastWidth : col.minWidth;
+          stretchedWidths[col.id] =
+              lastWidth > col.minWidth ? lastWidth : col.minWidth;
         } else {
           final extra = remainingSpace * (base / totalBaseWidth);
           final finalWidth = base + extra;

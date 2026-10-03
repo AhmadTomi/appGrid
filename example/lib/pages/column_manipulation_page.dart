@@ -19,15 +19,50 @@ class _ColumnManipulationPageState extends State<ColumnManipulationPage> {
     super.initState();
     _controller = AppGridController<Map<String, dynamic>>(
       initialData: [
-        {'code': 'A1', 'title': 'Introduction to Flutter Architecture', 'author': 'Google DeepMind Team', 'rating': 4.9},
-        {'code': 'B2', 'title': 'High Performance 2D Graphics', 'author': 'Dart Team', 'rating': 4.8},
-        {'code': 'C3', 'title': 'Spec-Driven Engineering in Practice', 'author': 'Antigravity Lead', 'rating': 5.0},
+        {
+          'code': 'A1',
+          'title': 'Introduction to Flutter Architecture',
+          'author': 'Google DeepMind Team',
+          'rating': 4.9
+        },
+        {
+          'code': 'B2',
+          'title': 'High Performance 2D Graphics',
+          'author': 'Dart Team',
+          'rating': 4.8
+        },
+        {
+          'code': 'C3',
+          'title': 'Spec-Driven Engineering in Practice',
+          'author': 'Antigravity Lead',
+          'rating': 5.0
+        },
       ],
       columns: [
-        GridColumn(id: 'code', label: 'Code', initialWidth: 90, minWidth: 60, valueGetter: (r) => r['code']),
-        GridColumn(id: 'title', label: 'Title (Double click resize handle to Auto-Fit)', initialWidth: 160, minWidth: 100, valueGetter: (r) => r['title']),
-        GridColumn(id: 'author', label: 'Author', initialWidth: 150, minWidth: 100, valueGetter: (r) => r['author']),
-        GridColumn(id: 'rating', label: 'Rating', initialWidth: 100, minWidth: 70, valueGetter: (r) => r['rating']),
+        GridColumn(
+            id: 'code',
+            label: 'Code',
+            initialWidth: 90,
+            minWidth: 60,
+            valueGetter: (r) => r['code']),
+        GridColumn(
+            id: 'title',
+            label: 'Title (Double click resize handle to Auto-Fit)',
+            initialWidth: 160,
+            minWidth: 100,
+            valueGetter: (r) => r['title']),
+        GridColumn(
+            id: 'author',
+            label: 'Author',
+            initialWidth: 150,
+            minWidth: 100,
+            valueGetter: (r) => r['author']),
+        GridColumn(
+            id: 'rating',
+            label: 'Rating',
+            initialWidth: 100,
+            minWidth: 70,
+            valueGetter: (r) => r['rating']),
       ],
     );
   }
@@ -47,7 +82,8 @@ class _ColumnManipulationPageState extends State<ColumnManipulationPage> {
         children: [
           buildDemoHeader(
             title: 'Interactive Column Manipulation',
-            subtitle: '1. Drag header to reorder • 2. Drag right handle to resize • 3. Double-click handle to auto-fit!',
+            subtitle:
+                '1. Drag header to reorder • 2. Drag right handle to resize • 3. Double-click handle to auto-fit!',
           ),
           const SizedBox(height: 12),
           Expanded(

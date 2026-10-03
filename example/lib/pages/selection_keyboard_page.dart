@@ -18,18 +18,32 @@ class _SelectionKeyboardPageState extends State<SelectionKeyboardPage> {
   @override
   void initState() {
     super.initState();
-    final data = List.generate(100, (i) => {
-      'index': i,
-      'title': 'Task #$i',
-      'priority': (i * 7) % 5 + 1,
-    });
+    final data = List.generate(
+        100,
+        (i) => {
+              'index': i,
+              'title': 'Task #$i',
+              'priority': (i * 7) % 5 + 1,
+            });
 
     _controller = AppGridController<Map<String, dynamic>>(
       initialData: data,
       columns: [
-        GridColumn(id: 'index', label: 'Raw Index', initialWidth: 120, valueGetter: (r) => r['index']),
-        GridColumn(id: 'title', label: 'Task Title', initialWidth: 200, valueGetter: (r) => r['title']),
-        GridColumn(id: 'priority', label: 'Priority', initialWidth: 120, valueGetter: (r) => r['priority']),
+        GridColumn(
+            id: 'index',
+            label: 'Raw Index',
+            initialWidth: 120,
+            valueGetter: (r) => r['index']),
+        GridColumn(
+            id: 'title',
+            label: 'Task Title',
+            initialWidth: 200,
+            valueGetter: (r) => r['title']),
+        GridColumn(
+            id: 'priority',
+            label: 'Priority',
+            initialWidth: 120,
+            valueGetter: (r) => r['priority']),
       ],
       onRowSelected: (info) {
         setState(() => _activeSelection = info);
@@ -52,7 +66,8 @@ class _SelectionKeyboardPageState extends State<SelectionKeyboardPage> {
         children: [
           buildDemoHeader(
             title: 'Dual-Index Selection & Keyboard Navigation',
-            subtitle: 'REQ-NAV-01 & AC-03/04: Click any row or use keyboard shortcuts (ArrowUp/Down, Home, End, PageUp/Down).',
+            subtitle:
+                'REQ-NAV-01 & AC-03/04: Click any row or use keyboard shortcuts (ArrowUp/Down, Home, End, PageUp/Down).',
           ),
           const SizedBox(height: 12),
           const Wrap(
@@ -83,8 +98,11 @@ class _SelectionKeyboardPageState extends State<SelectionKeyboardPage> {
               child: Row(
                 children: [
                   Icon(
-                    _activeSelection != null ? Icons.check_circle : Icons.keyboard,
-                    color: _activeSelection != null ? Colors.green : Colors.blue,
+                    _activeSelection != null
+                        ? Icons.check_circle
+                        : Icons.keyboard,
+                    color:
+                        _activeSelection != null ? Colors.green : Colors.blue,
                   ),
                   const SizedBox(width: 10),
                   Text(
@@ -110,7 +128,8 @@ class _SelectionKeyboardPageState extends State<SelectionKeyboardPage> {
   }
 }
 
-const String selectionAndKeyboardSnippet = '''// REQ-SEL-01, REQ-SEL-02 & REQ-NAV-01:
+const String selectionAndKeyboardSnippet =
+    '''// REQ-SEL-01, REQ-SEL-02 & REQ-NAV-01:
 AppGrid<Task>(
   controller: controller,
   onRowSelected: (RowIndexInfo info) {

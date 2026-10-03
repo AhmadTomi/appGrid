@@ -4,14 +4,15 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Manual Row Reorder (Controller Unit Tests)', () {
-    test('canReorderRows is true only when no column sorting is active', () async {
+    test('canReorderRows is true only when no column sorting is active',
+        () async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Alpha'},
           {'id': 2, 'name': 'Beta'},
           {'id': 3, 'name': 'Gamma'},
         ],
-        columns: [
+        columns: const [
           GridColumn(id: 'name', label: 'Name'),
         ],
       );
@@ -38,7 +39,7 @@ void main() {
 
       final controller = AppGridController<String>(
         initialData: ['Item A', 'Item B', 'Item C', 'Item D'],
-        columns: [GridColumn(id: 'name', label: 'Name')],
+        columns: const [GridColumn(id: 'name', label: 'Name')],
         onRowReorder: (oldIdx, newIdx) {
           reportedOldIndex = oldIdx;
           reportedNewIndex = newIdx;
@@ -52,8 +53,10 @@ void main() {
       expect(reportedNewIndex, 2);
 
       // Verify dataset order
-      expect(controller.getReorderedData(), ['Item B', 'Item C', 'Item A', 'Item D']);
-      expect(controller.getModifiedData(), ['Item B', 'Item C', 'Item A', 'Item D']);
+      expect(controller.getReorderedData(),
+          ['Item B', 'Item C', 'Item A', 'Item D']);
+      expect(controller.getModifiedData(),
+          ['Item B', 'Item C', 'Item A', 'Item D']);
       expect(controller.originalRowCount, 4);
       expect(controller.displayRowCount, 4);
       expect(controller.getRowByDisplayIndex(0), 'Item B');
@@ -65,7 +68,7 @@ void main() {
     test('reorderRow adjusts active row selection correctly', () {
       final controller = AppGridController<String>(
         initialData: ['Row 0', 'Row 1', 'Row 2', 'Row 3'],
-        columns: [GridColumn(id: 'text', label: 'Text')],
+        columns: const [GridColumn(id: 'text', label: 'Text')],
       );
 
       // Select Row 1
@@ -78,18 +81,22 @@ void main() {
       // Selection should follow Row 1 to index 3
       expect(controller.selectedDisplayIndex, 3);
       expect(controller.selectedOriginalIndex, 3);
-      expect(controller.getRowByDisplayIndex(controller.selectedDisplayIndex!), 'Row 1');
+      expect(controller.getRowByDisplayIndex(controller.selectedDisplayIndex!),
+          'Row 1');
 
       // Now move Row 0 to index 3 (which shifts Row 1 from index 3 down to index 2)
       controller.reorderRow(0, 3);
       expect(controller.selectedDisplayIndex, 2);
-      expect(controller.getRowByDisplayIndex(controller.selectedDisplayIndex!), 'Row 1');
+      expect(controller.getRowByDisplayIndex(controller.selectedDisplayIndex!),
+          'Row 1');
     });
 
-    test('State persistence does NOT persist row reordering (REQ-STATE-01, 02, 03)', () {
+    test(
+        'State persistence does NOT persist row reordering (REQ-STATE-01, 02, 03)',
+        () {
       final controller = AppGridController<String>(
         initialData: ['First', 'Second', 'Third'],
-        columns: [GridColumn(id: 'col', label: 'Col')],
+        columns: const [GridColumn(id: 'col', label: 'Col')],
       );
 
       controller.reorderRow(0, 2);
@@ -108,7 +115,9 @@ void main() {
   });
 
   group('Manual Row Reorder (Widget & Drag Handle Tests)', () {
-    testWidgets('Renders GridColumn.rowDragHandle and AppGridRowDragHandle in enabled state', (tester) async {
+    testWidgets(
+        'Renders GridColumn.rowDragHandle and AppGridRowDragHandle in enabled state',
+        (tester) async {
       final controller = AppGridController<String>(
         initialData: ['Alpha', 'Beta', 'Gamma'],
         columns: [
@@ -139,7 +148,8 @@ void main() {
       expect(find.byType(Draggable<int>), findsWidgets);
     });
 
-    testWidgets('Disables AppGridRowDragHandle when column sort is active', (tester) async {
+    testWidgets('Disables AppGridRowDragHandle when column sort is active',
+        (tester) async {
       final controller = AppGridController<String>(
         initialData: ['Alpha', 'Beta', 'Gamma'],
         columns: [
@@ -183,7 +193,9 @@ void main() {
       expect(find.byType(Draggable<int>), findsWidgets);
     });
 
-    testWidgets('Drag and drop row from index 0 to index 2 updates order and calls callback', (tester) async {
+    testWidgets(
+        'Drag and drop row from index 0 to index 2 updates order and calls callback',
+        (tester) async {
       int? reorderedOld;
       int? reorderedNew;
 

@@ -4,7 +4,8 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Column Visibility & Header Menu Tests', () {
-    testWidgets('Header menu displays Hide Column and Manage Columns options', (tester) async {
+    testWidgets('Header menu displays Hide Column and Manage Columns options',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Alpha', 'role': 'Admin'},
@@ -30,7 +31,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Open the column menu for 'Name' column (using unfold_more or more_vert icon)
-      final menuButtons = find.byIcon(Icons.unfold_more);
+      final menuButtons = find.byIcon(Icons.dehaze);
       expect(menuButtons, findsWidgets);
 
       await tester.tap(menuButtons.at(1));
@@ -43,7 +44,9 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('Tapping Hide Column hides the column and updates state persistence', (tester) async {
+    testWidgets(
+        'Tapping Hide Column hides the column and updates state persistence',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Alpha', 'role': 'Admin'},
@@ -68,10 +71,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(controller.visibleColumns.map((c) => c.id).toList(), equals(['id', 'name', 'role']));
+      expect(controller.visibleColumns.map((c) => c.id).toList(),
+          equals(['id', 'name', 'role']));
 
       // Open menu on 'Name' column (at index 1)
-      final menuButtons = find.byIcon(Icons.unfold_more);
+      final menuButtons = find.byIcon(Icons.dehaze);
       await tester.tap(menuButtons.at(1));
       await tester.pumpAndSettle();
 
@@ -80,7 +84,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify 'name' is hidden
-      expect(controller.visibleColumns.map((c) => c.id).toList(), equals(['id', 'role']));
+      expect(controller.visibleColumns.map((c) => c.id).toList(),
+          equals(['id', 'role']));
 
       // Verify exportState captures visibility
       final state = controller.exportState();
@@ -91,7 +96,8 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('Manage Columns dialog allows toggling visibility back on', (tester) async {
+    testWidgets('Manage Columns dialog allows toggling visibility back on',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Alpha', 'role': 'Admin'},
@@ -119,10 +125,11 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(controller.visibleColumns.map((c) => c.id).toList(), equals(['id', 'role']));
+      expect(controller.visibleColumns.map((c) => c.id).toList(),
+          equals(['id', 'role']));
 
       // Open menu on 'ID' column
-      final menuButtons = find.byIcon(Icons.unfold_more);
+      final menuButtons = find.byIcon(Icons.dehaze);
       await tester.tap(menuButtons.first);
       await tester.pumpAndSettle();
 
@@ -141,7 +148,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // 'name' is now visible
-      expect(controller.visibleColumns.map((c) => c.id).toList(), equals(['id', 'name', 'role']));
+      expect(controller.visibleColumns.map((c) => c.id).toList(),
+          equals(['id', 'name', 'role']));
 
       // Tap Done
       await tester.tap(find.text('Done'));
@@ -153,7 +161,8 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('Cannot hide the last remaining visible column', (tester) async {
+    testWidgets('Cannot hide the last remaining visible column',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         columns: const [
           GridColumn(id: 'only_col', label: 'Only Column', initialWidth: 100),
@@ -174,7 +183,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Open menu on 'only_col'
-      final menuButtons = find.byIcon(Icons.unfold_more);
+      final menuButtons = find.byIcon(Icons.dehaze);
       await tester.tap(menuButtons.first);
       await tester.pumpAndSettle();
 
@@ -194,7 +203,9 @@ void main() {
       controller.dispose();
     });
 
-    test('State Persistence roundtrip preserves column visibility strictly without width keys', () {
+    test(
+        'State Persistence roundtrip preserves column visibility strictly without width keys',
+        () {
       final controller = AppGridController<Map<String, dynamic>>(
         columns: const [
           GridColumn(id: 'c1', label: 'Col 1'),
@@ -222,13 +233,16 @@ void main() {
 
       controller2.restoreState(GridState.fromJson(jsonStr));
 
-      expect(controller2.visibleColumns.map((c) => c.id).toList(), equals(['c1', 'c3']));
+      expect(controller2.visibleColumns.map((c) => c.id).toList(),
+          equals(['c1', 'c3']));
 
       controller.dispose();
       controller2.dispose();
     });
 
-    testWidgets('Manage Columns overlay only blocks the table and does not block external UI', (tester) async {
+    testWidgets(
+        'Manage Columns overlay only blocks the table and does not block external UI',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Alpha'},
@@ -269,7 +283,8 @@ void main() {
       expect(
         find.descendant(
           of: find.byType(AppGrid<Map<String, dynamic>>),
-          matching: find.byType(AppGridColumnChooserOverlay<Map<String, dynamic>>),
+          matching:
+              find.byType(AppGridColumnChooserOverlay<Map<String, dynamic>>),
         ),
         findsOneWidget,
       );
@@ -281,7 +296,8 @@ void main() {
 
       // Verify clicking the barrier over the table dismisses the overlay
       // Find top-left area inside AppGrid (e.g. over header)
-      final gridBox = tester.getRect(find.byType(AppGrid<Map<String, dynamic>>));
+      final gridBox =
+          tester.getRect(find.byType(AppGrid<Map<String, dynamic>>));
       await tester.tapAt(Offset(gridBox.left + 20, gridBox.top + 20));
       await tester.pumpAndSettle();
 
@@ -291,15 +307,19 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('GridColumn(canHide: false) disables hiding across header menu, dialog, and controller', (tester) async {
+    testWidgets(
+        'GridColumn(canHide: false) disables hiding across header menu, dialog, and controller',
+        (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Alpha', 'role': 'Admin'},
         ],
         columns: const [
           GridColumn(id: 'id', label: 'ID', initialWidth: 100, canHide: false),
-          GridColumn(id: 'name', label: 'Name', initialWidth: 120, canHide: true),
-          GridColumn(id: 'role', label: 'Role', initialWidth: 120, canHide: true),
+          GridColumn(
+              id: 'name', label: 'Name', initialWidth: 120, canHide: true),
+          GridColumn(
+              id: 'role', label: 'Role', initialWidth: 120, canHide: true),
         ],
       );
 
@@ -321,7 +341,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // 2. Open header menu on 'ID' column (index 0)
-      final menuButtons = find.byIcon(Icons.unfold_more);
+      final menuButtons = find.byIcon(Icons.dehaze);
       await tester.tap(menuButtons.first);
       await tester.pumpAndSettle();
 

@@ -55,7 +55,8 @@ class _GridKeyboardHandlerState<T> extends State<GridKeyboardHandler<T>> {
     final rowCount = widget.controller.displayRowCount;
     if (rowCount == 0) return KeyEventResult.ignored;
 
-    final visibleRowCount = math.max(1, (widget.viewportHeight / widget.rowHeight).floor());
+    final visibleRowCount =
+        math.max(1, (widget.viewportHeight / widget.rowHeight).floor());
     final currentDisplayIndex = widget.controller.selectedDisplayIndex;
 
     int? targetIndex;
@@ -75,14 +76,14 @@ class _GridKeyboardHandlerState<T> extends State<GridKeyboardHandler<T>> {
     final isArrowDown = key == LogicalKeyboardKey.arrowDown ||
         key == LogicalKeyboardKey.numpad2;
 
-    final isArrowUp = key == LogicalKeyboardKey.arrowUp ||
-        key == LogicalKeyboardKey.numpad8;
+    final isArrowUp =
+        key == LogicalKeyboardKey.arrowUp || key == LogicalKeyboardKey.numpad8;
 
-    final isPageDown = key == LogicalKeyboardKey.pageDown ||
-        key == LogicalKeyboardKey.numpad3;
+    final isPageDown =
+        key == LogicalKeyboardKey.pageDown || key == LogicalKeyboardKey.numpad3;
 
-    final isPageUp = key == LogicalKeyboardKey.pageUp ||
-        key == LogicalKeyboardKey.numpad9;
+    final isPageUp =
+        key == LogicalKeyboardKey.pageUp || key == LogicalKeyboardKey.numpad9;
 
     // Smooth Key Repeat Rate Pacing:
     // When holding an arrow key, the OS generates repeat events at 30-60 Hz (every 16-33ms).
@@ -142,11 +143,15 @@ class _GridKeyboardHandlerState<T> extends State<GridKeyboardHandler<T>> {
   }
 
   void _scrollIntoView(int displayIndex) {
-    if (!widget.verticalScrollController.hasClients || widget.viewportHeight <= 0) return;
+    if (!widget.verticalScrollController.hasClients ||
+        widget.viewportHeight <= 0) {
+      return;
+    }
 
     final targetOffset = displayIndex * widget.rowHeight;
     final currentOffset = widget.verticalScrollController.offset;
-    final maxVisibleOffset = currentOffset + widget.viewportHeight - widget.rowHeight;
+    final maxVisibleOffset =
+        currentOffset + widget.viewportHeight - widget.rowHeight;
 
     final position = widget.verticalScrollController.position;
     final minScroll = position.minScrollExtent;
@@ -154,11 +159,13 @@ class _GridKeyboardHandlerState<T> extends State<GridKeyboardHandler<T>> {
 
     if (targetOffset < currentOffset) {
       // Row is above current view -> scroll up
-      widget.verticalScrollController.jumpTo(targetOffset.clamp(minScroll, maxScroll));
+      widget.verticalScrollController
+          .jumpTo(targetOffset.clamp(minScroll, maxScroll));
     } else if (targetOffset > maxVisibleOffset) {
       // Row is below current view -> scroll down
       final newOffset = targetOffset - widget.viewportHeight + widget.rowHeight;
-      widget.verticalScrollController.jumpTo(newOffset.clamp(minScroll, maxScroll));
+      widget.verticalScrollController
+          .jumpTo(newOffset.clamp(minScroll, maxScroll));
     }
   }
 

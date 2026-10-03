@@ -36,7 +36,8 @@ class DualIndexMap {
   /// Retrieves the [originalIndex] for a given [displayIndex].
   int getOriginalIndex(int displayIndex) {
     if (displayIndex < 0 || displayIndex >= _displayRowCount) {
-      throw RangeError.index(displayIndex, _displayToOriginal, 'displayIndex', null, _displayRowCount);
+      throw RangeError.index(displayIndex, _displayToOriginal, 'displayIndex',
+          null, _displayRowCount);
     }
     return _displayToOriginal[displayIndex];
   }

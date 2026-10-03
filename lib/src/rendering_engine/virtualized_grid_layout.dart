@@ -14,7 +14,8 @@ class VirtualizedRange {
   bool contains(int index) => index >= startIndex && index <= endIndex;
 
   @override
-  String toString() => 'VirtualizedRange($startIndex..$endIndex, count: $count)';
+  String toString() =>
+      'VirtualizedRange($startIndex..$endIndex, count: $count)';
 }
 
 /// Helper algorithms calculating 2D virtualization windows (rows and columns)
@@ -42,7 +43,8 @@ class VirtualizedGridLayout {
     final int visibleCount = (viewportHeight / rowHeight).ceil();
 
     final int start = math.max(0, firstCalculated - bufferRows);
-    final int end = math.min(totalRows - 1, firstCalculated + visibleCount + bufferRows);
+    final int end =
+        math.min(totalRows - 1, firstCalculated + visibleCount + bufferRows);
 
     return VirtualizedRange(start, end);
   }

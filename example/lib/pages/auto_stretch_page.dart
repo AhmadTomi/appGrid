@@ -19,15 +19,50 @@ class _AutoStretchPageState extends State<AutoStretchPage> {
   Widget build(BuildContext context) {
     final List<GridColumn> columns = _wideColumnsMode
         ? [
-            GridColumn(id: 'col1', label: 'Field 1 (min 300)', minWidth: 300, initialWidth: 300, valueGetter: (r) => r['col1']),
-            GridColumn(id: 'col2', label: 'Field 2 (min 300)', minWidth: 300, initialWidth: 300, valueGetter: (r) => r['col2']),
-            GridColumn(id: 'col3', label: 'Field 3 (min 300)', minWidth: 300, initialWidth: 300, valueGetter: (r) => r['col3']),
-            GridColumn(id: 'col4', label: 'Field 4 (min 300)', minWidth: 300, initialWidth: 300, valueGetter: (r) => r['col4']),
+            GridColumn(
+                id: 'col1',
+                label: 'Field 1 (min 300)',
+                minWidth: 300,
+                initialWidth: 300,
+                valueGetter: (r) => r['col1']),
+            GridColumn(
+                id: 'col2',
+                label: 'Field 2 (min 300)',
+                minWidth: 300,
+                initialWidth: 300,
+                valueGetter: (r) => r['col2']),
+            GridColumn(
+                id: 'col3',
+                label: 'Field 3 (min 300)',
+                minWidth: 300,
+                initialWidth: 300,
+                valueGetter: (r) => r['col3']),
+            GridColumn(
+                id: 'col4',
+                label: 'Field 4 (min 300)',
+                minWidth: 300,
+                initialWidth: 300,
+                valueGetter: (r) => r['col4']),
           ]
         : [
-            GridColumn(id: 'col1', label: 'Column 1 (min 100)', minWidth: 100, initialWidth: 100, valueGetter: (r) => r['col1']),
-            GridColumn(id: 'col2', label: 'Column 2 (min 150)', minWidth: 150, initialWidth: 150, valueGetter: (r) => r['col2']),
-            GridColumn(id: 'col3', label: 'Column 3 (min 150)', minWidth: 150, initialWidth: 150, valueGetter: (r) => r['col3']),
+            GridColumn(
+                id: 'col1',
+                label: 'Column 1 (min 100)',
+                minWidth: 100,
+                initialWidth: 100,
+                valueGetter: (r) => r['col1']),
+            GridColumn(
+                id: 'col2',
+                label: 'Column 2 (min 150)',
+                minWidth: 150,
+                initialWidth: 150,
+                valueGetter: (r) => r['col2']),
+            GridColumn(
+                id: 'col3',
+                label: 'Column 3 (min 150)',
+                minWidth: 150,
+                initialWidth: 150,
+                valueGetter: (r) => r['col3']),
           ];
 
     final controller = AppGridController<Map<String, dynamic>>(
@@ -45,7 +80,8 @@ class _AutoStretchPageState extends State<AutoStretchPage> {
         children: [
           buildDemoHeader(
             title: 'Auto-Stretch Layout (REQ-COL-05 & AC-06)',
-            subtitle: 'Stretches ONLY when sum(minWidth) < Screen. Exceeding sum triggers horizontal scroll. Manual resize disables auto-stretch.',
+            subtitle:
+                'Stretches ONLY when sum(minWidth) < Screen. Exceeding sum triggers horizontal scroll. Manual resize disables auto-stretch.',
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -59,7 +95,8 @@ class _AutoStretchPageState extends State<AutoStretchPage> {
                     _gridKey = UniqueKey();
                   });
                 },
-                icon: Icon(_wideColumnsMode ? Icons.compress : Icons.pan_tool_alt),
+                icon: Icon(
+                    _wideColumnsMode ? Icons.compress : Icons.pan_tool_alt),
                 label: Text(
                   _wideColumnsMode
                       ? 'Switch to Few Columns (sum < Screen: Auto-Stretch)'
@@ -72,7 +109,10 @@ class _AutoStretchPageState extends State<AutoStretchPage> {
                     _gridKey = UniqueKey();
                   });
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Widths reset & auto-stretch re-engaged!'), duration: Duration(seconds: 1)),
+                    const SnackBar(
+                        content:
+                            Text('Widths reset & auto-stretch re-engaged!'),
+                        duration: Duration(seconds: 1)),
                   );
                 },
                 icon: const Icon(Icons.refresh, size: 16),
@@ -84,19 +124,23 @@ class _AutoStretchPageState extends State<AutoStretchPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: _wideColumnsMode ? Colors.amber.withAlpha(40) : Colors.blue.withAlpha(40),
+              color: _wideColumnsMode
+                  ? Colors.amber.withAlpha(40)
+                  : Colors.blue.withAlpha(40),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Row(
               children: [
-                Icon(_wideColumnsMode ? Icons.swap_horiz : Icons.fullscreen, size: 16),
+                Icon(_wideColumnsMode ? Icons.swap_horiz : Icons.fullscreen,
+                    size: 16),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     _wideColumnsMode
                         ? 'Total minWidth (1200px) exceeds screen: Auto-stretch inhibited, horizontal scroll active.'
                         : 'Total minWidth (400px) is lower than screen: Auto-stretched proportionally. Try dragging right edge of a column to manually resize and disable auto-stretch!',
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                        fontSize: 12, fontWeight: FontWeight.w500),
                   ),
                 ),
               ],

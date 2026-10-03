@@ -21,7 +21,8 @@ class AppGridRowDragHandle<T> extends StatelessWidget {
   final Widget? disabledIcon;
 
   /// Optional custom drag feedback builder.
-  final Widget Function(BuildContext context, int displayIndex, T data)? feedbackBuilder;
+  final Widget Function(BuildContext context, int displayIndex, T data)?
+      feedbackBuilder;
 
   /// Tooltip message shown when reordering is disabled due to active sorting.
   final String? disabledTooltip;
@@ -73,9 +74,10 @@ class AppGridRowDragHandle<T> extends StatelessWidget {
       );
     }
 
-    final rowData = displayIndex >= 0 && displayIndex < controller.displayRowCount
-        ? controller.getRowByDisplayIndex(displayIndex)
-        : null;
+    final rowData =
+        displayIndex >= 0 && displayIndex < controller.displayRowCount
+            ? controller.getRowByDisplayIndex(displayIndex)
+            : null;
 
     Widget feedback;
     if (feedbackBuilder != null && rowData != null) {

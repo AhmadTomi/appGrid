@@ -167,9 +167,12 @@ class ColumnLayoutManager extends ChangeNotifier {
       }
     }
 
-    final leftGroups = CompactColumnGroup.buildGroups(columns: leftCols, compactMode: isCompact);
-    final centerGroups = CompactColumnGroup.buildGroups(columns: centerCols, compactMode: isCompact);
-    final rightGroups = CompactColumnGroup.buildGroups(columns: rightCols, compactMode: isCompact);
+    final leftGroups = CompactColumnGroup.buildGroups(
+        columns: leftCols, compactMode: isCompact);
+    final centerGroups = CompactColumnGroup.buildGroups(
+        columns: centerCols, compactMode: isCompact);
+    final rightGroups = CompactColumnGroup.buildGroups(
+        columns: rightCols, compactMode: isCompact);
 
     final allGroups = [...leftGroups, ...centerGroups, ...rightGroups];
 
@@ -218,7 +221,8 @@ class ColumnLayoutManager extends ChangeNotifier {
     final centerPane = _computePane(centerCols, centerGroups, allWidths);
     final rightPane = _computePane(rightCols, rightGroups, allWidths);
 
-    final totalGridWidth = leftPane.totalWidth + centerPane.totalWidth + rightPane.totalWidth;
+    final totalGridWidth =
+        leftPane.totalWidth + centerPane.totalWidth + rightPane.totalWidth;
 
     return ComputedGridLayout(
       leftPane: leftPane,
