@@ -1,8 +1,62 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../models/app_grid_style.dart';
 import '../models/grid_column.dart';
 import '../models/compact_column_group.dart';
 import '../rendering_engine/grid_builders.dart';
+
+/// Item representing a footer cell that may span multiple column groups horizontally.
+class AppGridFooterSpanItem {
+  final CompactColumnGroup group;
+  final GridColumn column;
+  final double width;
+  final double offset;
+  final int spanCount;
+
+  const AppGridFooterSpanItem({
+    required this.group,
+    required this.column,
+    required this.width,
+    required this.offset,
+    required this.spanCount,
+  });
+
+  /// Computes the spanned footer items for a list of column groups in a pane.
+  static List<AppGridFooterSpanItem> computeSpanItems({
+    required List<CompactColumnGroup> groups,
+    required Map<String, double> widths,
+    required Map<String, double> offsets,
+  }) {
+    final items = <AppGridFooterSpanItem>[];
+    int i = 0;
+    while (i < groups.length) {
+      final grp = groups[i];
+      final col = grp.topColumn;
+      final requestedSpan = col.footerSpan;
+      final actualSpan =
+          math.max(1, math.min(requestedSpan, groups.length - i));
+
+      double spanWidth = 0.0;
+      for (int s = 0; s < actualSpan; s++) {
+        final g = groups[i + s];
+        spanWidth += (widths[g.topColumn.id] ?? 0.0);
+      }
+
+      final offset = offsets[col.id] ?? 0.0;
+
+      items.add(AppGridFooterSpanItem(
+        group: grp,
+        column: col,
+        width: spanWidth,
+        offset: offset,
+        spanCount: actualSpan,
+      ));
+
+      i += actualSpan;
+    }
+    return items;
+  }
+}
 
 /// Renders a column footer cell using [GridFooterBuilder].
 class AppGridFooterCell extends StatelessWidget {
@@ -28,12 +82,18 @@ class AppGridFooterCell extends StatelessWidget {
   Widget _buildSingleFooter(
       BuildContext context, GridColumn col, ThemeData theme) {
     if (col.footerBuilder != null) {
-      return col.footerBuilder!(context, currentVisibleData);
+      return Container(
+        alignment: col.footerAlignment,
+        child: col.footerBuilder!(context, currentVisibleData),
+      );
     } else if (customFooterBuilder != null) {
-      return customFooterBuilder!(context, col, currentVisibleData);
+      return Container(
+        alignment: col.footerAlignment,
+        child: customFooterBuilder!(context, col, currentVisibleData),
+      );
     } else {
       return Container(
-        alignment: Alignment.centerLeft,
+        alignment: col.footerAlignment,
         padding: const EdgeInsets.symmetric(horizontal: 12.0),
         child: Text(
           'Total: ${currentVisibleData.length}',

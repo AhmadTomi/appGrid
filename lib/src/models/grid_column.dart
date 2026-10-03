@@ -94,6 +94,15 @@ class GridColumn {
   /// Alignment for column header child widgets. Defaults to [Alignment.center].
   final Alignment headerAlignment;
 
+  /// Number of columns this column's footer cell spans across. Defaults to 1.
+  ///
+  /// Spanned sibling columns to the right in the same pane will have their footer
+  /// cells omitted so that this column's footer expands to cover their combined width.
+  final int footerSpan;
+
+  /// Alignment for column footer child widgets. Defaults to [Alignment.centerLeft].
+  final Alignment footerAlignment;
+
   /// Whether this column is a dedicated drag handle column for manual row reordering.
   final bool isRowDragHandle;
 
@@ -135,6 +144,8 @@ class GridColumn {
     this.headerBuilder,
     this.cellAlignment = Alignment.centerLeft,
     this.headerAlignment = Alignment.center,
+    this.footerSpan = 1,
+    this.footerAlignment = Alignment.centerLeft,
     this.isRowDragHandle = false,
     this.rowDragIcon,
     this.rowDragDisabledIcon,
@@ -142,7 +153,8 @@ class GridColumn {
     this.sortAscendingIcon,
     this.sortDescendingIcon,
     this.headerConfig,
-  }) : assert(minWidth >= 0, 'minWidth cannot be negative');
+  })  : assert(minWidth >= 0, 'minWidth cannot be negative'),
+        assert(footerSpan >= 1, 'footerSpan must be at least 1');
 
   /// Factory constructor creating a dedicated drag handle column for manual row reordering.
   ///
@@ -197,6 +209,8 @@ class GridColumn {
     ColumnHeaderBuilder? headerBuilder,
     Alignment? cellAlignment,
     Alignment? headerAlignment,
+    int? footerSpan,
+    Alignment? footerAlignment,
     Widget? menuIcon,
     Widget? sortAscendingIcon,
     Widget? sortDescendingIcon,
@@ -222,6 +236,8 @@ class GridColumn {
       headerBuilder: headerBuilder ?? this.headerBuilder,
       cellAlignment: cellAlignment ?? this.cellAlignment,
       headerAlignment: headerAlignment ?? this.headerAlignment,
+      footerSpan: footerSpan ?? this.footerSpan,
+      footerAlignment: footerAlignment ?? this.footerAlignment,
       isRowDragHandle: isRowDragHandle,
       rowDragIcon: rowDragIcon,
       rowDragDisabledIcon: rowDragDisabledIcon,
@@ -248,6 +264,8 @@ class GridColumn {
           canCompact == other.canCompact &&
           cellAlignment == other.cellAlignment &&
           headerAlignment == other.headerAlignment &&
+          footerSpan == other.footerSpan &&
+          footerAlignment == other.footerAlignment &&
           isRowDragHandle == other.isRowDragHandle &&
           headerConfig == other.headerConfig;
 
@@ -262,10 +280,12 @@ class GridColumn {
       canCompact.hashCode ^
       cellAlignment.hashCode ^
       headerAlignment.hashCode ^
+      footerSpan.hashCode ^
+      footerAlignment.hashCode ^
       isRowDragHandle.hashCode ^
       headerConfig.hashCode;
 
   @override
   String toString() =>
-      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, canCompact: $canCompact, cellAlignment: $cellAlignment, headerAlignment: $headerAlignment, isRowDragHandle: $isRowDragHandle, headerConfig: $headerConfig)';
+      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, canCompact: $canCompact, cellAlignment: $cellAlignment, headerAlignment: $headerAlignment, footerSpan: $footerSpan, footerAlignment: $footerAlignment, isRowDragHandle: $isRowDragHandle, headerConfig: $headerConfig)';
 }

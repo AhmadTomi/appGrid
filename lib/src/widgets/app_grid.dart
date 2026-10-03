@@ -868,11 +868,27 @@ class _AppGridState<T> extends State<AppGrid<T>> {
         widget.showHorizontalScrollbar &&
         maxHorizontalScroll > 0;
 
+    final leftSpanItems = AppGridFooterSpanItem.computeSpanItems(
+      groups: layout.leftPane.groups,
+      widths: layout.leftPane.widths,
+      offsets: layout.leftPane.offsets,
+    );
+    final centerSpanItems = AppGridFooterSpanItem.computeSpanItems(
+      groups: layout.centerPane.groups,
+      widths: layout.centerPane.widths,
+      offsets: layout.centerPane.offsets,
+    );
+    final rightSpanItems = AppGridFooterSpanItem.computeSpanItems(
+      groups: layout.rightPane.groups,
+      widths: layout.rightPane.widths,
+      offsets: layout.rightPane.offsets,
+    );
+
     return ClipRect(
       child: Stack(
         children: [
-          // Center Scrollable Footer (Horizontally Virtualized)
-          if (centerWidth > 0 && layout.centerPane.groups.isNotEmpty)
+          // Center Scrollable Footer (Horizontally Virtualized with Spanning)
+          if (centerWidth > 0 && centerSpanItems.isNotEmpty)
             Positioned(
               left: leftWidth,
               width: centerWidth,
@@ -889,50 +905,35 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                               _horizontalScrollController.positions.isNotEmpty
                           ? _horizontalScrollController.positions.first.pixels
                           : 0.0;
-                      final centerGroupRange =
-                          VirtualizedGridLayout.computeGroupRange(
-                        scrollOffset: hScroll,
-                        viewportWidth: centerWidth,
-                        groups: layout.centerPane.groups,
-                        widths: layout.centerPane.widths,
-                        offsets: layout.centerPane.offsets,
-                      );
-                      final visibleGroups = centerGroupRange.count > 0
-                          ? layout.centerPane.groups.sublist(
-                              centerGroupRange.startIndex,
-                              centerGroupRange.endIndex + 1,
-                            )
-                          : <CompactColumnGroup>[];
-                      if (visibleGroups.isEmpty) return const SizedBox.shrink();
 
-                      final firstOffset = layout.centerPane
-                              .offsets[visibleGroups.first.topColumn.id] ??
-                          0.0;
+                      final visibleSpanItems = centerSpanItems.where((item) {
+                        return (item.offset + item.width) > hScroll &&
+                            item.offset < (hScroll + centerWidth);
+                      }).toList();
+
+                      if (visibleSpanItems.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
 
                       return Stack(
                         clipBehavior: Clip.hardEdge,
                         children: [
-                          Positioned(
-                            left: firstOffset - hScroll,
-                            top: 0,
-                            bottom: 0,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                for (final grp in visibleGroups)
-                                  AppGridFooterCell(
-                                    column: grp.topColumn,
-                                    group: grp,
-                                    width: layout
-                                        .centerPane.widths[grp.topColumn.id]!,
-                                    height: footerHeight,
-                                    currentVisibleData: visibleData,
-                                    customFooterBuilder: widget.footerBuilder,
-                                    style: widget.style,
-                                  ),
-                              ],
+                          for (final item in visibleSpanItems)
+                            Positioned(
+                              left: item.offset - hScroll,
+                              width: item.width,
+                              top: 0,
+                              bottom: 0,
+                              child: AppGridFooterCell(
+                                column: item.column,
+                                group: item.group,
+                                width: item.width,
+                                height: footerHeight,
+                                currentVisibleData: visibleData,
+                                customFooterBuilder: widget.footerBuilder,
+                                style: widget.style,
+                              ),
                             ),
-                          ),
                         ],
                       );
                     },
@@ -942,7 +943,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
             ),
 
           // Left Pinned Footer
-          if (leftWidth > 0 && layout.leftPane.groups.isNotEmpty)
+          if (leftWidth > 0 && leftSpanItems.isNotEmpty)
             Positioned(
               left: 0,
               width: leftWidth,
@@ -955,11 +956,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      for (final grp in layout.leftPane.groups)
+                      for (final item in leftSpanItems)
                         AppGridFooterCell(
-                          column: grp.topColumn,
-                          group: grp,
-                          width: layout.leftPane.widths[grp.topColumn.id]!,
+                          column: item.column,
+                          group: item.group,
+                          width: item.width,
                           height: footerHeight,
                           currentVisibleData: visibleData,
                           customFooterBuilder: widget.footerBuilder,
@@ -972,7 +973,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
             ),
 
           // Right Pinned Footer
-          if (rightWidth > 0 && layout.rightPane.groups.isNotEmpty)
+          if (rightWidth > 0 && rightSpanItems.isNotEmpty)
             Positioned(
               right: 0,
               width: rightWidth,
@@ -985,11 +986,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      for (final grp in layout.rightPane.groups)
+                      for (final item in rightSpanItems)
                         AppGridFooterCell(
-                          column: grp.topColumn,
-                          group: grp,
-                          width: layout.rightPane.widths[grp.topColumn.id]!,
+                          column: item.column,
+                          group: item.group,
+                          width: item.width,
                           height: footerHeight,
                           currentVisibleData: visibleData,
                           customFooterBuilder: widget.footerBuilder,
