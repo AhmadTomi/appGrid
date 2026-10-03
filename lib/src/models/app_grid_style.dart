@@ -14,8 +14,11 @@ class AppGridStyle {
   /// Height of standard grid rows in logical pixels. Defaults to 48.0.
   final double rowHeight;
 
-  /// Default text style for table body cells / rows. Defaults to 13pt regular.
-  final TextStyle rowTextStyle;
+  /// Optional text style for table body cells / rows. Defaults to 13pt regular if null.
+  final TextStyle? rowTextStyle;
+
+  /// Optional padding applied to table row cells.
+  final EdgeInsetsGeometry? rowPadding;
 
   /// Background color applied to the selected row.
   final Color? selectedRowColor;
@@ -33,8 +36,11 @@ class AppGridStyle {
   /// Optional background color for header cells.
   final Color? headerBackgroundColor;
 
-  /// Default text style applied to column header labels. Defaults to 13pt bold.
-  final TextStyle headerTextStyle;
+  /// Optional text style applied to column header labels. Defaults to 13pt bold if null.
+  final TextStyle? headerTextStyle;
+
+  /// Optional padding applied to column header labels / cells.
+  final EdgeInsetsGeometry? headerPadding;
 
   // --- Menu Styling ---
   /// Default text style applied to column header context menu items. Defaults to 13pt regular.
@@ -47,8 +53,11 @@ class AppGridStyle {
   /// Optional background color for the footer bar.
   final Color? footerBackgroundColor;
 
-  /// Default text style applied to column footer cells. Defaults to 12pt bold.
-  final TextStyle footerTextStyle;
+  /// Optional text style applied to column footer cells. Defaults to 12pt bold if null.
+  final TextStyle? footerTextStyle;
+
+  /// Optional padding applied to column footer cells.
+  final EdgeInsetsGeometry? footerPadding;
 
   // --- Grid Lines & Borders ---
   /// Outer border color around the entire grid.
@@ -116,21 +125,21 @@ class AppGridStyle {
 
   const AppGridStyle({
     this.rowHeight = 48.0,
-    this.rowTextStyle =
-        const TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+    this.rowTextStyle,
+    this.rowPadding,
     this.selectedRowColor,
     this.evenRowColor,
     this.oddRowColor,
     this.headerHeight = 48.0,
     this.headerBackgroundColor,
-    this.headerTextStyle =
-        const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+    this.headerTextStyle,
+    this.headerPadding,
     this.menuTextStyle =
         const TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
     this.footerHeight,
     this.footerBackgroundColor,
-    this.footerTextStyle =
-        const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+    this.footerTextStyle,
+    this.footerPadding,
     this.borderColor,
     this.gridLineColor,
     this.showHorizontalGridLines = true,
@@ -156,16 +165,19 @@ class AppGridStyle {
   AppGridStyle copyWith({
     double? rowHeight,
     TextStyle? rowTextStyle,
+    EdgeInsetsGeometry? rowPadding,
     Color? selectedRowColor,
     Color? evenRowColor,
     Color? oddRowColor,
     double? headerHeight,
     Color? headerBackgroundColor,
     TextStyle? headerTextStyle,
+    EdgeInsetsGeometry? headerPadding,
     TextStyle? menuTextStyle,
     double? footerHeight,
     Color? footerBackgroundColor,
     TextStyle? footerTextStyle,
+    EdgeInsetsGeometry? footerPadding,
     Color? borderColor,
     Color? gridLineColor,
     bool? showHorizontalGridLines,
@@ -189,6 +201,7 @@ class AppGridStyle {
     return AppGridStyle(
       rowHeight: rowHeight ?? this.rowHeight,
       rowTextStyle: rowTextStyle ?? this.rowTextStyle,
+      rowPadding: rowPadding ?? this.rowPadding,
       selectedRowColor: selectedRowColor ?? this.selectedRowColor,
       evenRowColor: evenRowColor ?? this.evenRowColor,
       oddRowColor: oddRowColor ?? this.oddRowColor,
@@ -196,11 +209,13 @@ class AppGridStyle {
       headerBackgroundColor:
           headerBackgroundColor ?? this.headerBackgroundColor,
       headerTextStyle: headerTextStyle ?? this.headerTextStyle,
+      headerPadding: headerPadding ?? this.headerPadding,
       menuTextStyle: menuTextStyle ?? this.menuTextStyle,
       footerHeight: footerHeight ?? this.footerHeight,
       footerBackgroundColor:
           footerBackgroundColor ?? this.footerBackgroundColor,
       footerTextStyle: footerTextStyle ?? this.footerTextStyle,
+      footerPadding: footerPadding ?? this.footerPadding,
       borderColor: borderColor ?? this.borderColor,
       gridLineColor: gridLineColor ?? this.gridLineColor,
       showHorizontalGridLines:
@@ -237,16 +252,19 @@ class AppGridStyle {
           runtimeType == other.runtimeType &&
           rowHeight == other.rowHeight &&
           rowTextStyle == other.rowTextStyle &&
+          rowPadding == other.rowPadding &&
           selectedRowColor == other.selectedRowColor &&
           evenRowColor == other.evenRowColor &&
           oddRowColor == other.oddRowColor &&
           headerHeight == other.headerHeight &&
           headerBackgroundColor == other.headerBackgroundColor &&
           headerTextStyle == other.headerTextStyle &&
+          headerPadding == other.headerPadding &&
           menuTextStyle == other.menuTextStyle &&
           footerHeight == other.footerHeight &&
           footerBackgroundColor == other.footerBackgroundColor &&
           footerTextStyle == other.footerTextStyle &&
+          footerPadding == other.footerPadding &&
           borderColor == other.borderColor &&
           gridLineColor == other.gridLineColor &&
           showHorizontalGridLines == other.showHorizontalGridLines &&
@@ -273,16 +291,19 @@ class AppGridStyle {
       Object.hashAll([
         rowHeight,
         rowTextStyle,
+        rowPadding,
         selectedRowColor,
         evenRowColor,
         oddRowColor,
         headerHeight,
         headerBackgroundColor,
         headerTextStyle,
+        headerPadding,
         menuTextStyle,
         footerHeight,
         footerBackgroundColor,
         footerTextStyle,
+        footerPadding,
         borderColor,
         gridLineColor,
         showHorizontalGridLines,

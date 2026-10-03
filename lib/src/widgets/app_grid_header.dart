@@ -25,7 +25,8 @@ class AppGridHeaderCell<T> extends StatefulWidget {
   final AppGridStyle style;
   final AppGridHeaderConfig headerConfig;
 
-  TextStyle get headerTextStyle => style.headerTextStyle;
+  TextStyle? get headerTextStyle => style.headerTextStyle;
+  EdgeInsetsGeometry? get headerPadding => style.headerPadding;
   TextStyle get menuTextStyle => style.menuTextStyle;
   Color? get headerBackgroundColor => style.headerBackgroundColor;
   Color? get gridLineColor => style.gridLineColor;
@@ -113,47 +114,60 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
     required VoidCallback onSortToggle,
     required bool allowSort,
   }) {
+    final headerPadding = widget.headerPadding;
+    final effectiveHeaderTextStyle = widget.headerTextStyle ??
+        const TextStyle(fontSize: 13, fontWeight: FontWeight.bold);
+
     final columnHeaderBuilder =
         col.headerBuilder ?? widget.controller.getHeaderBuilder(col.id);
     if (columnHeaderBuilder != null) {
+      final headerWidget = columnHeaderBuilder(
+        context,
+        sortDirection,
+        onSortToggle,
+      );
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: allowSort ? onSortToggle : null,
         child: Align(
           alignment: col.headerAlignment,
-          child: columnHeaderBuilder(
-            context,
-            sortDirection,
-            onSortToggle,
-          ),
+          child: headerPadding != null
+              ? Padding(padding: headerPadding, child: headerWidget)
+              : headerWidget,
         ),
       );
     } else if (widget.customHeaderBuilder != null) {
+      final headerWidget = widget.customHeaderBuilder!(
+        context,
+        col,
+        sortDirection,
+        onSortToggle,
+      );
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: allowSort ? onSortToggle : null,
         child: Align(
           alignment: col.headerAlignment,
-          child: widget.customHeaderBuilder!(
-            context,
-            col,
-            sortDirection,
-            onSortToggle,
-          ),
+          child: headerPadding != null
+              ? Padding(padding: headerPadding, child: headerWidget)
+              : headerWidget,
         ),
       );
     } else if (widget.controller.globalHeaderBuilder != null) {
+      final headerWidget = widget.controller.globalHeaderBuilder!(
+        context,
+        col,
+        sortDirection,
+        onSortToggle,
+      );
       return GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: allowSort ? onSortToggle : null,
         child: Align(
           alignment: col.headerAlignment,
-          child: widget.controller.globalHeaderBuilder!(
-            context,
-            col,
-            sortDirection,
-            onSortToggle,
-          ),
+          child: headerPadding != null
+              ? Padding(padding: headerPadding, child: headerWidget)
+              : headerWidget,
         ),
       );
     } else {
@@ -162,10 +176,10 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         onTap: allowSort ? onSortToggle : null,
         child: Container(
           alignment: col.headerAlignment,
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: headerPadding ?? const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             col.label,
-            style: widget.headerTextStyle,
+            style: effectiveHeaderTextStyle,
             overflow: TextOverflow.ellipsis,
             textAlign: _textAlignFromAlignment(col.headerAlignment),
           ),

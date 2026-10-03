@@ -81,24 +81,30 @@ class AppGridFooterCell extends StatelessWidget {
 
   Widget _buildSingleFooter(
       BuildContext context, GridColumn col, ThemeData theme) {
+    final effectivePadding = style.footerPadding;
+    final effectiveTextStyle = style.footerTextStyle ??
+        theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold) ??
+        const TextStyle(fontSize: 12, fontWeight: FontWeight.bold);
+
     if (col.footerBuilder != null) {
       return Container(
         alignment: col.footerAlignment,
+        padding: effectivePadding,
         child: col.footerBuilder!(context, currentVisibleData),
       );
     } else if (customFooterBuilder != null) {
       return Container(
         alignment: col.footerAlignment,
+        padding: effectivePadding,
         child: customFooterBuilder!(context, col, currentVisibleData),
       );
     } else {
       return Container(
         alignment: col.footerAlignment,
-        padding: const EdgeInsets.symmetric(horizontal: 12.0),
+        padding: effectivePadding ?? const EdgeInsets.symmetric(horizontal: 12.0),
         child: Text(
           'Total: ${currentVisibleData.length}',
-          style:
-              theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.bold),
+          style: effectiveTextStyle,
           overflow: TextOverflow.ellipsis,
         ),
       );

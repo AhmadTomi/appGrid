@@ -176,13 +176,22 @@ class AppGrid<T> extends StatefulWidget {
   double get headerHeight => style.headerHeight;
 
   /// Default text style for table header labels.
-  TextStyle get headerTextStyle => style.headerTextStyle;
+  TextStyle? get headerTextStyle => style.headerTextStyle;
 
   /// Default text style for table body cells / rows.
-  TextStyle get rowTextStyle => style.rowTextStyle;
+  TextStyle? get rowTextStyle => style.rowTextStyle;
 
   /// Convenient alias for [rowTextStyle].
-  TextStyle get cellTextStyle => style.rowTextStyle;
+  TextStyle? get cellTextStyle => style.rowTextStyle;
+
+  /// Padding applied to column header labels / cells.
+  EdgeInsetsGeometry? get headerPadding => style.headerPadding;
+
+  /// Padding applied to table row cells.
+  EdgeInsetsGeometry? get rowPadding => style.rowPadding;
+
+  /// Padding applied to column footer cells.
+  EdgeInsetsGeometry? get footerPadding => style.footerPadding;
 
   /// Default text style for column context menu items.
   TextStyle get menuTextStyle => style.menuTextStyle;

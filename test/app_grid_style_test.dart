@@ -9,14 +9,14 @@ void main() {
       const style = AppGridStyle();
       expect(style.rowHeight, equals(48.0));
       expect(style.headerHeight, equals(48.0));
-      expect(style.headerTextStyle.fontSize, equals(13.0));
-      expect(style.headerTextStyle.fontWeight, equals(FontWeight.bold));
-      expect(style.rowTextStyle.fontSize, equals(13.0));
-      expect(style.rowTextStyle.fontWeight, equals(FontWeight.normal));
+      expect(style.headerTextStyle, isNull);
+      expect(style.headerPadding, isNull);
+      expect(style.rowTextStyle, isNull);
+      expect(style.rowPadding, isNull);
       expect(style.menuTextStyle.fontSize, equals(13.0));
       expect(style.menuTextStyle.fontWeight, equals(FontWeight.normal));
-      expect(style.footerTextStyle.fontSize, equals(12.0));
-      expect(style.footerTextStyle.fontWeight, equals(FontWeight.bold));
+      expect(style.footerTextStyle, isNull);
+      expect(style.footerPadding, isNull);
 
       expect(style.showHorizontalGridLines, isTrue);
       expect(style.showVerticalGridLines, isFalse);
@@ -29,7 +29,7 @@ void main() {
     });
 
     test(
-        'copyWith updates specified fields including font styles while preserving existing values',
+        'copyWith updates specified fields including font styles and padding while preserving existing values',
         () {
       const base = AppGridStyle(
         rowHeight: 40.0,
@@ -43,12 +43,20 @@ void main() {
           fontSize: 16.0, fontWeight: FontWeight.w500, color: Colors.indigo);
       const customMenuFont =
           TextStyle(fontSize: 14.0, fontStyle: FontStyle.italic);
+      const customHeaderPadding = EdgeInsets.all(12.0);
+      const customRowPadding = EdgeInsets.symmetric(horizontal: 20.0);
+      const customFooterPadding = EdgeInsets.all(8.0);
+      const customFooterFont = TextStyle(fontSize: 11.0, color: Colors.green);
 
       final updated = base.copyWith(
         rowHeight: 52.0,
         selectedRowColor: Colors.blue,
         showVerticalGridLines: true,
         headerTextStyle: customFont,
+        headerPadding: customHeaderPadding,
+        rowPadding: customRowPadding,
+        footerPadding: customFooterPadding,
+        footerTextStyle: customFooterFont,
         menuTextStyle: customMenuFont,
       );
 
@@ -57,6 +65,10 @@ void main() {
       expect(updated.selectedRowColor, equals(Colors.blue));
       expect(updated.showVerticalGridLines, isTrue);
       expect(updated.headerTextStyle, equals(customFont));
+      expect(updated.headerPadding, equals(customHeaderPadding));
+      expect(updated.rowPadding, equals(customRowPadding));
+      expect(updated.footerPadding, equals(customFooterPadding));
+      expect(updated.footerTextStyle, equals(customFooterFont));
       expect(updated.menuTextStyle, equals(customMenuFont));
 
       // Preserved fields
@@ -65,7 +77,7 @@ void main() {
       expect(updated.oddRowColor, equals(Colors.grey));
       expect(updated.borderColor, equals(Colors.black));
       expect(updated.showHorizontalGridLines, isTrue);
-      expect(updated.rowTextStyle.fontSize, equals(13.0));
+      expect(updated.rowTextStyle, isNull);
     });
 
     test('AppGridStyle supports equality and hashCode', () {
@@ -73,11 +85,13 @@ void main() {
         rowHeight: 50.0,
         evenRowColor: Colors.white,
         oddRowColor: Colors.grey,
+        rowPadding: EdgeInsets.all(8.0),
       );
       const style2 = AppGridStyle(
         rowHeight: 50.0,
         evenRowColor: Colors.white,
         oddRowColor: Colors.grey,
+        rowPadding: EdgeInsets.all(8.0),
       );
       const style3 = AppGridStyle(
         rowHeight: 60.0,
@@ -93,7 +107,7 @@ void main() {
     test('AppGridStyle is a valid type alias for AppGridStyle', () {
       const AppGridStyle style = AppGridStyle(rowHeight: 55.0);
       expect(style.rowHeight, equals(55.0));
-      expect(style.headerTextStyle.fontSize, equals(13.0));
+      expect(style.headerTextStyle, isNull);
     });
   });
 
@@ -224,6 +238,79 @@ void main() {
 
       final cellText = tester.widget<Text>(find.text('Item A'));
       expect(cellText.style, equals(directRowFont));
+
+      controller.dispose();
+    });
+
+    testWidgets('AppGrid applies headerPadding, rowPadding, and footerPadding',
+        (tester) async {
+      final controller = AppGridController<Map<String, dynamic>>(
+        initialData: [
+          {'name': 'Item 1'},
+        ],
+        columns: [
+          GridColumn(
+            id: 'name',
+            label: 'Name Column',
+            valueGetter: (r) => r['name'],
+          ),
+        ],
+      );
+
+      const customHeaderPadding = EdgeInsets.symmetric(horizontal: 22.0);
+      const customRowPadding = EdgeInsets.symmetric(horizontal: 18.0);
+      const customFooterPadding = EdgeInsets.symmetric(horizontal: 15.0);
+      const customFooterStyle = TextStyle(fontSize: 14.0, color: Colors.purple);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 400,
+              child: AppGrid<Map<String, dynamic>>(
+                controller: controller,
+                footerBuilder: (context, col, data) =>
+                    const Text('Custom Footer Label'),
+                style: const AppGridStyle(
+                  headerPadding: customHeaderPadding,
+                  rowPadding: customRowPadding,
+                  footerPadding: customFooterPadding,
+                  footerTextStyle: customFooterStyle,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify header padding
+      final headerContainerFinder = find.ancestor(
+        of: find.text('Name Column'),
+        matching: find.byType(Container),
+      );
+      final headerContainer =
+          tester.widget<Container>(headerContainerFinder.first);
+      expect(headerContainer.padding, equals(customHeaderPadding));
+
+      // Verify row cell padding
+      final cellContainerFinder = find.ancestor(
+        of: find.text('Item 1'),
+        matching: find.byType(Container),
+      );
+      final cellContainer =
+          tester.widget<Container>(cellContainerFinder.first);
+      expect(cellContainer.padding, equals(customRowPadding));
+
+      // Verify footer padding
+      final footerContainerFinder = find.ancestor(
+        of: find.text('Custom Footer Label'),
+        matching: find.byType(Container),
+      );
+      final footerContainer =
+          tester.widget<Container>(footerContainerFinder.first);
+      expect(footerContainer.padding, equals(customFooterPadding));
 
       controller.dispose();
     });

@@ -55,18 +55,24 @@ class CellWidget<T> extends StatelessWidget {
 
         // 1. Column-specific modular cell builder
         if (column.cellBuilder != null) {
+          final cell = column.cellBuilder!(context, rowData, indexInfo);
           return Align(
             alignment: column.cellAlignment,
-            child: column.cellBuilder!(context, rowData, indexInfo),
+            child: style.rowPadding != null
+                ? Padding(padding: style.rowPadding!, child: cell)
+                : cell,
           );
         }
 
         // 2. Controller-level registered cell builder
         final columnBuilder = controller.getCellBuilder(column.id);
         if (columnBuilder != null) {
+          final cell = columnBuilder(context, rowData, indexInfo);
           return Align(
             alignment: column.cellAlignment,
-            child: columnBuilder(context, rowData, indexInfo),
+            child: style.rowPadding != null
+                ? Padding(padding: style.rowPadding!, child: cell)
+                : cell,
           );
         }
 
@@ -84,10 +90,11 @@ class CellWidget<T> extends StatelessWidget {
 
         return Container(
           alignment: column.cellAlignment,
-          padding: const EdgeInsets.symmetric(horizontal: 12.0),
+          padding: style.rowPadding ?? const EdgeInsets.symmetric(horizontal: 12.0),
           child: Text(
             displayText,
-            style: style.rowTextStyle,
+            style: style.rowTextStyle ??
+                const TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
             textAlign: _textAlignFromAlignment(column.cellAlignment),
