@@ -91,6 +91,11 @@ class GridColumn {
   /// Alignment for cell child widgets. Defaults to [Alignment.centerLeft].
   final Alignment cellAlignment;
 
+  /// Optional padding applied to cells of this specific column.
+  ///
+  /// When specified, overrides [AppGridStyle.rowPadding] for this column.
+  final EdgeInsetsGeometry? cellPadding;
+
   /// Alignment for column header child widgets. Defaults to [Alignment.center].
   final Alignment headerAlignment;
 
@@ -143,6 +148,7 @@ class GridColumn {
     this.cellBuilder,
     this.headerBuilder,
     this.cellAlignment = Alignment.centerLeft,
+    this.cellPadding,
     this.headerAlignment = Alignment.center,
     this.footerSpan = 1,
     this.footerAlignment = Alignment.centerLeft,
@@ -185,6 +191,7 @@ class GridColumn {
       rowDragIcon: icon,
       rowDragDisabledIcon: disabledIcon,
       cellAlignment: alignment,
+      cellPadding: EdgeInsets.zero,
       headerAlignment: alignment,
     );
   }
@@ -208,6 +215,7 @@ class GridColumn {
     ColumnCellBuilder<dynamic>? cellBuilder,
     ColumnHeaderBuilder? headerBuilder,
     Alignment? cellAlignment,
+    EdgeInsetsGeometry? cellPadding,
     Alignment? headerAlignment,
     int? footerSpan,
     Alignment? footerAlignment,
@@ -235,6 +243,7 @@ class GridColumn {
       cellBuilder: cellBuilder ?? this.cellBuilder,
       headerBuilder: headerBuilder ?? this.headerBuilder,
       cellAlignment: cellAlignment ?? this.cellAlignment,
+      cellPadding: cellPadding ?? this.cellPadding,
       headerAlignment: headerAlignment ?? this.headerAlignment,
       footerSpan: footerSpan ?? this.footerSpan,
       footerAlignment: footerAlignment ?? this.footerAlignment,
@@ -263,6 +272,7 @@ class GridColumn {
           canHide == other.canHide &&
           canCompact == other.canCompact &&
           cellAlignment == other.cellAlignment &&
+          cellPadding == other.cellPadding &&
           headerAlignment == other.headerAlignment &&
           footerSpan == other.footerSpan &&
           footerAlignment == other.footerAlignment &&
@@ -279,6 +289,7 @@ class GridColumn {
       canHide.hashCode ^
       canCompact.hashCode ^
       cellAlignment.hashCode ^
+      cellPadding.hashCode ^
       headerAlignment.hashCode ^
       footerSpan.hashCode ^
       footerAlignment.hashCode ^
@@ -287,5 +298,5 @@ class GridColumn {
 
   @override
   String toString() =>
-      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, canCompact: $canCompact, cellAlignment: $cellAlignment, headerAlignment: $headerAlignment, footerSpan: $footerSpan, footerAlignment: $footerAlignment, isRowDragHandle: $isRowDragHandle, headerConfig: $headerConfig)';
+      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, canCompact: $canCompact, cellAlignment: $cellAlignment, cellPadding: $cellPadding, headerAlignment: $headerAlignment, footerSpan: $footerSpan, footerAlignment: $footerAlignment, isRowDragHandle: $isRowDragHandle, headerConfig: $headerConfig)';
 }

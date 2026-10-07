@@ -36,13 +36,15 @@ class CompactCellWidget<T> extends StatelessWidget {
     required GridColumn column,
     required T rowData,
   }) {
+    final effectivePadding = column.cellPadding ?? style.rowPadding;
+
     // 1. Column-specific modular cell builder
     if (column.cellBuilder != null) {
       final cell = column.cellBuilder!(context, rowData, indexInfo);
       return Align(
         alignment: column.cellAlignment,
-        child: style.rowPadding != null
-            ? Padding(padding: style.rowPadding!, child: cell)
+        child: effectivePadding != null
+            ? Padding(padding: effectivePadding, child: cell)
             : cell,
       );
     }
@@ -53,8 +55,8 @@ class CompactCellWidget<T> extends StatelessWidget {
       final cell = columnBuilder(context, rowData, indexInfo);
       return Align(
         alignment: column.cellAlignment,
-        child: style.rowPadding != null
-            ? Padding(padding: style.rowPadding!, child: cell)
+        child: effectivePadding != null
+            ? Padding(padding: effectivePadding, child: cell)
             : cell,
       );
     }
@@ -75,7 +77,7 @@ class CompactCellWidget<T> extends StatelessWidget {
 
     return Container(
       alignment: column.cellAlignment,
-      padding: style.rowPadding ?? const EdgeInsets.symmetric(horizontal: 8.0),
+      padding: column.cellPadding ?? style.rowPadding ?? const EdgeInsets.symmetric(horizontal: 8.0),
       child: Text(
         displayText,
         style: style.rowTextStyle ??
