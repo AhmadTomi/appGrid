@@ -11,6 +11,9 @@ class AppGridPaginationBar<T> extends StatelessWidget {
   final bool showPageSizeSelector;
   final EdgeInsetsGeometry padding;
 
+  /// Optional size for the pagination navigation icons.
+  final double? iconSize;
+
   const AppGridPaginationBar({
     super.key,
     required this.controller,
@@ -18,6 +21,7 @@ class AppGridPaginationBar<T> extends StatelessWidget {
     this.onPageChanged,
     this.showPageSizeSelector = true,
     this.padding = const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    this.iconSize,
   });
 
   @override
@@ -100,7 +104,7 @@ class AppGridPaginationBar<T> extends StatelessWidget {
                 ],
                 const SizedBox(width: 16),
                 IconButton(
-                  icon: const Icon(Icons.first_page, size: 20),
+                  icon: Icon(Icons.first_page, size: iconSize ?? 20),
                   tooltip: 'First Page',
                   visualDensity: VisualDensity.compact,
                   constraints:
@@ -110,7 +114,7 @@ class AppGridPaginationBar<T> extends StatelessWidget {
                       : null,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.chevron_left, size: 20),
+                  icon: Icon(Icons.chevron_left, size: iconSize ?? 20),
                   tooltip: 'Previous Page',
                   visualDensity: VisualDensity.compact,
                   constraints:
@@ -136,7 +140,7 @@ class AppGridPaginationBar<T> extends StatelessWidget {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.chevron_right, size: 20),
+                  icon: Icon(Icons.chevron_right, size: iconSize ?? 20),
                   tooltip: 'Next Page',
                   visualDensity: VisualDensity.compact,
                   constraints:
@@ -146,7 +150,7 @@ class AppGridPaginationBar<T> extends StatelessWidget {
                       : null,
                 ),
                 IconButton(
-                  icon: const Icon(Icons.last_page, size: 20),
+                  icon: Icon(Icons.last_page, size: iconSize ?? 20),
                   tooltip: 'Last Page',
                   visualDensity: VisualDensity.compact,
                   constraints:

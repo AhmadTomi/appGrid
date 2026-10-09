@@ -132,15 +132,15 @@ void main() {
     });
 
     test('GridColumn copyWith and equality with cellPadding', () {
-      final col1 = GridColumn(
+      const col1 = GridColumn(
         id: 'c1',
         label: 'C1',
-        cellPadding: const EdgeInsets.all(8.0),
+        cellPadding: EdgeInsets.all(8.0),
       );
-      final col2 = GridColumn(
+      const col2 = GridColumn(
         id: 'c1',
         label: 'C1',
-        cellPadding: const EdgeInsets.all(8.0),
+        cellPadding: EdgeInsets.all(8.0),
       );
       final col3 = col1.copyWith(cellPadding: const EdgeInsets.all(12.0));
 

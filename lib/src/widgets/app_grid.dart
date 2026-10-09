@@ -211,7 +211,7 @@ class AppGrid<T> extends StatefulWidget {
   /// Thickness of the horizontal and vertical scrollbars.
   double get scrollbarThickness => style.scrollbarThickness;
 
-  /// Size of header icons.
+  /// Size of all grid icons resolved through [style.iconSize].
   double get iconSize => style.iconSize;
 
   /// Resolves the effective visibility behavior for the vertical scrollbar.
@@ -507,6 +507,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
         group: group, contentWidth: estimatedWidth, horizontalPadding: 0.0);
   }
 
+  AppGridStyle get _effectiveStyle => widget.style;
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -518,7 +520,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
         final double innerWidth = math.max(0.0, totalWidth - (borderWidth * 2));
 
         final hasFooter = widget.footerBuilder != null ||
-            widget.style.footerHeight != null ||
+            _effectiveStyle.footerHeight != null ||
             widget.controller.visibleColumns
                 .any((c) => c.footerBuilder != null);
         final bool isCompact = widget.controller.compactMode;
@@ -527,7 +529,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
         final double effectiveHeaderHeight =
             isCompact ? widget.headerHeight * 2.0 : widget.headerHeight;
         final footerH = hasFooter
-            ? ((widget.style.footerHeight ?? 40.0) * (isCompact ? 2.0 : 1.0))
+            ? ((_effectiveStyle.footerHeight ?? 40.0) * (isCompact ? 2.0 : 1.0))
             : 0.0;
         final hasPagination = widget.showPaginationBar &&
             widget.controller.fetchMode == DataFetchMode.pagination;
@@ -567,7 +569,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                   clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     border: Border.all(
-                      color: widget.style.borderColor ??
+                      color: _effectiveStyle.borderColor ??
                           (_focusNode.hasFocus
                               ? Theme.of(context)
                                   .colorScheme
@@ -622,7 +624,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                       horizontalScrollController:
                                           _horizontalScrollController,
                                       hasFooter: hasFooter,
-                                      style: widget.style,
+                                      style: _effectiveStyle,
                                       readOnly: effectiveReadOnly,
                                       onRowTap: widget.onRowTap,
                                       onRowDoubleTap: widget.onRowDoubleTap,
@@ -680,6 +682,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                               AppGridPaginationBar<T>(
                                 controller: widget.controller,
                                 onPageChanged: widget.onPageChanged,
+                                iconSize: _effectiveStyle.iconSize,
                               ),
                           ],
                         ),
@@ -690,6 +693,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                             child: AppGridColumnChooserOverlay<T>(
                               controller: widget.controller,
                               onClose: widget.controller.closeColumnChooser,
+                              iconSize: _effectiveStyle.iconSize,
                             ),
                           ),
                       ],
@@ -775,7 +779,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                     customHeaderBuilder: widget.headerBuilder,
                                     onAutoFit: _handleAutoFit,
                                     onAutoFitGroup: _handleAutoFitGroup,
-                                    style: widget.style,
+                                    style: _effectiveStyle,
                                     headerConfig: widget.headerConfig,
                                   ),
                               ],
@@ -814,7 +818,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           customHeaderBuilder: widget.headerBuilder,
                           onAutoFit: _handleAutoFit,
                           onAutoFitGroup: _handleAutoFitGroup,
-                          style: widget.style,
+                          style: _effectiveStyle,
                           headerConfig: widget.headerConfig,
                         ),
                     ],
@@ -848,7 +852,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           customHeaderBuilder: widget.headerBuilder,
                           onAutoFit: _handleAutoFit,
                           onAutoFitGroup: _handleAutoFitGroup,
-                          style: widget.style,
+                          style: _effectiveStyle,
                           headerConfig: widget.headerConfig,
                         ),
                     ],
@@ -940,7 +944,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                 height: footerHeight,
                                 currentVisibleData: visibleData,
                                 customFooterBuilder: widget.footerBuilder,
-                                style: widget.style,
+                                style: _effectiveStyle,
                               ),
                             ),
                         ],
@@ -973,7 +977,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           height: footerHeight,
                           currentVisibleData: visibleData,
                           customFooterBuilder: widget.footerBuilder,
-                          style: widget.style,
+                          style: _effectiveStyle,
                         ),
                     ],
                   ),
@@ -1003,7 +1007,7 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           height: footerHeight,
                           currentVisibleData: visibleData,
                           customFooterBuilder: widget.footerBuilder,
-                          style: widget.style,
+                          style: _effectiveStyle,
                         ),
                     ],
                   ),
@@ -1023,8 +1027,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                 trackWidth: centerWidth,
                 contentWidth: layout.centerPane.totalWidth,
                 thickness: widget.scrollbarThickness,
-                thumbColor: widget.style.scrollbarThumbColor,
-                trackColor: widget.style.scrollbarTrackColor,
+                thumbColor: _effectiveStyle.scrollbarThumbColor,
+                trackColor: _effectiveStyle.scrollbarTrackColor,
                 visibility: widget.effectiveHorizontalScrollbarVisibility,
                 isParentHovered: _isGridHovered,
               ),

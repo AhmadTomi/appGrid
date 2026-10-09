@@ -27,6 +27,9 @@ class AppGridRowDragHandle<T> extends StatelessWidget {
   /// Tooltip message shown when reordering is disabled due to active sorting.
   final String? disabledTooltip;
 
+  /// Optional size for the drag handle icon. Defaults to 20.0.
+  final double? iconSize;
+
   const AppGridRowDragHandle({
     super.key,
     required this.controller,
@@ -35,6 +38,7 @@ class AppGridRowDragHandle<T> extends StatelessWidget {
     this.disabledIcon,
     this.feedbackBuilder,
     this.disabledTooltip = 'Row reordering is disabled while sorting is active',
+    this.iconSize,
   });
 
   /// Shorthand constructor accepting [RowIndexInfo].
@@ -46,6 +50,7 @@ class AppGridRowDragHandle<T> extends StatelessWidget {
     this.disabledIcon,
     this.feedbackBuilder,
     this.disabledTooltip = 'Row reordering is disabled while sorting is active',
+    this.iconSize,
   }) : displayIndex = indexInfo.displayIndex;
 
   @override
@@ -55,7 +60,7 @@ class AppGridRowDragHandle<T> extends StatelessWidget {
 
     final defaultIcon = Icon(
       Icons.drag_indicator,
-      size: 20,
+      size: iconSize ?? 20,
       color: theme.colorScheme.onSurface.withAlpha(isReorderable ? 180 : 70),
     );
 

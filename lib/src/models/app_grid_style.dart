@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../widgets/app_grid_scrollbar.dart';
+import 'app_grid_menu_style.dart';
 
 /// Comprehensive styling configuration for [AppGrid].
 ///
 /// Encapsulates row dimensions, row colors, header styling, footer styling,
 /// grid dividers, scrollbars, text styles (header, row/cell, and context menu),
-/// and header icons in a single immutable class with a fluent [copyWith] method.
+/// header icons, and context menu styling ([AppGridMenuStyle]) in a single
+/// immutable class with a fluent [copyWith] method.
 ///
 /// PlutoGrid-style icons (context menu `≡`, rotated green sort icon for ascending,
 /// and red sort icon for descending) are built-in by default.
@@ -43,8 +45,19 @@ class AppGridStyle {
   final EdgeInsetsGeometry? headerPadding;
 
   // --- Menu Styling ---
-  /// Default text style applied to column header context menu items. Defaults to 13pt regular.
-  final TextStyle menuTextStyle;
+  /// Comprehensive configuration for column header context menu.
+  /// Defaults to standard [AppGridMenuStyle]. For desktop compact layouts,
+  /// use [AppGridMenuStyle.compact].
+  final AppGridMenuStyle menuStyle;
+
+  final TextStyle? _legacyMenuTextStyle;
+
+  /// Default text style applied to column header context menu items.
+  /// Resolves to [menuStyle.textStyle] or fallback 13pt regular.
+  TextStyle get menuTextStyle =>
+      _legacyMenuTextStyle ??
+      menuStyle.textStyle ??
+      const TextStyle(fontSize: 13, fontWeight: FontWeight.normal);
 
   // --- Footer Styling ---
   /// Optional height of the grid footer in logical pixels.
@@ -116,7 +129,9 @@ class AppGridStyle {
   /// Custom color for header icons (defaults to subtle grey [Colors.black26] in light mode).
   final Color? iconColor;
 
-  /// Size of header icons in logical pixels. Defaults to 16.0.
+  /// Size of all grid icons in logical pixels (header sort/menu/pin icons,
+  /// context menu icons, pagination bar icons, row drag handles, and dialogs).
+  /// Defaults to 16.0.
   final double iconSize;
 
   /// Whether to display a push-pin icon when a column is pinned in unsorted state.
@@ -134,8 +149,8 @@ class AppGridStyle {
     this.headerBackgroundColor,
     this.headerTextStyle,
     this.headerPadding,
-    this.menuTextStyle =
-        const TextStyle(fontSize: 13, fontWeight: FontWeight.normal),
+    TextStyle? menuTextStyle,
+    this.menuStyle = const AppGridMenuStyle(),
     this.footerHeight,
     this.footerBackgroundColor,
     this.footerTextStyle,
@@ -159,7 +174,7 @@ class AppGridStyle {
     this.iconColor,
     this.iconSize = 16.0,
     this.showPinIcon = false,
-  });
+  }) : _legacyMenuTextStyle = menuTextStyle;
 
   /// Creates a copy of this style with the given fields replaced with new values.
   AppGridStyle copyWith({
@@ -174,6 +189,7 @@ class AppGridStyle {
     TextStyle? headerTextStyle,
     EdgeInsetsGeometry? headerPadding,
     TextStyle? menuTextStyle,
+    AppGridMenuStyle? menuStyle,
     double? footerHeight,
     Color? footerBackgroundColor,
     TextStyle? footerTextStyle,
@@ -198,6 +214,11 @@ class AppGridStyle {
     double? iconSize,
     bool? showPinIcon,
   }) {
+    final effectiveMenuStyle = menuStyle ??
+        (menuTextStyle != null
+            ? this.menuStyle.copyWith(textStyle: menuTextStyle)
+            : this.menuStyle);
+
     return AppGridStyle(
       rowHeight: rowHeight ?? this.rowHeight,
       rowTextStyle: rowTextStyle ?? this.rowTextStyle,
@@ -210,7 +231,8 @@ class AppGridStyle {
           headerBackgroundColor ?? this.headerBackgroundColor,
       headerTextStyle: headerTextStyle ?? this.headerTextStyle,
       headerPadding: headerPadding ?? this.headerPadding,
-      menuTextStyle: menuTextStyle ?? this.menuTextStyle,
+      menuTextStyle: menuTextStyle ?? _legacyMenuTextStyle,
+      menuStyle: effectiveMenuStyle,
       footerHeight: footerHeight ?? this.footerHeight,
       footerBackgroundColor:
           footerBackgroundColor ?? this.footerBackgroundColor,
@@ -260,6 +282,7 @@ class AppGridStyle {
           headerBackgroundColor == other.headerBackgroundColor &&
           headerTextStyle == other.headerTextStyle &&
           headerPadding == other.headerPadding &&
+          menuStyle == other.menuStyle &&
           menuTextStyle == other.menuTextStyle &&
           footerHeight == other.footerHeight &&
           footerBackgroundColor == other.footerBackgroundColor &&
@@ -299,6 +322,7 @@ class AppGridStyle {
         headerBackgroundColor,
         headerTextStyle,
         headerPadding,
+        menuStyle,
         menuTextStyle,
         footerHeight,
         footerBackgroundColor,

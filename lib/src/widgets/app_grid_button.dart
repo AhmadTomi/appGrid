@@ -55,6 +55,9 @@ class AppGridButton extends StatefulWidget {
   /// Whether the button is disabled.
   final bool disabled;
 
+  /// Optional size for [icon]. Defaults to 14.0 if not specified on the Icon widget.
+  final double? iconSize;
+
   const AppGridButton({
     super.key,
     this.text,
@@ -72,6 +75,7 @@ class AppGridButton extends StatefulWidget {
     this.padding = const EdgeInsets.symmetric(horizontal: 10.0, vertical: 3.0),
     this.textStyle,
     this.disabled = false,
+    this.iconSize,
   });
 
   @override
@@ -130,12 +134,13 @@ class _AppGridButtonState extends State<AppGridButton> {
     } else {
       final children = <Widget>[];
       if (widget.icon != null) {
+        final effectiveIconSize = widget.iconSize ?? 14.0;
         if (widget.icon is Icon) {
           final ic = widget.icon as Icon;
           children.add(
             Icon(
               ic.icon,
-              size: ic.size ?? 14.0,
+              size: ic.size ?? effectiveIconSize,
               color: ic.color ??
                   (widget.disabled ? defaultFg.withAlpha(100) : defaultFg),
             ),
@@ -144,7 +149,7 @@ class _AppGridButtonState extends State<AppGridButton> {
           children.add(
             IconTheme(
               data: IconThemeData(
-                size: 14.0,
+                size: effectiveIconSize,
                 color: widget.disabled ? defaultFg.withAlpha(100) : defaultFg,
               ),
               child: widget.icon!,

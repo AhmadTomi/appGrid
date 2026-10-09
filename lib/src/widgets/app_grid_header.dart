@@ -5,6 +5,7 @@ import '../models/grid_column.dart';
 import '../models/compact_column_group.dart';
 import '../models/sort_criteria.dart';
 import '../models/app_grid_style.dart';
+import '../models/app_grid_menu_style.dart';
 import '../column_layout/column_layout_manager.dart';
 import '../controllers/app_grid_controller.dart';
 import '../rendering_engine/grid_builders.dart';
@@ -39,6 +40,7 @@ class AppGridHeaderCell<T> extends StatefulWidget {
   Color? get iconColor => style.iconColor;
   double get iconSize => style.iconSize;
   bool get showPinIcon => style.showPinIcon;
+  AppGridMenuStyle get menuStyle => style.menuStyle;
 
   const AppGridHeaderCell({
     super.key,
@@ -543,6 +545,14 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
       }
     }
 
+    iconWidget = IconTheme(
+      data: IconThemeData(
+        size: widget.iconSize,
+        color: widget.iconColor,
+      ),
+      child: iconWidget,
+    );
+
     final bool canClickMenu = effectiveHeaderConfig.enableMenu;
     final bool canClickSort = canSort;
     final bool isClickable = canClickMenu || canClickSort;
@@ -606,7 +616,13 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
     final items = <PopupMenuEntry<_HeaderMenuAction>>[];
 
     // Sorting options (strictly disabled when compactMode is active)
-    final baseMenuTextStyle = widget.menuTextStyle;
+    final menuStyle = widget.menuStyle;
+    final baseMenuTextStyle = menuStyle.textStyle ?? widget.menuTextStyle;
+    final double itemHeight = menuStyle.itemHeight;
+    final EdgeInsets itemPadding = menuStyle.itemPadding;
+    final double menuIconSize = menuStyle.iconSize ?? widget.iconSize;
+    final double checkIconSize = (menuIconSize * 0.9).clamp(10.0, 32.0);
+    final double dividerHeight = menuStyle.dividerHeight;
 
     if (!isCompact && topCol.isSortable) {
       const ascColor = Colors.green;
@@ -615,13 +631,16 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
       items.addAll([
         PopupMenuItem<_HeaderMenuAction>(
           value: _HeaderMenuAction.sortAscending,
+          height: itemHeight,
+          padding: itemPadding,
+          mouseCursor: SystemMouseCursors.click,
           child: Row(
             children: [
               Transform.rotate(
                 angle: math.pi,
                 child: Icon(
                   Icons.sort,
-                  size: 18,
+                  size: menuIconSize,
                   color: sortDirection == SortDirection.ascending
                       ? ascColor
                       : null,
@@ -642,17 +661,20 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
                 ),
               ),
               if (sortDirection == SortDirection.ascending)
-                const Icon(Icons.check, size: 16, color: ascColor),
+                Icon(Icons.check, size: checkIconSize, color: ascColor),
             ],
           ),
         ),
         PopupMenuItem<_HeaderMenuAction>(
           value: _HeaderMenuAction.sortDescending,
+          height: itemHeight,
+          padding: itemPadding,
+          mouseCursor: SystemMouseCursors.click,
           child: Row(
             children: [
               Icon(
                 Icons.sort,
-                size: 18,
+                size: menuIconSize,
                 color: sortDirection == SortDirection.descending
                     ? descColor
                     : null,
@@ -672,22 +694,25 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
                 ),
               ),
               if (sortDirection == SortDirection.descending)
-                const Icon(Icons.check, size: 16, color: descColor),
+                Icon(Icons.check, size: checkIconSize, color: descColor),
             ],
           ),
         ),
         if (sortDirection != SortDirection.none)
           PopupMenuItem<_HeaderMenuAction>(
             value: _HeaderMenuAction.clearSort,
+            height: itemHeight,
+            padding: itemPadding,
+            mouseCursor: SystemMouseCursors.click,
             child: Row(
               children: [
-                const Icon(Icons.clear, size: 18),
+                Icon(Icons.clear, size: menuIconSize),
                 const SizedBox(width: 8),
                 Expanded(child: Text('Clear Sort', style: baseMenuTextStyle)),
               ],
             ),
           ),
-        const PopupMenuDivider(),
+        PopupMenuDivider(height: dividerHeight),
       ]);
     }
 
@@ -695,11 +720,14 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
     items.addAll([
       PopupMenuItem<_HeaderMenuAction>(
         value: _HeaderMenuAction.pinLeft,
+        height: itemHeight,
+        padding: itemPadding,
+        mouseCursor: SystemMouseCursors.click,
         child: Row(
           children: [
             Icon(
               Icons.push_pin,
-              size: 18,
+              size: menuIconSize,
               color: topCol.pin == GridColumnPin.left
                   ? theme.colorScheme.primary
                   : null,
@@ -719,17 +747,20 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
               ),
             ),
             if (topCol.pin == GridColumnPin.left)
-              Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+              Icon(Icons.check, size: checkIconSize, color: theme.colorScheme.primary),
           ],
         ),
       ),
       PopupMenuItem<_HeaderMenuAction>(
         value: _HeaderMenuAction.pinRight,
+        height: itemHeight,
+        padding: itemPadding,
+        mouseCursor: SystemMouseCursors.click,
         child: Row(
           children: [
             Icon(
               Icons.push_pin_outlined,
-              size: 18,
+              size: menuIconSize,
               color: topCol.pin == GridColumnPin.right
                   ? theme.colorScheme.primary
                   : null,
@@ -749,15 +780,18 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
               ),
             ),
             if (topCol.pin == GridColumnPin.right)
-              Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+              Icon(Icons.check, size: checkIconSize, color: theme.colorScheme.primary),
           ],
         ),
       ),
       PopupMenuItem<_HeaderMenuAction>(
         value: _HeaderMenuAction.unpin,
+        height: itemHeight,
+        padding: itemPadding,
+        mouseCursor: SystemMouseCursors.click,
         child: Row(
           children: [
-            const Icon(Icons.lock_open, size: 18),
+            Icon(Icons.lock_open, size: menuIconSize),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -770,7 +804,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
               ),
             ),
             if (topCol.pin == GridColumnPin.none)
-              Icon(Icons.check, size: 16, color: theme.colorScheme.primary),
+              Icon(Icons.check, size: checkIconSize, color: theme.colorScheme.primary),
           ],
         ),
       ),
@@ -780,13 +814,16 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         topCol.isResizable && (bottomCol == null || bottomCol!.isResizable);
     if (isResizable &&
         (widget.onAutoFit != null || widget.onAutoFitGroup != null)) {
-      items.add(const PopupMenuDivider());
+      items.add(PopupMenuDivider(height: dividerHeight));
       items.add(
         PopupMenuItem<_HeaderMenuAction>(
           value: _HeaderMenuAction.autoFit,
+          height: itemHeight,
+          padding: itemPadding,
+          mouseCursor: SystemMouseCursors.click,
           child: Row(
             children: [
-              const Icon(Icons.fit_screen, size: 18),
+              Icon(Icons.fit_screen, size: menuIconSize),
               const SizedBox(width: 8),
               Expanded(child: Text('Auto-fit Width', style: baseMenuTextStyle)),
             ],
@@ -797,18 +834,23 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
 
     // Column hiding & management (strictly disabled when compactMode is active)
     if (!isCompact) {
-      items.add(const PopupMenuDivider());
+      items.add(PopupMenuDivider(height: dividerHeight));
       if (topCol.canHide) {
         final canHideColumn = widget.controller.visibleColumns.length > 1;
         items.add(
           PopupMenuItem<_HeaderMenuAction>(
             value: _HeaderMenuAction.hideColumn,
             enabled: canHideColumn,
+            height: itemHeight,
+            padding: itemPadding,
+            mouseCursor: canHideColumn
+                ? SystemMouseCursors.click
+                : SystemMouseCursors.basic,
             child: Row(
               children: [
                 Icon(
                   Icons.visibility_off_outlined,
-                  size: 18,
+                  size: menuIconSize,
                   color: canHideColumn ? null : theme.disabledColor,
                 ),
                 const SizedBox(width: 8),
@@ -828,9 +870,12 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
       items.add(
         PopupMenuItem<_HeaderMenuAction>(
           value: _HeaderMenuAction.manageColumns,
+          height: itemHeight,
+          padding: itemPadding,
+          mouseCursor: SystemMouseCursors.click,
           child: Row(
             children: [
-              const Icon(Icons.view_column_outlined, size: 18),
+              Icon(Icons.view_column_outlined, size: menuIconSize),
               const SizedBox(width: 8),
               Expanded(
                   child: Text('Manage Columns...', style: baseMenuTextStyle)),
@@ -844,6 +889,16 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
       context: context,
       position: position,
       items: items,
+      elevation: menuStyle.elevation,
+      color: menuStyle.backgroundColor,
+      shape: (menuStyle.borderRadius != null || menuStyle.borderSide != null)
+          ? RoundedRectangleBorder(
+              borderRadius:
+                  menuStyle.borderRadius ?? BorderRadius.circular(4.0),
+              side: menuStyle.borderSide ?? BorderSide.none,
+            )
+          : null,
+      constraints: menuStyle.constraints,
     ).then((selected) {
       if (selected == null || !mounted) return;
       switch (selected) {

@@ -20,10 +20,14 @@ class AppGridColumnChooserOverlay<T> extends StatelessWidget {
   final AppGridController<T> controller;
   final VoidCallback? onClose;
 
+  /// Optional size for modal dialog icons.
+  final double? iconSize;
+
   const AppGridColumnChooserOverlay({
     super.key,
     required this.controller,
     this.onClose,
+    this.iconSize,
   });
 
   @override
@@ -98,8 +102,11 @@ class AppGridColumnChooserOverlay<T> extends StatelessWidget {
                             // Header title & close button
                             Row(
                               children: [
-                                Icon(Icons.view_column_outlined,
-                                    color: theme.colorScheme.primary, size: 20),
+                                Icon(
+                                  Icons.view_column_outlined,
+                                  color: theme.colorScheme.primary,
+                                  size: iconSize ?? 20,
+                                ),
                                 const SizedBox(width: 8),
                                 const Expanded(
                                   child: Text(
@@ -110,7 +117,10 @@ class AppGridColumnChooserOverlay<T> extends StatelessWidget {
                                   ),
                                 ),
                                 IconButton(
-                                  icon: const Icon(Icons.close, size: 18),
+                                  icon: Icon(Icons.close,
+                                      size: iconSize != null
+                                          ? (iconSize! * 0.9).clamp(12.0, 32.0)
+                                          : 18),
                                   splashRadius: 16,
                                   padding: EdgeInsets.zero,
                                   constraints: const BoxConstraints(
@@ -142,8 +152,11 @@ class AppGridColumnChooserOverlay<T> extends StatelessWidget {
                                             col.id, true);
                                       }
                                     },
-                                    icon:
-                                        const Icon(Icons.select_all, size: 16),
+                                    icon: Icon(Icons.select_all,
+                                        size: iconSize != null
+                                            ? (iconSize! * 0.8)
+                                                .clamp(10.0, 28.0)
+                                            : 16),
                                     label: const Text('Show All',
                                         style: TextStyle(fontSize: 12)),
                                   ),

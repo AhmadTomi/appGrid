@@ -49,6 +49,7 @@ class CellWidget<T> extends StatelessWidget {
               displayIndex: indexInfo.displayIndex,
               icon: column.rowDragIcon,
               disabledIcon: column.rowDragDisabledIcon,
+              iconSize: style.iconSize,
             ),
           );
         }
