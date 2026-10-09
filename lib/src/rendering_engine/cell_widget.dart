@@ -80,34 +80,51 @@ class CellWidget<T> extends StatelessWidget {
 
         // PlutoGrid row drag handle integration
         if (column.enableRowDrag && controller.canReorderRows) {
-          final dragHandle = MouseRegion(
-            cursor: SystemMouseCursors.grab,
-            child: Draggable<int>(
-              data: indexInfo.displayIndex,
-              dragAnchorStrategy: (draggable, context, position) {
-                return const Offset(20, 20);
-              },
-              feedback: Material(
-                elevation: 6,
-                borderRadius: BorderRadius.circular(6),
-                color: theme.colorScheme.surfaceContainerHighest.withAlpha(240),
-                shadowColor: Colors.black45,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: theme.colorScheme.primary.withAlpha(160),
-                      width: 1.5,
-                    ),
+          final Widget feedbackWidget;
+          if (column.dragFeedbackBuilder != null) {
+            feedbackWidget =
+                column.dragFeedbackBuilder!(context, rowData, indexInfo);
+          } else {
+            feedbackWidget = Material(
+              elevation: 6,
+              borderRadius: BorderRadius.circular(6),
+              color: theme.colorScheme.surfaceContainerHighest.withAlpha(240),
+              shadowColor: Colors.black45,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withAlpha(160),
+                    width: 1.5,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.reorder,
-                          size: 18, color: theme.colorScheme.primary),
-                      const SizedBox(width: 8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.drag_indicator,
+                      size: style.iconSize,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 8),
+                    if (hasContent)
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth:
+                              column.initialWidth > 0 ? column.initialWidth : 250,
+                        ),
+                        child: DefaultTextStyle(
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurface,
+                              ) ??
+                              const TextStyle(),
+                          child: baseContent,
+                        ),
+                      )
+                    else
                       Text(
                         'Row #${indexInfo.displayIndex + 1}',
                         style: theme.textTheme.bodyMedium?.copyWith(
@@ -115,17 +132,27 @@ class CellWidget<T> extends StatelessWidget {
                           color: theme.colorScheme.onSurface,
                         ),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
+            );
+          }
+
+          final dragHandle = MouseRegion(
+            cursor: SystemMouseCursors.grab,
+            child: Draggable<int>(
+              data: indexInfo.displayIndex,
+              dragAnchorStrategy: (draggable, context, position) {
+                return const Offset(20, 20);
+              },
+              feedback: feedbackWidget,
               childWhenDragging: Opacity(
                 opacity: 0.25,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 4.0),
                   child: Icon(
                     Icons.drag_indicator,
-                    size: style.iconSize ?? 18,
+                    size: style.iconSize,
                     color: theme.colorScheme.onSurface.withAlpha(160),
                   ),
                 ),
@@ -134,7 +161,7 @@ class CellWidget<T> extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 4.0),
                 child: Icon(
                   Icons.drag_indicator,
-                  size: style.iconSize ?? 18,
+                  size: style.iconSize,
                   color: theme.colorScheme.onSurface.withAlpha(160),
                 ),
               ),

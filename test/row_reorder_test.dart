@@ -235,5 +235,93 @@ void main() {
       expect(reorderedNew, 2);
       expect(controller.getReorderedData(), ['Row 2', 'Row 3', 'Row 1']);
     });
+
+    testWidgets('Default drag feedback mirrors cell content when dragged', (tester) async {
+      final controller = AppGridController<String>(
+        initialData: ['Special Item 101'],
+        columns: [
+          GridColumn(id: 'name', label: 'Name', enableRowDrag: true, valueGetter: (row) => row),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: AppGrid<String>(
+                controller: controller,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final dragHandle = find.byIcon(Icons.drag_indicator).first;
+      final handleCenter = tester.getCenter(dragHandle);
+
+      final gesture = await tester.startGesture(handleCenter);
+      await tester.pump(const Duration(milliseconds: 50));
+      await gesture.moveBy(const Offset(50, 50));
+      await tester.pump();
+
+      // Feedback should contain cell content 'Special Item 101'
+      expect(find.text('Special Item 101'), findsWidgets);
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('Custom dragFeedbackBuilder in GridColumn renders custom widget when dragged', (tester) async {
+      final controller = AppGridController<String>(
+        initialData: ['Target Item'],
+        columns: [
+          GridColumn(
+            id: 'name',
+            label: 'Name',
+            enableRowDrag: true,
+            valueGetter: (row) => row,
+            dragFeedbackBuilder: (context, rowData, indexInfo) {
+              return Material(
+                key: const ValueKey('custom_feedback_key'),
+                child: Text('Custom Floating: $rowData'),
+              );
+            },
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: AppGrid<String>(
+                controller: controller,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final dragHandle = find.byIcon(Icons.drag_indicator).first;
+      final handleCenter = tester.getCenter(dragHandle);
+
+      final gesture = await tester.startGesture(handleCenter);
+      await tester.pump(const Duration(milliseconds: 50));
+      await gesture.moveBy(const Offset(50, 50));
+      await tester.pump();
+
+      // Custom feedback widget should be rendered
+      expect(find.byKey(const ValueKey('custom_feedback_key')), findsOneWidget);
+      expect(find.text('Custom Floating: Target Item'), findsOneWidget);
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+    });
   });
 }

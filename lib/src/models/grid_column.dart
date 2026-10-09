@@ -32,6 +32,13 @@ typedef ColumnFooterBuilder = Widget Function(
   List<dynamic> currentVisibleData,
 );
 
+/// Custom drag feedback builder signature for rendering a floating widget when dragging a row.
+typedef ColumnDragFeedbackBuilder = Widget Function(
+  BuildContext context,
+  dynamic rowData,
+  RowIndexInfo indexInfo,
+);
+
 /// Configuration and schema definition for an [AppGrid] column.
 class GridColumn {
   /// Unique identifier for this column.
@@ -115,6 +122,12 @@ class GridColumn {
   /// If column sorting or filtering is active, the drag handle is automatically hidden.
   final bool enableRowDrag;
 
+  /// Optional custom builder for the floating feedback widget displayed when dragging a row.
+  ///
+  /// If null and [enableRowDrag] is true, the default drag feedback automatically mirrors
+  /// the cell's content inside an elevated floating card.
+  final ColumnDragFeedbackBuilder? dragFeedbackBuilder;
+
   /// Optional custom icon widget for the column context/sort menu in unsorted state.
   final Widget? menuIcon;
 
@@ -151,6 +164,7 @@ class GridColumn {
     this.footerSpan = 1,
     this.footerAlignment = Alignment.centerLeft,
     this.enableRowDrag = false,
+    this.dragFeedbackBuilder,
     this.menuIcon,
     this.sortAscendingIcon,
     this.sortDescendingIcon,
@@ -182,6 +196,7 @@ class GridColumn {
     int? footerSpan,
     Alignment? footerAlignment,
     bool? enableRowDrag,
+    ColumnDragFeedbackBuilder? dragFeedbackBuilder,
     Widget? menuIcon,
     Widget? sortAscendingIcon,
     Widget? sortDescendingIcon,
@@ -211,6 +226,7 @@ class GridColumn {
       footerSpan: footerSpan ?? this.footerSpan,
       footerAlignment: footerAlignment ?? this.footerAlignment,
       enableRowDrag: enableRowDrag ?? this.enableRowDrag,
+      dragFeedbackBuilder: dragFeedbackBuilder ?? this.dragFeedbackBuilder,
       menuIcon: menuIcon ?? this.menuIcon,
       sortAscendingIcon: sortAscendingIcon ?? this.sortAscendingIcon,
       sortDescendingIcon: sortDescendingIcon ?? this.sortDescendingIcon,
@@ -238,6 +254,7 @@ class GridColumn {
           footerSpan == other.footerSpan &&
           footerAlignment == other.footerAlignment &&
           enableRowDrag == other.enableRowDrag &&
+          dragFeedbackBuilder == other.dragFeedbackBuilder &&
           headerConfig == other.headerConfig;
 
   @override
@@ -255,9 +272,10 @@ class GridColumn {
       footerSpan.hashCode ^
       footerAlignment.hashCode ^
       enableRowDrag.hashCode ^
+      dragFeedbackBuilder.hashCode ^
       headerConfig.hashCode;
 
   @override
   String toString() =>
-      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, canCompact: $canCompact, cellAlignment: $cellAlignment, cellPadding: $cellPadding, headerAlignment: $headerAlignment, footerSpan: $footerSpan, footerAlignment: $footerAlignment, enableRowDrag: $enableRowDrag, headerConfig: $headerConfig)';
+      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, canCompact: $canCompact, cellAlignment: $cellAlignment, cellPadding: $cellPadding, headerAlignment: $headerAlignment, footerSpan: $footerSpan, footerAlignment: $footerAlignment, enableRowDrag: $enableRowDrag, dragFeedbackBuilder: $dragFeedbackBuilder, headerConfig: $headerConfig)';
 }
