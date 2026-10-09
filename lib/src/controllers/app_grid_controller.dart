@@ -6,6 +6,7 @@ import '../models/grid_column.dart';
 import '../models/sort_criteria.dart';
 import '../models/grid_state.dart';
 import '../models/data_fetch_mode.dart';
+import '../models/column_drag_target_info.dart';
 import '../rendering_engine/grid_builders.dart';
 import 'dual_index_map.dart';
 import 'frame_batch_throttler.dart';
@@ -62,6 +63,33 @@ class AppGridController<T> extends ChangeNotifier {
 
   SortCriteria? _sortCriteria;
   bool Function(T item)? _activeFilter;
+
+  /// Active column drag target state, notified when a header is hovered during column drag.
+  final ValueNotifier<ColumnDragTargetInfo?> activeColumnDragTarget =
+      ValueNotifier<ColumnDragTargetInfo?>(null);
+
+  /// Sets the active hovered column drop target for full-height visual indicators.
+  void setHoveredColumnDropTarget({
+    required String targetColumnId,
+    required String draggedColumnId,
+    required bool isLeft,
+  }) {
+    final next = ColumnDragTargetInfo(
+      targetColumnId: targetColumnId,
+      draggedColumnId: draggedColumnId,
+      isLeft: isLeft,
+    );
+    if (activeColumnDragTarget.value != next) {
+      activeColumnDragTarget.value = next;
+    }
+  }
+
+  /// Clears the active column drop target indicator.
+  void clearHoveredColumnDropTarget() {
+    if (activeColumnDragTarget.value != null) {
+      activeColumnDragTarget.value = null;
+    }
+  }
 
   int? _selectedOriginalIndex;
   ValueChanged<RowIndexInfo>? onRowSelected;
@@ -802,9 +830,13 @@ class AppGridController<T> extends ChangeNotifier {
   }
 
   /// Reorders a group of columns (e.g. a merged compact pair) together to the position of [targetColumnId].
+  ///
+  /// If [insertAfter] is true, the dragged columns will be inserted after [targetColumnId];
+  /// otherwise they are inserted before [targetColumnId] (default).
   void reorderColumnGroup({
     required List<String> draggedIds,
     required String targetColumnId,
+    bool insertAfter = false,
   }) {
     if (draggedIds.isEmpty || draggedIds.contains(targetColumnId)) return;
     for (final id in draggedIds) {
@@ -812,7 +844,8 @@ class AppGridController<T> extends ChangeNotifier {
     }
     final targetIndex = _columnOrder.indexOf(targetColumnId);
     if (targetIndex != -1) {
-      _columnOrder.insertAll(targetIndex, draggedIds);
+      final insertIndex = insertAfter ? targetIndex + 1 : targetIndex;
+      _columnOrder.insertAll(insertIndex, draggedIds);
     } else {
       _columnOrder.addAll(draggedIds);
     }
@@ -979,6 +1012,7 @@ class AppGridController<T> extends ChangeNotifier {
 
   @override
   void dispose() {
+    activeColumnDragTarget.dispose();
     layoutManager.dispose();
     _streamingThrottler.dispose();
     for (final notifier in _rowNotifiers.values) {

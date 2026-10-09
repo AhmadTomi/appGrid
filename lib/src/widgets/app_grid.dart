@@ -6,6 +6,7 @@ import '../models/compact_column_group.dart';
 import '../models/row_index_info.dart';
 import '../models/sort_criteria.dart';
 import '../models/app_grid_style.dart';
+import '../models/column_drag_target_info.dart';
 import '../controllers/app_grid_controller.dart';
 import '../column_layout/column_layout_manager.dart';
 import '../rendering_engine/grid_builders.dart';
@@ -680,6 +681,27 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                           ],
                         ),
 
+                        // Full-Column Drop Indicator Overlay (Spans entire height from Header to Bottom of Viewport)
+                        ValueListenableBuilder<ColumnDragTargetInfo?>(
+                          valueListenable:
+                              widget.controller.activeColumnDragTarget,
+                          builder: (context, targetInfo, _) {
+                            if (targetInfo == null) {
+                              return const SizedBox.shrink();
+                            }
+                            return _buildFullColumnDropIndicator(
+                              targetInfo: targetInfo,
+                              layout: computedLayout,
+                              innerWidth: innerWidth,
+                              indicatorHeight:
+                                  effectiveHeaderHeight + viewportHeight + footerH,
+                              leftWidth: leftWidth,
+                              centerWidth: centerWidth,
+                              rightWidth: rightWidth,
+                            );
+                          },
+                        ),
+
                         // In-grid Column Chooser Overlay (Blocks strictly the table, not the parent app)
                         if (widget.controller.isColumnChooserOpen)
                           Positioned.fill(
@@ -1028,6 +1050,131 @@ class _AppGridState<T> extends State<AppGrid<T>> {
             ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFullColumnDropIndicator({
+    required ColumnDragTargetInfo targetInfo,
+    required ComputedGridLayout layout,
+    required double innerWidth,
+    required double indicatorHeight,
+    required double leftWidth,
+    required double centerWidth,
+    required double rightWidth,
+  }) {
+    final theme = Theme.of(context);
+    final indicatorColor = theme.colorScheme.primary;
+    final targetId = targetInfo.targetColumnId;
+
+    // 1. Left Pinned Pane
+    if (layout.leftPane.widths.containsKey(targetId)) {
+      final colWidth = layout.leftPane.widths[targetId]!;
+      final colOffset = layout.leftPane.offsets[targetId]!;
+      return Positioned(
+        left: colOffset,
+        top: 0,
+        width: colWidth,
+        height: indicatorHeight,
+        child: IgnorePointer(
+          child: _buildColumnDropHighlight(
+            indicatorColor: indicatorColor,
+            isLeft: targetInfo.isLeft,
+          ),
+        ),
+      );
+    }
+
+    // 2. Right Pinned Pane
+    if (layout.rightPane.widths.containsKey(targetId)) {
+      final colWidth = layout.rightPane.widths[targetId]!;
+      final colOffset = layout.rightPane.offsets[targetId]!;
+      return Positioned(
+        left: innerWidth - rightWidth + colOffset,
+        top: 0,
+        width: colWidth,
+        height: indicatorHeight,
+        child: IgnorePointer(
+          child: _buildColumnDropHighlight(
+            indicatorColor: indicatorColor,
+            isLeft: targetInfo.isLeft,
+          ),
+        ),
+      );
+    }
+
+    // 3. Center Scrollable Pane
+    if (layout.centerPane.widths.containsKey(targetId) && centerWidth > 0) {
+      final colWidth = layout.centerPane.widths[targetId]!;
+      final colOffset = layout.centerPane.offsets[targetId]!;
+
+      return Positioned(
+        left: leftWidth,
+        top: 0,
+        width: centerWidth,
+        height: indicatorHeight,
+        child: ClipRect(
+          child: AnimatedBuilder(
+            animation: _horizontalScrollController,
+            builder: (context, _) {
+              final hScroll = _horizontalScrollController.hasClients &&
+                      _horizontalScrollController.positions.isNotEmpty
+                  ? _horizontalScrollController.positions.first.pixels
+                  : 0.0;
+              final relativeLeft = colOffset - hScroll;
+
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    left: relativeLeft,
+                    top: 0,
+                    bottom: 0,
+                    width: colWidth,
+                    child: IgnorePointer(
+                      child: _buildColumnDropHighlight(
+                        indicatorColor: indicatorColor,
+                        isLeft: targetInfo.isLeft,
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildColumnDropHighlight({
+    required Color indicatorColor,
+    required bool isLeft,
+  }) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // 1. Semi-transparent highlight tint across entire target column
+        Positioned.fill(
+          child: Container(
+            key: const ValueKey('column_drop_indicator_tint'),
+            color: indicatorColor.withAlpha(25),
+          ),
+        ),
+        // 2. Full-Column Drop Line Indicator (sharp 2.5px solid line)
+        Positioned(
+          left: isLeft ? 0 : null,
+          right: !isLeft ? 0 : null,
+          top: 0,
+          bottom: 0,
+          width: 2.5,
+          child: Container(
+            key: const ValueKey('column_drop_indicator_line'),
+            color: indicatorColor,
+          ),
+        ),
+      ],
     );
   }
 }

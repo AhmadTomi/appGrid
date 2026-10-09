@@ -23,6 +23,7 @@ export 'src/models/data_fetch_mode.dart';
 export 'src/models/app_grid_header_config.dart';
 export 'src/models/app_grid_style.dart';
 export 'src/models/app_grid_menu_style.dart';
+export 'src/models/column_drag_target_info.dart';
 
 export 'src/controllers/app_grid_controller.dart';
 export 'src/controllers/dual_index_map.dart';

@@ -319,6 +319,9 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
       child: content,
     );
 
+    final defaultBg = widget.headerBackgroundColor ??
+        (isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5));
+
     // Wrap with drag target and draggable for reordering if enabled
     final bool isReorderable = topCol.isReorderable &&
         (bottomCol == null || bottomCol!.isReorderable) &&
@@ -331,58 +334,97 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
           final draggedIds = data.contains('::') ? data.split('::') : [data];
           return !draggedIds.any((id) => effectiveGroup.columnIds.contains(id));
         },
+        onMove: (details) {
+          final data = details.data;
+          final draggedIds = data.contains('::') ? data.split('::') : [data];
+          if (draggedIds.any((id) => effectiveGroup.columnIds.contains(id))) {
+            widget.controller.clearHoveredColumnDropTarget();
+            return;
+          }
+          final draggedIndex = widget.controller.visibleColumns
+              .indexWhere((c) => draggedIds.contains(c.id));
+          final targetIndex = widget.controller.visibleColumns
+              .indexWhere((c) => c.id == topCol.id);
+          final isLeft = (draggedIndex != -1 && targetIndex != -1)
+              ? draggedIndex > targetIndex
+              : true;
+          widget.controller.setHoveredColumnDropTarget(
+            targetColumnId: topCol.id,
+            draggedColumnId: data,
+            isLeft: isLeft,
+          );
+        },
+        onLeave: (data) {
+          widget.controller.clearHoveredColumnDropTarget();
+        },
         onAcceptWithDetails: (details) {
           final data = details.data;
           final draggedIds = data.contains('::') ? data.split('::') : [data];
+          final draggedIndex = widget.controller.visibleColumns
+              .indexWhere((c) => draggedIds.contains(c.id));
+          final targetIndex = widget.controller.visibleColumns
+              .indexWhere((c) => c.id == topCol.id);
+          final isLeft = (draggedIndex != -1 && targetIndex != -1)
+              ? draggedIndex > targetIndex
+              : true;
+          widget.controller.clearHoveredColumnDropTarget();
           widget.controller.reorderColumnGroup(
             draggedIds: draggedIds,
             targetColumnId: topCol.id,
+            insertAfter: !isLeft,
           );
         },
         builder: (context, candidateData, rejectedData) {
-          final isDragHovered = candidateData.isNotEmpty;
           final labelText =
               isPair ? '${topCol.label} / ${bottomCol!.label}' : topCol.label;
           final dragData =
               isPair ? effectiveGroup.columnIds.join('::') : topCol.id;
           return Draggable<String>(
             data: dragData,
-            dragAnchorStrategy: (draggable, context, position) {
-              return Offset(effectiveGroup.minWidth / 2, widget.height / 2);
+            dragAnchorStrategy: childDragAnchorStrategy,
+            onDragEnd: (_) {
+              widget.controller.clearHoveredColumnDropTarget();
             },
             feedback: Material(
-              elevation: 4,
+              elevation: 6,
               borderRadius: BorderRadius.circular(4),
+              color: defaultBg.withAlpha(240),
+              shadowColor: Colors.black54,
               child: Container(
-                width: effectiveGroup.minWidth,
+                width: widget.width,
                 height: widget.height,
-                padding: const EdgeInsets.symmetric(horizontal: 12.0),
-                color: theme.colorScheme.primaryContainer.withAlpha(220),
-                alignment: Alignment.center,
+                padding: widget.headerPadding ??
+                    const EdgeInsets.symmetric(horizontal: 16.0),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withAlpha(180),
+                    width: 1.5,
+                  ),
+                ),
+                alignment: topCol.headerAlignment,
                 child: Text(
                   labelText,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+                  style: (widget.headerTextStyle ??
+                          const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ))
+                      .copyWith(
+                    color: theme.colorScheme.onSurface,
                   ),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2,
+                  textAlign: _textAlignFromAlignment(topCol.headerAlignment),
                 ),
               ),
             ),
-            childWhenDragging: Opacity(opacity: 0.4, child: content),
-            child: Container(
-              color: isDragHovered
-                  ? theme.colorScheme.primary.withAlpha(40)
-                  : Colors.transparent,
-              child: content,
-            ),
+            childWhenDragging: Opacity(opacity: 0.35, child: content),
+            child: content,
           );
         },
       );
     }
-
-    final defaultBg = widget.headerBackgroundColor ??
-        (isDark ? const Color(0xFF1E1E1E) : const Color(0xFFF5F5F5));
     final hoverBg = widget.headerBackgroundColor != null
         ? widget.headerBackgroundColor!.withAlpha(220)
         : (isDark ? const Color(0xFF282828) : const Color(0xFFECECEC));

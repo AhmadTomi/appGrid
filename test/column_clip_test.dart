@@ -113,7 +113,7 @@ void main() {
     });
 
     testWidgets(
-        'Header drag feedback widget uses column minWidth instead of current width',
+        'Header drag feedback widget uses current column width and pointerDragAnchorStrategy',
         (tester) async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: const [
@@ -145,19 +145,18 @@ void main() {
 
       final feedbackMaterial = draggable.feedback as Material;
       final container = feedbackMaterial.child as Container;
-      // The container width should be exactly col1's minWidth (100.0) rather than initialWidth (400.0)
+      // The container width should be exactly col1's current width (400.0) rather than minWidth (100.0)
       expect(container.constraints?.hasTightWidth, isTrue);
-      expect(container.constraints?.minWidth, equals(100.0));
-      expect(container.constraints?.maxWidth, equals(100.0));
+      expect(container.constraints?.minWidth, equals(400.0));
+      expect(container.constraints?.maxWidth, equals(400.0));
 
-      // Verify anchor strategy positions the cursor at the center of the feedback (minWidth/2, height/2)
+      // Verify anchor strategy preserves pointer position with childDragAnchorStrategy
       final context = tester.element(draggableFinder);
+      final renderBox = context.findRenderObject() as RenderBox;
+      final testPoint = renderBox.localToGlobal(const Offset(150.0, 20.0));
       final anchorOffset =
-          draggable.dragAnchorStrategy(draggable, context, Offset.zero);
-      expect(
-          anchorOffset,
-          equals(const Offset(
-              50.0, 24.0))); // minWidth 100 / 2 = 50, height 48 / 2 = 24
+          draggable.dragAnchorStrategy(draggable, context, testPoint);
+      expect(anchorOffset, equals(const Offset(150.0, 20.0)));
     });
   });
 }
