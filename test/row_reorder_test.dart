@@ -4,16 +4,15 @@ import 'package:app_grid/app_grid.dart';
 
 void main() {
   group('Manual Row Reorder (Controller Unit Tests)', () {
-    test('canReorderRows is true only when no column sorting is active',
-        () async {
+    test('canReorderRows is true only when no column sorting is active', () async {
       final controller = AppGridController<Map<String, dynamic>>(
         initialData: [
           {'id': 1, 'name': 'Alpha'},
           {'id': 2, 'name': 'Beta'},
           {'id': 3, 'name': 'Gamma'},
         ],
-        columns: const [
-          GridColumn(id: 'name', label: 'Name'),
+        columns: [
+          GridColumn(id: 'name', label: 'Name', enableRowDrag: true),
         ],
       );
 
@@ -39,7 +38,7 @@ void main() {
 
       final controller = AppGridController<String>(
         initialData: ['Item A', 'Item B', 'Item C', 'Item D'],
-        columns: const [GridColumn(id: 'name', label: 'Name')],
+        columns: [GridColumn(id: 'name', label: 'Name', enableRowDrag: true)],
         onRowReorder: (oldIdx, newIdx) {
           reportedOldIndex = oldIdx;
           reportedNewIndex = newIdx;
@@ -53,10 +52,8 @@ void main() {
       expect(reportedNewIndex, 2);
 
       // Verify dataset order
-      expect(controller.getReorderedData(),
-          ['Item B', 'Item C', 'Item A', 'Item D']);
-      expect(controller.getModifiedData(),
-          ['Item B', 'Item C', 'Item A', 'Item D']);
+      expect(controller.getReorderedData(), ['Item B', 'Item C', 'Item A', 'Item D']);
+      expect(controller.getModifiedData(), ['Item B', 'Item C', 'Item A', 'Item D']);
       expect(controller.originalRowCount, 4);
       expect(controller.displayRowCount, 4);
       expect(controller.getRowByDisplayIndex(0), 'Item B');
@@ -68,7 +65,7 @@ void main() {
     test('reorderRow adjusts active row selection correctly', () {
       final controller = AppGridController<String>(
         initialData: ['Row 0', 'Row 1', 'Row 2', 'Row 3'],
-        columns: const [GridColumn(id: 'text', label: 'Text')],
+        columns: [GridColumn(id: 'text', label: 'Text', enableRowDrag: true)],
       );
 
       // Select Row 1
@@ -81,22 +78,18 @@ void main() {
       // Selection should follow Row 1 to index 3
       expect(controller.selectedDisplayIndex, 3);
       expect(controller.selectedOriginalIndex, 3);
-      expect(controller.getRowByDisplayIndex(controller.selectedDisplayIndex!),
-          'Row 1');
+      expect(controller.getRowByDisplayIndex(controller.selectedDisplayIndex!), 'Row 1');
 
       // Now move Row 0 to index 3 (which shifts Row 1 from index 3 down to index 2)
       controller.reorderRow(0, 3);
       expect(controller.selectedDisplayIndex, 2);
-      expect(controller.getRowByDisplayIndex(controller.selectedDisplayIndex!),
-          'Row 1');
+      expect(controller.getRowByDisplayIndex(controller.selectedDisplayIndex!), 'Row 1');
     });
 
-    test(
-        'State persistence does NOT persist row reordering (REQ-STATE-01, 02, 03)',
-        () {
+    test('State persistence does NOT persist row reordering (REQ-STATE-01, 02, 03)', () {
       final controller = AppGridController<String>(
         initialData: ['First', 'Second', 'Third'],
-        columns: const [GridColumn(id: 'col', label: 'Col')],
+        columns: [GridColumn(id: 'col', label: 'Col', enableRowDrag: true)],
       );
 
       controller.reorderRow(0, 2);
@@ -114,15 +107,12 @@ void main() {
     });
   });
 
-  group('Manual Row Reorder (Widget & Drag Handle Tests)', () {
-    testWidgets(
-        'Renders GridColumn.rowDragHandle and AppGridRowDragHandle in enabled state',
-        (tester) async {
+  group('Manual Row Reorder (PlutoGrid Style Widget & Drag Handle Tests)', () {
+    testWidgets('Renders drag handle icon automatically when column has enableRowDrag: true', (tester) async {
       final controller = AppGridController<String>(
         initialData: ['Alpha', 'Beta', 'Gamma'],
         columns: [
-          GridColumn.rowDragHandle(),
-          GridColumn(id: 'text', label: 'Text', valueGetter: (row) => row),
+          GridColumn(id: 'text', label: 'Text', enableRowDrag: true, valueGetter: (row) => row),
         ],
       );
 
@@ -134,7 +124,6 @@ void main() {
               height: 600,
               child: AppGrid<String>(
                 controller: controller,
-                enableRowReorder: true,
               ),
             ),
           ),
@@ -142,19 +131,16 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Drag handles should be rendered
-      expect(find.byType(AppGridRowDragHandle<String>), findsWidgets);
+      // Drag handles should be rendered at the start of cells
       expect(find.byIcon(Icons.drag_indicator), findsWidgets);
       expect(find.byType(Draggable<int>), findsWidgets);
     });
 
-    testWidgets('Disables AppGridRowDragHandle when column sort is active',
-        (tester) async {
+    testWidgets('Hides drag handle icon completely when column sort is active (matching PlutoGrid)', (tester) async {
       final controller = AppGridController<String>(
         initialData: ['Alpha', 'Beta', 'Gamma'],
         columns: [
-          GridColumn.rowDragHandle(),
-          GridColumn(id: 'text', label: 'Text', valueGetter: (row) => row),
+          GridColumn(id: 'text', label: 'Text', enableRowDrag: true, valueGetter: (row) => row),
         ],
       );
 
@@ -166,7 +152,6 @@ void main() {
               height: 600,
               child: AppGrid<String>(
                 controller: controller,
-                enableRowReorder: true,
               ),
             ),
           ),
@@ -174,36 +159,36 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Initially sorting is inactive -> Draggable is present
+      // Initially sorting is inactive -> drag icon and Draggable are present
+      expect(find.byIcon(Icons.drag_indicator), findsWidgets);
       expect(find.byType(Draggable<int>), findsWidgets);
 
       // Now apply sorting
       await controller.sortByColumn('text', direction: SortDirection.ascending);
       await tester.pumpAndSettle();
 
-      // When sorting is active, Draggable must NOT be mounted, cursor is basic, drag is disabled
+      // When sorting is active, drag icon is completely HIDDEN (matching PlutoGrid)
       expect(controller.canReorderRows, isFalse);
+      expect(find.byIcon(Icons.drag_indicator), findsNothing);
       expect(find.byType(Draggable<int>), findsNothing);
 
-      // Clear sorting -> Draggable is restored
+      // Clear sorting -> drag icon reappears
       await controller.sortByColumn('text', direction: SortDirection.none);
       await tester.pumpAndSettle();
 
       expect(controller.canReorderRows, isTrue);
+      expect(find.byIcon(Icons.drag_indicator), findsWidgets);
       expect(find.byType(Draggable<int>), findsWidgets);
     });
 
-    testWidgets(
-        'Drag and drop row from index 0 to index 2 updates order and calls callback',
-        (tester) async {
+    testWidgets('Drag and drop row from index 0 to index 2 updates order and calls callback', (tester) async {
       int? reorderedOld;
       int? reorderedNew;
 
       final controller = AppGridController<String>(
         initialData: ['Row 1', 'Row 2', 'Row 3'],
         columns: [
-          GridColumn.rowDragHandle(),
-          GridColumn(id: 'name', label: 'Name', valueGetter: (row) => row),
+          GridColumn(id: 'name', label: 'Name', enableRowDrag: true, valueGetter: (row) => row),
         ],
       );
 
@@ -215,7 +200,6 @@ void main() {
               height: 600,
               child: AppGrid<String>(
                 controller: controller,
-                enableRowReorder: true,
                 onRowReorder: (oldIdx, newIdx) {
                   reorderedOld = oldIdx;
                   reorderedNew = newIdx;
@@ -227,8 +211,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Find first drag handle
-      final firstHandle = find.byType(AppGridRowDragHandle<String>).first;
+      // Find first drag handle icon
+      final firstHandle = find.byIcon(Icons.drag_indicator).first;
       expect(firstHandle, findsOneWidget);
 
       // Find third row

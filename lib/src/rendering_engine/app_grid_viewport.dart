@@ -33,7 +33,6 @@ class AppGridViewport<T> extends StatefulWidget {
   final bool readOnly;
   final ValueChanged<RowIndexInfo>? onRowTap;
   final ValueChanged<RowIndexInfo>? onRowDoubleTap;
-  final bool enableRowReorder;
   final void Function(int oldIndex, int newIndex)? onRowReorder;
 
   double get rowHeight =>
@@ -69,7 +68,6 @@ class AppGridViewport<T> extends StatefulWidget {
     this.readOnly = false,
     this.onRowTap,
     this.onRowDoubleTap,
-    this.enableRowReorder = false,
     this.onRowReorder,
   });
 
@@ -621,8 +619,9 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>>
       ),
     );
 
-    final bool canReorder =
-        widget.enableRowReorder && widget.controller.canReorderRows;
+    final bool hasRowDrag =
+        widget.controller.columns.any((c) => c.enableRowDrag);
+    final bool canReorder = hasRowDrag && widget.controller.canReorderRows;
     if (!canReorder) {
       return rowContent;
     }
@@ -642,20 +641,36 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>>
         final draggedFromIndex = candidateData.first!;
         final isAbove = draggedFromIndex > displayIndex;
         final theme = Theme.of(context);
+        final indicatorColor = theme.colorScheme.primary;
 
-        return Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.primary.withAlpha(25),
-            border: Border(
-              top: isAbove
-                  ? BorderSide(color: theme.colorScheme.primary, width: 2.5)
-                  : BorderSide.none,
-              bottom: !isAbove
-                  ? BorderSide(color: theme.colorScheme.primary, width: 2.5)
-                  : BorderSide.none,
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            rowContent,
+
+            // 1. Semi-transparent highlight tint across the entire target row
+            Positioned.fill(
+              child: IgnorePointer(
+                child: Container(
+                  color: indicatorColor.withAlpha(20),
+                ),
+              ),
             ),
-          ),
-          child: rowContent,
+
+            // 2. Full-Row Drop Line Indicator (sharp 2.5px solid line spanning entire row)
+            Positioned(
+              left: 0,
+              right: 0,
+              top: isAbove ? 0 : null,
+              bottom: !isAbove ? 0 : null,
+              height: 2.5,
+              child: IgnorePointer(
+                child: Container(
+                  color: indicatorColor,
+                ),
+              ),
+            ),
+          ],
         );
       },
     );

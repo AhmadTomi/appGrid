@@ -141,8 +141,12 @@ void main() {
           {'id': 1, 'name': 'Item A'},
         ],
         columns: [
-          GridColumn.rowDragHandle(),
-          GridColumn(id: 'name', label: 'Name', valueGetter: (r) => r['name']),
+          GridColumn(
+            id: 'name',
+            label: 'Name',
+            valueGetter: (r) => r['name'],
+            enableRowDrag: true,
+          ),
         ],
       );
 
@@ -154,7 +158,6 @@ void main() {
               height: 400,
               child: AppGrid<Map<String, dynamic>>(
                 controller: controller,
-                enableRowReorder: true,
                 style: const AppGridStyle(iconSize: 26.0),
               ),
             ),

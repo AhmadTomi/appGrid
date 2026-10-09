@@ -108,14 +108,12 @@ class GridColumn {
   /// Alignment for column footer child widgets. Defaults to [Alignment.centerLeft].
   final Alignment footerAlignment;
 
-  /// Whether this column is a dedicated drag handle column for manual row reordering.
-  final bool isRowDragHandle;
-
-  /// Optional custom icon widget for row drag handle.
-  final Widget? rowDragIcon;
-
-  /// Optional custom icon widget when row drag handle is disabled (e.g. sorting active).
-  final Widget? rowDragDisabledIcon;
+  /// Whether row dragging is enabled for this column. Defaults to false.
+  ///
+  /// When true, an interactive drag handle icon is displayed at the start of cells
+  /// in this column, allowing users to reorder rows via drag-and-drop.
+  /// If column sorting or filtering is active, the drag handle is automatically hidden.
+  final bool enableRowDrag;
 
   /// Optional custom icon widget for the column context/sort menu in unsorted state.
   final Widget? menuIcon;
@@ -152,49 +150,13 @@ class GridColumn {
     this.headerAlignment = Alignment.center,
     this.footerSpan = 1,
     this.footerAlignment = Alignment.centerLeft,
-    this.isRowDragHandle = false,
-    this.rowDragIcon,
-    this.rowDragDisabledIcon,
+    this.enableRowDrag = false,
     this.menuIcon,
     this.sortAscendingIcon,
     this.sortDescendingIcon,
     this.headerConfig,
   })  : assert(minWidth >= 0, 'minWidth cannot be negative'),
         assert(footerSpan >= 1, 'footerSpan must be at least 1');
-
-  /// Factory constructor creating a dedicated drag handle column for manual row reordering.
-  ///
-  /// Typically pinned to [GridColumnPin.left] with a compact fixed width, non-sortable,
-  /// non-resizable, and cannot be hidden.
-  factory GridColumn.rowDragHandle({
-    String id = '__row_drag_handle__',
-    String label = '',
-    double width = 48.0,
-    GridColumnPin pin = GridColumnPin.left,
-    Widget? icon,
-    Widget? disabledIcon,
-    Alignment alignment = Alignment.center,
-  }) {
-    return GridColumn(
-      id: id,
-      label: label,
-      initialWidth: width,
-      minWidth: width,
-      maxWidth: width,
-      pin: pin,
-      isSortable: false,
-      isResizable: false,
-      isReorderable: false,
-      canHide: false,
-      canCompact: false,
-      isRowDragHandle: true,
-      rowDragIcon: icon,
-      rowDragDisabledIcon: disabledIcon,
-      cellAlignment: alignment,
-      cellPadding: EdgeInsets.zero,
-      headerAlignment: alignment,
-    );
-  }
 
   GridColumn copyWith({
     String? id,
@@ -219,6 +181,7 @@ class GridColumn {
     Alignment? headerAlignment,
     int? footerSpan,
     Alignment? footerAlignment,
+    bool? enableRowDrag,
     Widget? menuIcon,
     Widget? sortAscendingIcon,
     Widget? sortDescendingIcon,
@@ -247,9 +210,7 @@ class GridColumn {
       headerAlignment: headerAlignment ?? this.headerAlignment,
       footerSpan: footerSpan ?? this.footerSpan,
       footerAlignment: footerAlignment ?? this.footerAlignment,
-      isRowDragHandle: isRowDragHandle,
-      rowDragIcon: rowDragIcon,
-      rowDragDisabledIcon: rowDragDisabledIcon,
+      enableRowDrag: enableRowDrag ?? this.enableRowDrag,
       menuIcon: menuIcon ?? this.menuIcon,
       sortAscendingIcon: sortAscendingIcon ?? this.sortAscendingIcon,
       sortDescendingIcon: sortDescendingIcon ?? this.sortDescendingIcon,
@@ -276,7 +237,7 @@ class GridColumn {
           headerAlignment == other.headerAlignment &&
           footerSpan == other.footerSpan &&
           footerAlignment == other.footerAlignment &&
-          isRowDragHandle == other.isRowDragHandle &&
+          enableRowDrag == other.enableRowDrag &&
           headerConfig == other.headerConfig;
 
   @override
@@ -293,10 +254,10 @@ class GridColumn {
       headerAlignment.hashCode ^
       footerSpan.hashCode ^
       footerAlignment.hashCode ^
-      isRowDragHandle.hashCode ^
+      enableRowDrag.hashCode ^
       headerConfig.hashCode;
 
   @override
   String toString() =>
-      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, canCompact: $canCompact, cellAlignment: $cellAlignment, cellPadding: $cellPadding, headerAlignment: $headerAlignment, footerSpan: $footerSpan, footerAlignment: $footerAlignment, isRowDragHandle: $isRowDragHandle, headerConfig: $headerConfig)';
+      'GridColumn(id: $id, label: $label, pin: $pin, isVisible: $isVisible, canHide: $canHide, canCompact: $canCompact, cellAlignment: $cellAlignment, cellPadding: $cellPadding, headerAlignment: $headerAlignment, footerSpan: $footerSpan, footerAlignment: $footerAlignment, enableRowDrag: $enableRowDrag, headerConfig: $headerConfig)';
 }

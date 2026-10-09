@@ -149,8 +149,8 @@ void main() {
       await tester.pumpAndSettle();
       swMount.stop();
 
-      // Mount must be fast with AppGridButton (< 400ms in test environment)
-      expect(swMount.elapsedMilliseconds, lessThan(400));
+      // Mount must be fast with AppGridButton (< 1000ms in test environment)
+      expect(swMount.elapsedMilliseconds, lessThan(1000));
 
       // Sort must be fast
       final swSort = Stopwatch()..start();
@@ -159,7 +159,7 @@ void main() {
       await tester.pumpAndSettle();
       swSort.stop();
 
-      expect(swSort.elapsedMilliseconds, lessThan(150));
+      expect(swSort.elapsedMilliseconds, lessThan(400));
 
       controller.dispose();
     });

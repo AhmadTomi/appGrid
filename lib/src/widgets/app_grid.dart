@@ -122,12 +122,6 @@ class AppGrid<T> extends StatefulWidget {
   /// Defaults to [AppGridLoadingOverlay].
   final Widget? loadingWidget;
 
-  /// Whether manual drag-and-drop row reordering is enabled. Defaults to false.
-  ///
-  /// Requires that column sorting is not actively applied. When true, rows can accept
-  /// drops from [AppGridRowDragHandle] widgets.
-  final bool enableRowReorder;
-
   /// Optional callback triggered when a row is manually moved from [oldIndex] to [newIndex].
   final void Function(int oldIndex, int newIndex)? onRowReorder;
 
@@ -165,7 +159,6 @@ class AppGrid<T> extends StatefulWidget {
     this.enableMouseDragScroll = true,
     this.physics,
     this.clock,
-    this.enableRowReorder = false,
     this.onRowReorder,
   });
 
@@ -638,7 +631,6 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                           .effectiveVerticalScrollbarVisibility,
                                       isParentHovered: _isGridHovered,
                                       physics: widget.physics,
-                                      enableRowReorder: widget.enableRowReorder,
                                       onRowReorder: widget.onRowReorder,
                                     );
                                   }

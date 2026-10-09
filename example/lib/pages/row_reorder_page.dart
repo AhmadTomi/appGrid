@@ -78,23 +78,21 @@ class _RowReorderPageState extends State<RowReorderPage> {
     _controller = AppGridController<Map<String, dynamic>>(
       initialData: _initialTasks,
       columns: [
-        GridColumn.rowDragHandle(),
         GridColumn(
           id: 'pos',
           label: '#',
-          initialWidth: 50,
-          minWidth: 50,
+          initialWidth: 68,
+          minWidth: 60,
           pin: GridColumnPin.left,
           isSortable: false,
           isResizable: false,
+          enableRowDrag: true,
           cellAlignment: Alignment.center,
           headerAlignment: Alignment.center,
           cellBuilder: (context, data, indexInfo) {
-            return Center(
-              child: Text(
-                '${indexInfo.displayIndex + 1}',
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+            return Text(
+              '${indexInfo.displayIndex + 1}',
+              style: const TextStyle(fontWeight: FontWeight.bold),
             );
           },
         ),
@@ -342,7 +340,6 @@ class _RowReorderPageState extends State<RowReorderPage> {
               clipBehavior: Clip.antiAlias,
               child: AppGrid<Map<String, dynamic>>(
                 controller: _controller,
-                enableRowReorder: true,
                 style: const AppGridStyle(
                   rowHeight: 46,
                   headerHeight: 44,
@@ -405,14 +402,12 @@ class _RowReorderPageState extends State<RowReorderPage> {
 }
 
 const rowReorderSnippet = '''
-// 1. Controller with onRowReorder callback & drag handle column
+// 1. Configure columns: simply set enableRowDrag: true on any column
 final controller = AppGridController<Task>(
   initialData: tasks,
   columns: [
-    // Dedicated Drag Handle column
-    GridColumn.rowDragHandle(),
-
-    GridColumn(id: 'id', label: 'ID', initialWidth: 90, valueGetter: (t) => t.id),
+    // Drag handle icon automatically appears at the start of this column's cells
+    GridColumn(id: 'id', label: 'ID', initialWidth: 90, enableRowDrag: true, valueGetter: (t) => t.id),
     GridColumn(id: 'title', label: 'Title', initialWidth: 240, valueGetter: (t) => t.title),
     GridColumn(id: 'priority', label: 'Priority', initialWidth: 100, valueGetter: (t) => t.priority),
   ],
@@ -421,10 +416,9 @@ final controller = AppGridController<Task>(
   },
 );
 
-// 2. Enable row reordering in AppGrid
+// 2. Render AppGrid with onRowReorder callback
 AppGrid<Task>(
   controller: controller,
-  enableRowReorder: true,
   onRowReorder: (oldIndex, newIndex) {
     // Optional widget-level callback
   },
@@ -434,7 +428,7 @@ AppGrid<Task>(
 List<Task> currentOrder = controller.getReorderedData();
 
 // Note:
-// - Drag handles are automatically DISABLED with muted visual styling
-//   when any column sort is active (controller.canReorderRows == false).
+// - Drag handles are automatically HIDDEN when any column sort is active (controller.canReorderRows == false).
+// - Full-row drop line indicator spans across all panes with zero background clipping.
 // - Reordering is in-memory only and is strictly excluded from JSON state persistence.
 ''';
