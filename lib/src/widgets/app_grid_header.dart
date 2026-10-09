@@ -445,7 +445,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
                 child: MouseRegion(
                   cursor: SystemMouseCursors.resizeColumn,
                   child: GestureDetector(
-                    behavior: HitTestBehavior.translucent,
+                    behavior: HitTestBehavior.opaque,
                     onDoubleTap: () {
                       if (!effectiveHeaderConfig.enableAutoFit) return;
                       if (widget.onAutoFitGroup != null) {
@@ -466,11 +466,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
                     },
                     child: Container(
                       width: 12,
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        width: 2,
-                        color: Colors.transparent,
-                      ),
+                      color: Colors.transparent,
                     ),
                   ),
                 ),

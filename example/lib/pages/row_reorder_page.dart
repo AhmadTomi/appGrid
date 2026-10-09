@@ -273,16 +273,19 @@ class _RowReorderPageState extends State<RowReorderPage> {
                       color: canReorder ? Colors.green : Colors.orange,
                     ),
                     const SizedBox(width: 6),
-                    Text(
-                      canReorder
-                          ? 'Sorting: Inactive (Drag & Drop ENABLED)'
-                          : 'Sorting Active (${sortCriteria?.columnId} ${sortCriteria?.direction.name.toUpperCase()}) - Drag Handle DISABLED',
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: canReorder
-                            ? Colors.green.shade700
-                            : Colors.orange.shade800,
+                    Flexible(
+                      child: Text(
+                        canReorder
+                            ? 'Sorting: Inactive (Drag & Drop ENABLED)'
+                            : 'Sorting Active (${sortCriteria?.columnId} ${sortCriteria?.direction.name.toUpperCase()}) - Drag Handle DISABLED',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: canReorder
+                              ? Colors.green.shade700
+                              : Colors.orange.shade800,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],

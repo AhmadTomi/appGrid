@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
+import '../column_layout/column_layout_manager.dart';
 import '../models/row_index_info.dart';
 import '../models/grid_column.dart';
 import '../models/sort_criteria.dart';
@@ -40,6 +41,9 @@ class AppGridController<T> extends ChangeNotifier {
 
   /// Columns definitions managed by this controller.
   final List<GridColumn> _columns;
+
+  /// Layout manager controlling column widths, partitioning, and sizing.
+  late final ColumnLayoutManager layoutManager;
 
   /// Modular cell builders per column ID.
   final Map<String, ColumnCellBuilder<T>> _cellBuilders = {};
@@ -96,6 +100,10 @@ class AppGridController<T> extends ChangeNotifier {
         _compactMode = compactMode {
     _streamingThrottler = FrameBatchThrottler<MapEntry<int, T>>(
       onFlush: _applyFlushedBatch,
+    );
+
+    layoutManager = ColumnLayoutManager(
+      compactMode: compactMode,
     );
 
     for (final col in _columns) {
@@ -167,6 +175,7 @@ class AppGridController<T> extends ChangeNotifier {
   set compactMode(bool value) {
     if (_compactMode != value) {
       _compactMode = value;
+      layoutManager.compactMode = value;
       if (value) {
         if (_sortCriteria != null) {
           _sortCriteria = null;
@@ -970,6 +979,7 @@ class AppGridController<T> extends ChangeNotifier {
 
   @override
   void dispose() {
+    layoutManager.dispose();
     _streamingThrottler.dispose();
     for (final notifier in _rowNotifiers.values) {
       notifier.dispose();

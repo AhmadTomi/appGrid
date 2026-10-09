@@ -240,7 +240,7 @@ class AppGrid<T> extends StatefulWidget {
 }
 
 class _AppGridState<T> extends State<AppGrid<T>> {
-  late final ColumnLayoutManager _layoutManager;
+  late ColumnLayoutManager _layoutManager;
   late final ScrollController _verticalScrollController;
   late final ScrollController _horizontalScrollController;
   late final FocusNode _focusNode;
@@ -255,10 +255,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     if (widget.compactMode) {
       widget.controller.compactMode = true;
     }
-    _layoutManager = ColumnLayoutManager(
-      autoStretchEnabled: widget.autoStretch,
-      compactMode: widget.controller.compactMode,
-    );
+    _layoutManager = widget.controller.layoutManager;
+    _layoutManager.autoStretchEnabled = widget.autoStretch;
     _layoutManager.addListener(_onLayoutChanged);
 
     if (widget.verticalScrollController != null) {
@@ -336,7 +334,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     }
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_onControllerChanged);
+      oldWidget.controller.layoutManager.removeListener(_onLayoutChanged);
       widget.controller.addListener(_onControllerChanged);
+      _layoutManager = widget.controller.layoutManager;
+      _layoutManager.autoStretchEnabled = widget.autoStretch;
+      _layoutManager.addListener(_onLayoutChanged);
     }
     if (oldWidget.focusNode != widget.focusNode) {
       oldWidget.focusNode?.removeListener(_onFocusChanged);
@@ -363,7 +365,6 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     widget.controller.removeListener(_onControllerChanged);
     _focusNode.removeListener(_onFocusChanged);
     _layoutManager.removeListener(_onLayoutChanged);
-    _layoutManager.dispose();
     _isGridHovered.dispose();
 
     if (_ownsVerticalController) {

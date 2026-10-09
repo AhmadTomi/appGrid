@@ -87,21 +87,22 @@ class CellWidget<T> extends StatelessWidget {
           } else {
             feedbackWidget = Material(
               elevation: 6,
-              borderRadius: BorderRadius.circular(6),
+              borderRadius: BorderRadius.circular(4),
               color: theme.colorScheme.surfaceContainerHighest.withAlpha(240),
               shadowColor: Colors.black45,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                width: width,
+                height: height,
+                clipBehavior: Clip.hardEdge,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(4),
                   border: Border.all(
                     color: theme.colorScheme.primary.withAlpha(160),
                     width: 1.5,
                   ),
                 ),
                 child: Row(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
                       Icons.drag_indicator,
@@ -110,11 +111,7 @@ class CellWidget<T> extends StatelessWidget {
                     ),
                     const SizedBox(width: 8),
                     if (hasContent)
-                      ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth:
-                              column.initialWidth > 0 ? column.initialWidth : 250,
-                        ),
+                      Expanded(
                         child: DefaultTextStyle(
                           style: theme.textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
@@ -125,11 +122,14 @@ class CellWidget<T> extends StatelessWidget {
                         ),
                       )
                     else
-                      Text(
-                        'Row #${indexInfo.displayIndex + 1}',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.onSurface,
+                      Expanded(
+                        child: Text(
+                          'Row #${indexInfo.displayIndex + 1}',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                   ],

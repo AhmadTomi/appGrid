@@ -323,5 +323,70 @@ void main() {
       await gesture.up();
       await tester.pumpAndSettle();
     });
+
+    testWidgets('Preserves manually resized column widths when reordering rows', (tester) async {
+      final controller = AppGridController<String>(
+        initialData: ['Row A', 'Row B', 'Row C'],
+        columns: [
+          GridColumn(id: 'drag', label: '', initialWidth: 50, enableRowDrag: true),
+          GridColumn(id: 'name', label: 'Name', initialWidth: 150, valueGetter: (r) => r),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 600,
+              child: AppGrid<String>(
+                controller: controller,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Find resize handle for column 'name'
+      final resizeHandles = find.byWidgetPredicate(
+        (w) => w is MouseRegion && w.cursor == SystemMouseCursors.resizeColumn,
+      );
+      expect(resizeHandles, findsWidgets);
+
+      // Drag the resize handle for 'name' to increase width by 100px
+      final nameResizeHandle = resizeHandles.last;
+      final handleCenter = tester.getCenter(nameResizeHandle);
+      final resizeGesture = await tester.startGesture(handleCenter);
+      await resizeGesture.moveBy(const Offset(50, 0));
+      await resizeGesture.moveBy(const Offset(50, 0));
+      await resizeGesture.up();
+      await tester.pumpAndSettle();
+
+      // Get width of header cell 'name'
+      final nameHeaderFinder = find.ancestor(
+        of: find.text('Name'),
+        matching: find.byType(AppGridHeaderCell<String>),
+      );
+      final nameHeaderBefore = tester.getSize(nameHeaderFinder);
+      expect(nameHeaderBefore.width, greaterThan(150.0));
+
+      // Now reorder row 0 to row 2
+      final dragHandle = find.byIcon(Icons.drag_indicator).first;
+      final thirdRow = find.byKey(const ValueKey('grid_pos_row_2'));
+      final dragGesture = await tester.startGesture(tester.getCenter(dragHandle));
+      await tester.pump(const Duration(milliseconds: 50));
+      await dragGesture.moveTo(tester.getCenter(thirdRow));
+      await tester.pump(const Duration(milliseconds: 50));
+      await dragGesture.up();
+      await tester.pumpAndSettle();
+
+      // Verify row order changed
+      expect(controller.getReorderedData(), ['Row B', 'Row C', 'Row A']);
+
+      // Check width of header cell 'name' after row reorder
+      final nameHeaderAfter = tester.getSize(nameHeaderFinder);
+      expect(nameHeaderAfter.width, equals(nameHeaderBefore.width));
+    });
   });
 }

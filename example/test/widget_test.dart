@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:app_grid/src/widgets/app_grid_header.dart';
 import 'package:app_grid_example/main.dart';
 
 void main() {
@@ -106,5 +107,67 @@ void main() {
 
     expect(find.text('Compact Mode: ON'), findsOneWidget);
     expect(find.textContaining('Compact Mode Active'), findsOneWidget);
+  });
+
+  testWidgets('Row Reorder tab preserves column width when moving rows',
+      (tester) async {
+    tester.view.physicalSize = const Size(1280, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() => tester.view.resetPhysicalSize());
+
+    await tester.pumpWidget(const AppGridShowcaseApp());
+    await tester.pumpAndSettle();
+
+    // Switch to Row Reordering tab
+    await tester.scrollUntilVisible(
+      find.text('Manual Row Reorder'),
+      200.0,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('Manual Row Reorder'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Task Title'), findsOneWidget);
+
+    final titleHeaderFinder = find.ancestor(
+      of: find.text('Task Title'),
+      matching: find.byType(AppGridHeaderCell<Map<String, dynamic>>),
+    );
+
+    // Find resize handle specifically inside Task Title header cell
+    final titleResizeHandle = find.descendant(
+      of: titleHeaderFinder,
+      matching: find.byWidgetPredicate(
+        (w) => w is MouseRegion && w.cursor == SystemMouseCursors.resizeColumn,
+      ),
+    ).first;
+
+    final handleCenter = tester.getCenter(titleResizeHandle);
+    final resizeGesture = await tester.startGesture(handleCenter);
+    await resizeGesture.moveBy(const Offset(40, 0));
+    await resizeGesture.moveBy(const Offset(40, 0));
+    await resizeGesture.up();
+    await tester.pumpAndSettle();
+
+    final titleHeaderBefore = tester.getSize(titleHeaderFinder).width;
+    expect(titleHeaderBefore, greaterThan(260.0));
+
+    // Move row
+    final dragHandle = find.byIcon(Icons.drag_indicator).first;
+    final targetRow = find.byKey(const ValueKey('grid_pos_row_2'));
+    final dragGesture = await tester.startGesture(tester.getCenter(dragHandle));
+    await tester.pump(const Duration(milliseconds: 50));
+    await dragGesture.moveTo(tester.getCenter(targetRow));
+    await tester.pump(const Duration(milliseconds: 50));
+    await dragGesture.up();
+    await tester.pumpAndSettle();
+
+    final titleHeaderAfter = tester.getSize(
+      find.ancestor(
+        of: find.text('Task Title'),
+        matching: find.byType(AppGridHeaderCell<Map<String, dynamic>>),
+      ),
+    ).width;
+    expect(titleHeaderAfter, equals(titleHeaderBefore));
   });
 }
