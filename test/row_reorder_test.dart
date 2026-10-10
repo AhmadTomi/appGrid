@@ -12,7 +12,7 @@ void main() {
           {'id': 3, 'name': 'Gamma'},
         ],
         columns: [
-          GridColumn(id: 'name', label: 'Name', enableRowDrag: true),
+          const GridColumn(id: 'name', label: 'Name', enableRowDrag: true),
         ],
       );
 
@@ -38,7 +38,7 @@ void main() {
 
       final controller = AppGridController<String>(
         initialData: ['Item A', 'Item B', 'Item C', 'Item D'],
-        columns: [GridColumn(id: 'name', label: 'Name', enableRowDrag: true)],
+        columns: [const GridColumn(id: 'name', label: 'Name', enableRowDrag: true)],
         onRowReorder: (oldIdx, newIdx) {
           reportedOldIndex = oldIdx;
           reportedNewIndex = newIdx;
@@ -65,7 +65,7 @@ void main() {
     test('reorderRow adjusts active row selection correctly', () {
       final controller = AppGridController<String>(
         initialData: ['Row 0', 'Row 1', 'Row 2', 'Row 3'],
-        columns: [GridColumn(id: 'text', label: 'Text', enableRowDrag: true)],
+        columns: [const GridColumn(id: 'text', label: 'Text', enableRowDrag: true)],
       );
 
       // Select Row 1
@@ -89,7 +89,7 @@ void main() {
     test('State persistence does NOT persist row reordering (REQ-STATE-01, 02, 03)', () {
       final controller = AppGridController<String>(
         initialData: ['First', 'Second', 'Third'],
-        columns: [GridColumn(id: 'col', label: 'Col', enableRowDrag: true)],
+        columns: [const GridColumn(id: 'col', label: 'Col', enableRowDrag: true)],
       );
 
       controller.reorderRow(0, 2);
@@ -328,7 +328,7 @@ void main() {
       final controller = AppGridController<String>(
         initialData: ['Row A', 'Row B', 'Row C'],
         columns: [
-          GridColumn(id: 'drag', label: '', initialWidth: 50, enableRowDrag: true),
+          const GridColumn(id: 'drag', label: '', initialWidth: 50, enableRowDrag: true),
           GridColumn(id: 'name', label: 'Name', initialWidth: 150, valueGetter: (r) => r),
         ],
       );

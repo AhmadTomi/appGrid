@@ -314,5 +314,132 @@ void main() {
 
       controller.dispose();
     });
+
+    testWidgets(
+        'AppGrid applies headerBackgroundColor and footerBackgroundColor',
+        (tester) async {
+      final controller = AppGridController<Map<String, dynamic>>(
+        initialData: [
+          {'name': 'Item 1'},
+        ],
+        columns: [
+          GridColumn(
+            id: 'name',
+            label: 'Name Column',
+            valueGetter: (r) => r['name'],
+          ),
+        ],
+      );
+
+      const customHeaderBg = Color(0xFF123456);
+      const customFooterBg = Color(0xFF654321);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 400,
+              child: AppGrid<Map<String, dynamic>>(
+                controller: controller,
+                footerBuilder: (context, col, data) =>
+                    const Text('Custom Footer Label'),
+                style: const AppGridStyle(
+                  headerBackgroundColor: customHeaderBg,
+                  footerBackgroundColor: customFooterBg,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final grid = tester.widget<AppGrid<Map<String, dynamic>>>(
+        find.byType(AppGrid<Map<String, dynamic>>),
+      );
+      expect(grid.headerBackgroundColor, equals(customHeaderBg));
+      expect(grid.footerBackgroundColor, equals(customFooterBg));
+
+      // Verify header cell background
+      final headerCell = tester.widget<AppGridHeaderCell>(
+        find.byWidgetPredicate((w) => w is AppGridHeaderCell),
+      );
+      expect(headerCell.headerBackgroundColor, equals(customHeaderBg));
+
+      // Verify footer cell container background
+      final footerCell = tester.widget<AppGridFooterCell>(
+        find.byType(AppGridFooterCell),
+      );
+      expect(footerCell.style.footerBackgroundColor, equals(customFooterBg));
+
+      final footerCellContainer = find.descendant(
+        of: find.byType(AppGridFooterCell),
+        matching: find.byWidgetPredicate(
+          (w) => w is Container && w.color == customFooterBg,
+        ),
+      );
+      expect(footerCellContainer, findsOneWidget);
+
+      controller.dispose();
+    });
+
+    testWidgets(
+        'AppGrid applies footerBackgroundColor when using column.footerBuilder and style.footerHeight',
+        (tester) async {
+      final controller = AppGridController<Map<String, dynamic>>(
+        initialData: [
+          {'item': 'Apple', 'price': 10},
+          {'item': 'Orange', 'price': 15},
+        ],
+        columns: [
+          GridColumn(
+            id: 'item',
+            label: 'Item',
+            valueGetter: (r) => r['item'],
+          ),
+          GridColumn(
+            id: 'price',
+            label: 'Price',
+            valueGetter: (r) => r['price'],
+            footerBuilder: (context, data) => const Text('Total: 25'),
+          ),
+        ],
+      );
+
+      const customFooterBg = Color(0xFF00796B);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 800,
+              height: 400,
+              child: AppGrid<Map<String, dynamic>>(
+                controller: controller,
+                style: const AppGridStyle(
+                  footerHeight: 45.0,
+                  footerBackgroundColor: customFooterBg,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final footerCells = find.byType(AppGridFooterCell);
+      expect(footerCells, findsNWidgets(2));
+
+      final coloredContainers = find.descendant(
+        of: find.byType(AppGridFooterCell),
+        matching: find.byWidgetPredicate(
+          (w) => w is Container && w.color == customFooterBg,
+        ),
+      );
+      expect(coloredContainers, findsNWidgets(2));
+
+      controller.dispose();
+    });
   });
 }

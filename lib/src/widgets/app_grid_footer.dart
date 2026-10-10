@@ -133,8 +133,8 @@ class AppGridFooterCell extends StatelessWidget {
       content = _buildSingleFooter(context, column, theme);
     }
 
-    final defaultBg =
-        isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEEEEEE);
+    final defaultBg = style.footerBackgroundColor ??
+        (isDark ? const Color(0xFF1E1E1E) : const Color(0xFFEEEEEE));
     final verticalDividerColor = style.verticalGridLineColor ??
         style.gridLineColor ??
         (isDark ? const Color(0x1FFFFFFF) : const Color(0x1F000000));

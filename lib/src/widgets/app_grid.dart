@@ -187,6 +187,15 @@ class AppGrid<T> extends StatefulWidget {
   /// Padding applied to column footer cells.
   EdgeInsetsGeometry? get footerPadding => style.footerPadding;
 
+  /// Background color applied to column header cells.
+  Color? get headerBackgroundColor => style.headerBackgroundColor;
+
+  /// Background color applied to column footer cells.
+  Color? get footerBackgroundColor => style.footerBackgroundColor;
+
+  /// Default text style for column footer cells.
+  TextStyle? get footerTextStyle => style.footerTextStyle;
+
   /// Default text style for column context menu items.
   TextStyle get menuTextStyle => style.menuTextStyle;
 
@@ -656,9 +665,10 @@ class _AppGridState<T> extends State<AppGrid<T>> {
 
                             // 3. Footer Bar (Optional)
                             if (hasFooter)
-                              SizedBox(
+                              Container(
                                 height: footerH,
                                 width: innerWidth,
+                                color: _effectiveStyle.footerBackgroundColor,
                                 child: _buildFooter(
                                   totalWidth: innerWidth,
                                   leftWidth: leftWidth,
