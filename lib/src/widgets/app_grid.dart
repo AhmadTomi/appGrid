@@ -520,6 +520,9 @@ class _AppGridState<T> extends State<AppGrid<T>> {
         final totalWidth = constraints.maxWidth;
         final totalHeight = constraints.maxHeight;
 
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+
         const double borderWidth = 1.0;
         final double innerWidth = math.max(0.0, totalWidth - (borderWidth * 2));
 
@@ -668,7 +671,10 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                               Container(
                                 height: footerH,
                                 width: innerWidth,
-                                color: _effectiveStyle.footerBackgroundColor,
+                                color: _effectiveStyle.footerBackgroundColor ??
+                                    (isDark
+                                        ? const Color(0xFF1E1E1E)
+                                        : const Color(0xFFEEEEEE)),
                                 child: _buildFooter(
                                   totalWidth: innerWidth,
                                   leftWidth: leftWidth,
