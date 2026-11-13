@@ -15,6 +15,7 @@ import '../rendering_engine/app_grid_viewport.dart';
 import '../keyboard_interaction/grid_keyboard_handler.dart';
 import 'app_grid_header.dart';
 import 'app_grid_footer.dart';
+import 'app_grid_empty_rows.dart';
 import 'app_grid_column_dialog.dart';
 
 import '../models/data_fetch_mode.dart';
@@ -621,6 +622,15 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                                       !effectiveIsLoading &&
                                       widget.emptyWidget != null) {
                                     bodyContent = widget.emptyWidget!;
+                                  } else if (isEmpty &&
+                                      _effectiveStyle.fillEmptyRows) {
+                                    bodyContent = AppGridEmptyRows(
+                                      layout: computedLayout,
+                                      style: _effectiveStyle,
+                                      rowHeight: widget.controller.compactMode
+                                          ? _effectiveStyle.rowHeight * 2.0
+                                          : _effectiveStyle.rowHeight,
+                                    );
                                   } else {
                                     bodyContent = AppGridViewport<T>(
                                       controller: widget.controller,

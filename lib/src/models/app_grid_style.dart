@@ -138,6 +138,12 @@ class AppGridStyle {
   /// Defaults to false.
   final bool showPinIcon;
 
+  /// When the grid has no rows, fill the body with blank placeholder rows
+  /// (row stripes and grid lines, following the column widths) so it still
+  /// reads as an empty table. Ignored when [AppGrid.emptyWidget] is set.
+  /// Defaults to false.
+  final bool fillEmptyRows;
+
   const AppGridStyle({
     this.rowHeight = 48.0,
     this.rowTextStyle,
@@ -174,6 +180,7 @@ class AppGridStyle {
     this.iconColor,
     this.iconSize = 16.0,
     this.showPinIcon = false,
+    this.fillEmptyRows = false,
   }) : _legacyMenuTextStyle = menuTextStyle;
 
   /// Creates a copy of this style with the given fields replaced with new values.
@@ -213,6 +220,7 @@ class AppGridStyle {
     Color? iconColor,
     double? iconSize,
     bool? showPinIcon,
+    bool? fillEmptyRows,
   }) {
     final effectiveMenuStyle = menuStyle ??
         (menuTextStyle != null
@@ -264,6 +272,7 @@ class AppGridStyle {
       iconColor: iconColor ?? this.iconColor,
       iconSize: iconSize ?? this.iconSize,
       showPinIcon: showPinIcon ?? this.showPinIcon,
+      fillEmptyRows: fillEmptyRows ?? this.fillEmptyRows,
     );
   }
 
@@ -307,7 +316,8 @@ class AppGridStyle {
           columnDescendingIcon == other.columnDescendingIcon &&
           iconColor == other.iconColor &&
           iconSize == other.iconSize &&
-          showPinIcon == other.showPinIcon;
+          showPinIcon == other.showPinIcon &&
+          fillEmptyRows == other.fillEmptyRows;
 
   @override
   int get hashCode =>
@@ -349,5 +359,6 @@ class AppGridStyle {
         iconColor,
         iconSize,
         showPinIcon,
+        fillEmptyRows,
       );
 }
