@@ -69,7 +69,8 @@ void main() {
       vController.dispose();
     });
 
-    testWidgets('Mouse click-drag smoothly scrolls horizontally and vertically',
+    testWidgets(
+        'Mouse click-drag locks to single axis (horizontal OR vertical, no diagonal)',
         (tester) async {
       tester.view.physicalSize = const Size(500, 400);
       tester.view.devicePixelRatio = 1.0;
@@ -113,7 +114,8 @@ void main() {
       expect(hController.offset, equals(0.0));
       expect(vController.offset, equals(0.0));
 
-      // Click and drag with mouse diagonally: (-120 horizontally, -80 vertically)
+      // 1. Diagonal drag with dominant horizontal movement: (-120 horizontally, -80 vertically)
+      // Must lock to horizontal axis only and ignore vertical delta.
       await tester.drag(
         find.byType(AppGrid<Map<String, dynamic>>),
         const Offset(-120, -80),
@@ -121,9 +123,22 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Offsets must have increased (scrolled right and down)
       expect(hController.offset, greaterThan(50.0));
+      expect(vController.offset, equals(0.0));
+
+      final hOffsetAfterFirstDrag = hController.offset;
+
+      // 2. Diagonal drag with dominant vertical movement: (-40 horizontally, -120 vertically)
+      // After pointer release, axis lock resets and locks to vertical axis only.
+      await tester.drag(
+        find.byType(AppGrid<Map<String, dynamic>>),
+        const Offset(-40, -120),
+        kind: PointerDeviceKind.mouse,
+      );
+      await tester.pumpAndSettle();
+
       expect(vController.offset, greaterThan(50.0));
+      expect(hController.offset, equals(hOffsetAfterFirstDrag));
 
       controller.dispose();
       hController.dispose();

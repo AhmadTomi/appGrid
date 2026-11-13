@@ -88,6 +88,10 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>>
 
   int? _lastSelectedDisplayIndex;
 
+  // Directional axis lock state for drag scrolling (horizontal OR vertical, no diagonal)
+  Axis? _activeDragAxis;
+  Offset _dragAccumulatedDelta = Offset.zero;
+
   @override
   void initState() {
     super.initState();
@@ -378,32 +382,68 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>>
                     behavior: HitTestBehavior.translucent,
                     onPanStart: (_) {
                       _cancelAllScrollAnimations();
+                      _activeDragAxis = null;
+                      _dragAccumulatedDelta = Offset.zero;
                     },
                     onPanUpdate: (details) {
-                      if (widget.horizontalScrollController.hasClients &&
+                      Offset effectiveDelta = details.delta;
+
+                      if (_activeDragAxis == null) {
+                        if (maxHorizontalScroll > 0 &&
+                            maxVerticalScroll <= 0) {
+                          _activeDragAxis = Axis.horizontal;
+                        } else if (maxVerticalScroll > 0 &&
+                            maxHorizontalScroll <= 0) {
+                          _activeDragAxis = Axis.vertical;
+                        } else if (maxHorizontalScroll > 0 &&
+                            maxVerticalScroll > 0) {
+                          _dragAccumulatedDelta += details.delta;
+                          if (_dragAccumulatedDelta.distance < 4.0) {
+                            return;
+                          }
+                          _activeDragAxis = _dragAccumulatedDelta.dx.abs() >=
+                                  _dragAccumulatedDelta.dy.abs()
+                              ? Axis.horizontal
+                              : Axis.vertical;
+                          effectiveDelta = _dragAccumulatedDelta;
+                        } else {
+                          return;
+                        }
+                      }
+
+                      if (_activeDragAxis == Axis.horizontal &&
+                          widget.horizontalScrollController.hasClients &&
                           widget.horizontalScrollController.positions
                               .isNotEmpty &&
                           maxHorizontalScroll > 0) {
                         final newH = (widget.horizontalScrollController
                                     .positions.first.pixels -
-                                details.delta.dx)
+                                effectiveDelta.dx)
                             .clamp(0.0, maxHorizontalScroll);
                         widget.horizontalScrollController.jumpTo(newH);
-                      }
-                      if (widget.verticalScrollController.hasClients &&
+                      } else if (_activeDragAxis == Axis.vertical &&
+                          widget.verticalScrollController.hasClients &&
                           widget
                               .verticalScrollController.positions.isNotEmpty &&
                           maxVerticalScroll > 0) {
                         final newV = (widget.verticalScrollController.positions
                                     .first.pixels -
-                                details.delta.dy)
+                                effectiveDelta.dy)
                             .clamp(0.0, maxVerticalScroll);
                         widget.verticalScrollController.jumpTo(newV);
                       }
                     },
                     onPanEnd: (details) {
-                      final vVelocity = -details.velocity.pixelsPerSecond.dy;
-                      final hVelocity = -details.velocity.pixelsPerSecond.dx;
+                      final Axis? lockedAxis = _activeDragAxis;
+                      _activeDragAxis = null;
+                      _dragAccumulatedDelta = Offset.zero;
+
+                      final vVelocity = lockedAxis == Axis.vertical
+                          ? -details.velocity.pixelsPerSecond.dy
+                          : 0.0;
+                      final hVelocity = lockedAxis == Axis.horizontal
+                          ? -details.velocity.pixelsPerSecond.dx
+                          : 0.0;
 
                       _startFling(
                         vVelocity: vVelocity,
@@ -411,6 +451,10 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>>
                         maxV: maxVerticalScroll,
                         maxH: maxHorizontalScroll,
                       );
+                    },
+                    onPanCancel: () {
+                      _activeDragAxis = null;
+                      _dragAccumulatedDelta = Offset.zero;
                     },
                     child: bodyContent,
                   );
