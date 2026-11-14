@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import '../column_layout/column_layout_manager.dart';
 import '../models/app_grid_style.dart';
 
-/// Blank placeholder rows shown when a grid has no data and
-/// [AppGridStyle.fillEmptyRows] is on.
+/// Blank placeholder rows for [AppGridStyle.fillEmptyRows]: the whole body
+/// of an empty grid, or the space left below the last data row (drawn behind
+/// the rows, so only that space shows).
 ///
 /// Rows use the same stripes ([AppGridStyle.evenRowColor] /
 /// [AppGridStyle.oddRowColor]) and grid lines as real rows, and the vertical
@@ -15,11 +16,16 @@ class AppGridEmptyRows extends StatelessWidget {
   final AppGridStyle style;
   final double rowHeight;
 
+  /// Horizontal scroll offset of the center (unpinned) pane, so its column
+  /// lines move with the scrolled data rows.
+  final double horizontalOffset;
+
   const AppGridEmptyRows({
     super.key,
     required this.layout,
     required this.style,
     required this.rowHeight,
+    this.horizontalOffset = 0,
   });
 
   @override
@@ -67,7 +73,16 @@ class AppGridEmptyRows extends StatelessWidget {
     }
 
     final leftEnd = paneEdges(layout.leftPane, 0);
-    paneEdges(layout.centerPane, leftEnd);
+    final centerStart = edges.length;
+    paneEdges(layout.centerPane, leftEnd - horizontalOffset);
+    // Center column lines scrolled under a pinned pane are not drawn.
+    final centerEnd = edges.length;
+    for (var i = centerEnd - 1; i >= centerStart; i--) {
+      final x = edges[i];
+      if (x <= leftEnd || x >= width - layout.rightPane.totalWidth) {
+        edges.removeAt(i);
+      }
+    }
     paneEdges(layout.rightPane, width - layout.rightPane.totalWidth);
     return edges;
   }

@@ -27,7 +27,7 @@
 - **Full Keyboard Navigation:** `ArrowUp`, `ArrowDown`, `Home`, `End`, and `PageUp`/`PageDown` (jumps by count of visible viewport rows).
 - **Selective State Persistence:** JSON import/export strictly covers `columnOrder`, `sortCriteria`, and `columnVisibility` (**column widths are strictly non-persisted**).
 - **Export Utilities:** Built-in RFC 4180 CSV export and structured JSON export.
-- **Empty Table State:** Set `AppGridStyle(fillEmptyRows: true)` to keep the header and fill the body with blank striped rows (with grid lines following the column widths) when there is no data, instead of blank space. `AppGrid.emptyWidget` still takes precedence when provided.
+- **Empty Table State:** Set `AppGridStyle(fillEmptyRows: true)` to fill the body with blank striped rows (with grid lines following the column widths) wherever there is no data: the whole body of an empty grid, and the space below the last row otherwise. `AppGrid.emptyWidget` still takes precedence when provided.
 
 ---
 

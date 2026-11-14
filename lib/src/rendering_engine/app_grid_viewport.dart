@@ -12,6 +12,7 @@ import '../controllers/app_grid_controller.dart';
 import '../column_layout/column_layout_manager.dart';
 import 'virtualized_grid_layout.dart';
 import 'row_widget.dart';
+import '../widgets/app_grid_empty_rows.dart';
 import '../widgets/app_grid_scrollbar.dart';
 
 /// Core 2D virtualized viewport implementing freeze panes, 2D cell recycling,
@@ -490,6 +491,30 @@ class _AppGridViewportState<T> extends State<AppGridViewport<T>>
                           color: Theme.of(context).cardColor,
                         ),
                       ),
+
+                      // Blank rows behind the data rows: they only show in
+                      // the space below the last row.
+                      if (widget.style.fillEmptyRows)
+                        Positioned.fill(
+                          child: AnimatedBuilder(
+                            animation: widget.horizontalScrollController,
+                            builder: (context, _) {
+                              final h = widget.horizontalScrollController;
+                              final hScroll =
+                                  h.hasClients && h.positions.isNotEmpty
+                                      ? h.positions.first.pixels
+                                      : 0.0;
+                              return AppGridEmptyRows(
+                                layout: computedLayout,
+                                style: widget.style,
+                                rowHeight: widget.controller.compactMode
+                                    ? widget.style.rowHeight * 2.0
+                                    : widget.style.rowHeight,
+                                horizontalOffset: hScroll,
+                              );
+                            },
+                          ),
+                        ),
 
                       Positioned.fill(child: bodyContent),
 

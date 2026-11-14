@@ -74,14 +74,28 @@ void main() {
       controller.dispose();
     });
 
-    testWidgets('grid with data shows rows, not blank rows', (tester) async {
+    testWidgets('grid with data fills the space below the last row', (tester) async {
       final controller = _controller([
         {'code': 'BBRI', 'price': 2530},
       ]);
       await _pump(tester, controller);
 
-      expect(find.byType(AppGridEmptyRows), findsNothing);
       expect(find.text('BBRI'), findsOneWidget);
+      // Blank rows sit behind the data rows and show below them.
+      final filler = find.byType(AppGridEmptyRows);
+      expect(filler, findsOneWidget);
+      final rowTop = tester.getTopLeft(find.text('BBRI')).dy;
+      expect(tester.getTopLeft(filler).dy, lessThanOrEqualTo(rowTop));
+      controller.dispose();
+    });
+
+    testWidgets('grid with data and the option off has no filler', (tester) async {
+      final controller = _controller([
+        {'code': 'BBRI', 'price': 2530},
+      ]);
+      await _pump(tester, controller, style: const AppGridStyle(rowHeight: 24));
+
+      expect(find.byType(AppGridEmptyRows), findsNothing);
       controller.dispose();
     });
 
