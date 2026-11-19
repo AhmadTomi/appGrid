@@ -230,20 +230,13 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
       content = Column(
         children: [
           Expanded(
-            child: Stack(
-              children: [
-                Positioned.fill(child: topHeader),
-                if (showMenu)
-                  Positioned(
-                    right: 4.0,
-                    top: 0,
-                    bottom: 0,
-                    child: Center(
-                      child: _buildSortMenuButton(SortDirection.none),
-                    ),
-                  ),
-              ],
-            ),
+            child: showMenu
+                ? _withMenuSlot(
+                    alignment: topCol.headerAlignment,
+                    header: topHeader,
+                    menuButton: _buildSortMenuButton(SortDirection.none),
+                  )
+                : topHeader,
           ),
           Container(
             height: 0.8,
@@ -270,42 +263,18 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
               sortDirection != SortDirection.none ||
               (effectiveShowPin && topCol.pin != GridColumnPin.none));
 
-      if (isCompact) {
-        // In compact mode with canCompact: false, the header cell has double height (widget.height).
-        // Position the menu icon at the top-right (matching the paired column's top row position)
-        // so it remains visually consistent across all header columns, while singleHeader occupies
-        // the full cell area so text remains perfectly centered.
-        content = Stack(
-          children: [
-            Positioned.fill(child: singleHeader),
-            if (showMenu)
-              Positioned(
-                right: 4.0,
-                top: 0,
-                height: widget.height / 2,
-                child: Center(
-                  child: _buildSortMenuButton(sortDirection),
-                ),
-              ),
-          ],
-        );
-      } else {
-        // Standard mode: overlay menu button on the right in a Stack so it doesn't shift centered text
-        content = Stack(
-          children: [
-            Positioned.fill(child: singleHeader),
-            if (showMenu)
-              Positioned(
-                right: 4.0,
-                top: 0,
-                bottom: 0,
-                child: Center(
-                  child: _buildSortMenuButton(sortDirection),
-                ),
-              ),
-          ],
-        );
-      }
+      content = showMenu
+          ? _withMenuSlot(
+              alignment: topCol.headerAlignment,
+              header: singleHeader,
+              menuButton: _buildSortMenuButton(sortDirection),
+              // In compact mode with canCompact: false, the header cell has
+              // double height. Keep the icon in the top half, level with the
+              // paired columns' icons, while the label stays centered in the
+              // full cell.
+              menuHeight: isCompact ? widget.height / 2 : null,
+            )
+          : singleHeader;
     }
 
     content = MouseRegion(
@@ -483,7 +452,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
                 right: 0,
                 top: 0,
                 bottom: 0,
-                width: 12,
+                width: 8,
                 child: MouseRegion(
                   cursor: SystemMouseCursors.resizeColumn,
                   child: GestureDetector(
@@ -507,7 +476,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
                       );
                     },
                     child: Container(
-                      width: 12,
+                      width: 8,
                       color: Colors.transparent,
                     ),
                   ),
@@ -516,6 +485,53 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
           ],
         ),
       ),
+    );
+  }
+
+  /// Places the sort/menu button in its own slot beside the header label, so
+  /// the label never runs under the icon.
+  ///
+  /// The slot sits on the side opposite the label's alignment, like numeric
+  /// columns in common data grids: right-aligned labels stay flush with the
+  /// right-aligned cell values below them, with the icon on their left.
+  /// Centered labels get an empty slot on the left as well, so they stay
+  /// centered in the cell.
+  Widget _withMenuSlot({
+    required Alignment alignment,
+    required Widget header,
+    required Widget menuButton,
+    double? menuHeight,
+  }) {
+    // The button is the icon plus 4px of padding on each side; the slot adds
+    // 2px on each side of that, with a minimum width of 26px so the 8px
+    // resize handle on the right edge never covers the menu icon.
+    final slotWidth = math.max(widget.iconSize + 12.0, 26.0);
+    final slot = SizedBox(
+      width: slotWidth,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(
+          height: menuHeight ?? double.infinity,
+          child: Center(child: menuButton),
+        ),
+      ),
+    );
+
+    final List<Widget> children;
+    if (alignment.x > 0) {
+      children = [slot, Expanded(child: header)];
+    } else if (alignment.x == 0) {
+      children = [
+        SizedBox(width: slotWidth),
+        Expanded(child: header),
+        slot,
+      ];
+    } else {
+      children = [Expanded(child: header), slot];
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: children,
     );
   }
 
@@ -929,6 +945,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
       items: items,
       elevation: menuStyle.elevation,
       color: menuStyle.backgroundColor,
+      menuPadding: const EdgeInsets.symmetric(vertical: 4.0),
       shape: (menuStyle.borderRadius != null || menuStyle.borderSide != null)
           ? RoundedRectangleBorder(
               borderRadius:

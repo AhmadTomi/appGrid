@@ -13,7 +13,7 @@ import 'app_grid_menu_style.dart';
 /// and red sort icon for descending) are built-in by default.
 class AppGridStyle {
   // --- Row & Cell Styling ---
-  /// Height of standard grid rows in logical pixels. Defaults to 48.0.
+  /// Height of standard grid rows in logical pixels. Defaults to 28.0.
   final double rowHeight;
 
   /// Optional text style for table body cells / rows. Defaults to 13pt regular if null.
@@ -32,7 +32,7 @@ class AppGridStyle {
   final Color? oddRowColor;
 
   // --- Header Styling ---
-  /// Height of the grid column header in logical pixels. Defaults to 48.0.
+  /// Height of the grid column header in logical pixels. Defaults to 28.0.
   final double headerHeight;
 
   /// Optional background color for header cells.
@@ -82,7 +82,7 @@ class AppGridStyle {
   /// Whether horizontal divider lines are rendered between rows. Defaults to true.
   final bool showHorizontalGridLines;
 
-  /// Whether vertical divider lines are rendered between columns. Defaults to false.
+  /// Whether vertical divider lines are rendered between columns. Defaults to true.
   final bool showVerticalGridLines;
 
   /// Custom color for vertical grid dividers.
@@ -104,7 +104,7 @@ class AppGridStyle {
   /// Specific visibility behavior of the horizontal scrollbar.
   final AppGridScrollbarVisibility? horizontalScrollbarVisibility;
 
-  /// Thickness of horizontal and vertical scrollbars. Defaults to 10.0.
+  /// Thickness of horizontal and vertical scrollbars. Defaults to 4.0.
   final double scrollbarThickness;
 
   /// Custom color for the scrollbar thumb.
@@ -131,7 +131,7 @@ class AppGridStyle {
 
   /// Size of all grid icons in logical pixels (header sort/menu/pin icons,
   /// context menu icons, pagination bar icons, row drag handles, and dialogs).
-  /// Defaults to 16.0.
+  /// Defaults to 8.0.
   final double iconSize;
 
   /// Whether to display a push-pin icon when a column is pinned in unsorted state.
@@ -145,18 +145,18 @@ class AppGridStyle {
   final bool fillEmptyRows;
 
   const AppGridStyle({
-    this.rowHeight = 48.0,
+    this.rowHeight = 28.0,
     this.rowTextStyle,
     this.rowPadding,
     this.selectedRowColor,
     this.evenRowColor,
     this.oddRowColor,
-    this.headerHeight = 48.0,
+    this.headerHeight = 28.0,
     this.headerBackgroundColor,
     this.headerTextStyle,
     this.headerPadding,
     TextStyle? menuTextStyle,
-    this.menuStyle = const AppGridMenuStyle(),
+    this.menuStyle = const AppGridMenuStyle.compact(),
     this.footerHeight,
     this.footerBackgroundColor,
     this.footerTextStyle,
@@ -164,21 +164,21 @@ class AppGridStyle {
     this.borderColor,
     this.gridLineColor,
     this.showHorizontalGridLines = true,
-    this.showVerticalGridLines = false,
+    this.showVerticalGridLines = true,
     this.verticalGridLineColor,
     this.showHorizontalScrollbar = true,
     this.showVerticalScrollbar = true,
     this.scrollbarVisibility,
     this.verticalScrollbarVisibility,
     this.horizontalScrollbarVisibility,
-    this.scrollbarThickness = 10.0,
+    this.scrollbarThickness = 4.0,
     this.scrollbarThumbColor,
     this.scrollbarTrackColor,
     this.columnMenuIcon,
     this.columnAscendingIcon,
     this.columnDescendingIcon,
     this.iconColor,
-    this.iconSize = 16.0,
+    this.iconSize = 8.0,
     this.showPinIcon = false,
     this.fillEmptyRows = false,
   }) : _legacyMenuTextStyle = menuTextStyle;

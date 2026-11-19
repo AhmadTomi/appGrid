@@ -7,27 +7,27 @@ void main() {
     test('AppGridMenuStyle.compact has dense desktop ergonomics', () {
       const compact = AppGridMenuStyle.compact();
 
-      expect(compact.itemHeight, equals(28.0));
+      expect(compact.itemHeight, equals(26.0));
       expect(compact.itemPadding,
-          equals(const EdgeInsets.symmetric(horizontal: 10.0, vertical: 2.0)));
+          equals(const EdgeInsets.symmetric(horizontal: 10.0, vertical: 0.0)));
       expect(compact.textStyle?.fontSize, equals(12.0));
-      expect(compact.iconSize, equals(14.0));
-      expect(compact.dividerHeight, equals(6.0));
+      expect(compact.iconSize, equals(13.0));
+      expect(compact.dividerHeight, equals(4.0));
       expect(compact.elevation, equals(4.0));
       expect(compact.borderRadius, equals(BorderRadius.circular(6.0)));
       expect(compact.constraints,
-          equals(const BoxConstraints(minWidth: 160.0, maxWidth: 220.0)));
+          equals(const BoxConstraints(minWidth: 150.0, maxWidth: 210.0)));
     });
 
     test('AppGridStyle copyWith updates menuStyle cleanly', () {
       const baseStyle = AppGridStyle();
-      expect(baseStyle.menuStyle.itemHeight, equals(48.0));
+      expect(baseStyle.menuStyle.itemHeight, equals(26.0));
 
-      final compactStyle =
-          baseStyle.copyWith(menuStyle: const AppGridMenuStyle.compact());
-      expect(compactStyle.menuStyle.itemHeight, equals(28.0));
-      expect(compactStyle.menuStyle.iconSize, equals(14.0));
-      expect(compactStyle.menuTextStyle.fontSize, equals(12.0));
+      final customStyle =
+          baseStyle.copyWith(menuStyle: const AppGridMenuStyle());
+      expect(customStyle.menuStyle.itemHeight, equals(48.0));
+      expect(customStyle.menuStyle.iconSize, isNull);
+      expect(customStyle.menuTextStyle.fontSize, equals(13.0));
     });
 
     test('menuTextStyle backwards compatibility forwards to menuStyle', () {
@@ -80,13 +80,13 @@ void main() {
           find.byWidgetPredicate((widget) => widget is PopupMenuItem);
       expect(menuItemFinder, findsWidgets);
 
-      // Verify that every menu item has compact height 28.0 and padding
+      // Verify that every menu item has compact height 26.0 and padding
       for (final element in menuItemFinder.evaluate()) {
         final item = element.widget as PopupMenuItem;
-        expect(item.height, equals(28.0));
+        expect(item.height, equals(26.0));
         expect(
           item.padding,
-          equals(const EdgeInsets.symmetric(horizontal: 10.0, vertical: 2.0)),
+          equals(const EdgeInsets.symmetric(horizontal: 10.0, vertical: 0.0)),
         );
       }
 
@@ -95,14 +95,14 @@ void main() {
       expect(dividerFinder, findsWidgets);
       for (final element in dividerFinder.evaluate()) {
         final div = element.widget as PopupMenuDivider;
-        expect(div.height, equals(6.0));
+        expect(div.height, equals(4.0));
       }
 
-      // Verify menu icons use compact iconSize (14.0)
+      // Verify menu icons use compact iconSize (13.0)
       final sortIcons = find.byIcon(Icons.sort);
       for (final element in sortIcons.evaluate()) {
         final iconWidget = element.widget as Icon;
-        expect(iconWidget.size, equals(14.0));
+        expect(iconWidget.size, equals(13.0));
       }
 
       controller.dispose();

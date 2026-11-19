@@ -303,24 +303,24 @@ void main() {
 
       expect(controller.selectedDisplayIndex, isNull);
 
-      // Scroll vertically by 300px (e.g. items ~6-15 now visible)
+      // Scroll vertically by 300px (with 28px rowHeight, items ~11-23 now visible)
       vController.jumpTo(300.0);
       await tester.pumpAndSettle();
 
       expect(vController.offset, equals(300.0));
 
-      // Find an item scrolled into view (e.g. 'Item 9')
-      final itemFinder = find.text('Item 9');
+      // Find an item scrolled into view (e.g. 'Item 15')
+      final itemFinder = find.text('Item 15');
       expect(itemFinder, findsOneWidget);
 
-      // Tap on 'Item 9'
+      // Tap on 'Item 15'
       await tester.tap(itemFinder);
       await tester.pumpAndSettle();
 
       // Selection must be updated!
       expect(selectedInfo, isNotNull);
-      expect(selectedInfo!.displayIndex, equals(9));
-      expect(controller.selectedDisplayIndex, equals(9));
+      expect(selectedInfo!.displayIndex, equals(15));
+      expect(controller.selectedDisplayIndex, equals(15));
 
       controller.dispose();
       vController.dispose();

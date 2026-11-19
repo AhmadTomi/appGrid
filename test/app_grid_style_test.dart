@@ -7,23 +7,23 @@ void main() {
     test('Default AppGridStyle has expected default properties and font styles',
         () {
       const style = AppGridStyle();
-      expect(style.rowHeight, equals(48.0));
-      expect(style.headerHeight, equals(48.0));
+      expect(style.rowHeight, equals(28.0));
+      expect(style.headerHeight, equals(28.0));
       expect(style.headerTextStyle, isNull);
       expect(style.headerPadding, isNull);
       expect(style.rowTextStyle, isNull);
       expect(style.rowPadding, isNull);
-      expect(style.menuTextStyle.fontSize, equals(13.0));
+      expect(style.menuTextStyle.fontSize, equals(12.0));
       expect(style.menuTextStyle.fontWeight, equals(FontWeight.normal));
       expect(style.footerTextStyle, isNull);
       expect(style.footerPadding, isNull);
 
       expect(style.showHorizontalGridLines, isTrue);
-      expect(style.showVerticalGridLines, isFalse);
+      expect(style.showVerticalGridLines, isTrue);
       expect(style.showHorizontalScrollbar, isTrue);
       expect(style.showVerticalScrollbar, isTrue);
-      expect(style.scrollbarThickness, equals(10.0));
-      expect(style.iconSize, equals(16.0));
+      expect(style.scrollbarThickness, equals(4.0));
+      expect(style.iconSize, equals(8.0));
       expect(style.selectedRowColor, isNull);
       expect(style.showPinIcon, isFalse);
     });

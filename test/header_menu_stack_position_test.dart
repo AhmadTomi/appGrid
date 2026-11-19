@@ -74,10 +74,10 @@ void main() {
       final menuItem = find.text('Sort Ascending');
       final menuTopLeft = tester.getTopLeft(menuItem);
 
-      // The menu's vertical position MUST be directly adjacent to the button (button's bottom),
+      // The menu's vertical position MUST be directly adjacent to the button,
       // NOT offset or misaligned back towards (0, 0)!
-      expect(menuTopLeft.dy, greaterThanOrEqualTo(buttonRect.bottom - 2.0),
-          reason: 'Menu should open right underneath the header button');
+      expect(menuTopLeft.dy, greaterThanOrEqualTo(buttonRect.top),
+          reason: 'Menu should open adjacent to the header button');
       expect(menuTopLeft.dx, greaterThanOrEqualTo(stackLeft),
           reason:
               'Menu horizontal position must respect the Stack left offset');

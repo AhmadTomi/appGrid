@@ -66,7 +66,10 @@ void main() {
               height: 400,
               child: AppGrid<Map<String, dynamic>>(
                 controller: controller,
-                style: const AppGridStyle(iconSize: 24.0),
+                style: const AppGridStyle(
+                  iconSize: 24.0,
+                  menuStyle: AppGridMenuStyle(iconSize: null),
+                ),
               ),
             ),
           ),

@@ -61,21 +61,21 @@ class AppGridMenuStyle {
 
   /// Dense, compact preset designed specifically for desktop views and narrow columns.
   ///
-  /// Shrinks item height to 28.0px, item padding to 10.0px, dividers to 6.0px,
-  /// limits width between 160–220px, and applies crisp 6.0px rounded corners.
+  /// Shrinks item height to 26.0px, item padding to 10.0px horizontal / 0px vertical,
+  /// dividers to 4.0px, limits width between 150–210px, and applies crisp 6.0px rounded corners.
   const AppGridMenuStyle.compact({
-    this.itemHeight = 28.0,
+    this.itemHeight = 26.0,
     this.itemPadding =
-        const EdgeInsets.symmetric(horizontal: 10.0, vertical: 2.0),
+        const EdgeInsets.symmetric(horizontal: 10.0, vertical: 0.0),
     this.textStyle =
         const TextStyle(fontSize: 12, fontWeight: FontWeight.normal),
-    this.iconSize = 14.0,
-    this.constraints = const BoxConstraints(minWidth: 160.0, maxWidth: 220.0),
+    this.iconSize = 13.0,
+    this.constraints = const BoxConstraints(minWidth: 150.0, maxWidth: 210.0),
     this.backgroundColor,
     this.elevation = 4.0,
     this.borderRadius = const BorderRadius.all(Radius.circular(6.0)),
     this.borderSide,
-    this.dividerHeight = 6.0,
+    this.dividerHeight = 4.0,
     this.dividerColor,
   });
 
