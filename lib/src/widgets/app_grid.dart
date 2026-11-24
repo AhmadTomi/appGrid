@@ -408,11 +408,14 @@ class _AppGridState<T> extends State<AppGrid<T>> {
   /// Applies the stored layout to the current controller, then starts
   /// writing its layout changes back to the store.
   void _attachLayout() {
-    if (_isLayoutPersisted) {
-      final stored = _layoutStore!.read(widget.persistenceKey!);
-      if (stored != null) widget.controller.applyLayout(stored);
-    }
+    _applyStoredLayout();
     widget.controller.layoutRevision.addListener(_onLayoutRevision);
+  }
+
+  void _applyStoredLayout() {
+    if (!_isLayoutPersisted) return;
+    final stored = _layoutStore!.read(widget.persistenceKey!);
+    if (stored != null) widget.controller.applyLayout(stored);
   }
 
   void _onLayoutRevision() {
@@ -488,6 +491,9 @@ class _AppGridState<T> extends State<AppGrid<T>> {
     if (compactChanged) {
       _lastCompactMode = currentCompact;
       _layoutManager.compactMode = currentCompact;
+      // The stored layout is skipped in compact mode; apply it on leaving so
+      // the next change does not overwrite it with the default layout.
+      if (!currentCompact) _applyStoredLayout();
     }
 
     final onlySelectionChanged = !sortChanged &&

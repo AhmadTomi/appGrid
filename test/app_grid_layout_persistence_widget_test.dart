@@ -184,6 +184,21 @@ void main() {
     expect(store.read('orders'), hideBravo);
   });
 
+  testWidgets('applies stored layout when compact mode is turned off',
+      (tester) async {
+    final store = InMemoryGridLayoutStore()..write('orders', hideBravo);
+    final controller = _controller(compact: true);
+    await tester.pumpWidget(_host(controller: controller, store: store));
+    expect(_visible(controller), ['a', 'b', 'c']);
+
+    controller.compactMode = false;
+    await tester.pump();
+
+    expect(_visible(controller), ['c', 'a']);
+    controller.setColumnVisibility('c', false);
+    expect(store.read('orders')!.columnOrder, ['c', 'a', 'b']);
+  });
+
   testWidgets('Reset to Default shown only with active persistence',
       (tester) async {
     final withoutKey = _controller();
