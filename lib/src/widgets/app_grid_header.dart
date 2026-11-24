@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import '../models/app_grid_header_config.dart';
 import '../models/grid_column.dart';
 import '../models/compact_column_group.dart';
@@ -178,7 +179,8 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         onTap: allowSort ? onSortToggle : null,
         child: Container(
           alignment: col.headerAlignment,
-          padding: headerPadding ?? const EdgeInsets.symmetric(horizontal: 16.0),
+          padding:
+              headerPadding ?? const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             col.label,
             style: effectiveHeaderTextStyle,
@@ -494,8 +496,9 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
   /// The slot sits on the side opposite the label's alignment, like numeric
   /// columns in common data grids: right-aligned labels stay flush with the
   /// right-aligned cell values below them, with the icon on their left.
-  /// Centered labels get an empty slot on the left as well, so they stay
-  /// centered in the cell.
+  /// Centered labels stay centered in the cell while they fit between two
+  /// slot-wide margins. In a narrow column the empty margin on the left gives
+  /// way first, so the label moves left instead of being cut short.
   Widget _withMenuSlot({
     required Alignment alignment,
     required Widget header,
@@ -503,31 +506,34 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
     double? menuHeight,
   }) {
     // The button is the icon plus 4px of padding on each side; the slot adds
-    // 2px on each side of that, with a minimum width of 26px so the 8px
-    // resize handle on the right edge never covers the menu icon.
-    final slotWidth = math.max(widget.iconSize + 12.0, 26.0);
-    final slot = SizedBox(
-      width: slotWidth,
-      child: Align(
-        alignment: Alignment.topCenter,
-        child: SizedBox(
-          height: menuHeight ?? double.infinity,
-          child: Center(child: menuButton),
-        ),
-      ),
-    );
+    // 2px on each side of that. A slot on the right edge is at least 26px
+    // wide so the 8px resize handle there never covers the menu icon.
+    final buttonSlotWidth = widget.iconSize + 12.0;
+    final rightSlotWidth = math.max(buttonSlotWidth, 26.0);
+    Widget slot(double width) => SizedBox(
+          width: width,
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: SizedBox(
+              height: menuHeight ?? double.infinity,
+              child: Center(child: menuButton),
+            ),
+          ),
+        );
+
+    if (alignment.x == 0) {
+      return _CenteredHeaderWithMenuSlot(
+        slotWidth: rightSlotWidth,
+        header: header,
+        slot: slot(rightSlotWidth),
+      );
+    }
 
     final List<Widget> children;
     if (alignment.x > 0) {
-      children = [slot, Expanded(child: header)];
-    } else if (alignment.x == 0) {
-      children = [
-        SizedBox(width: slotWidth),
-        Expanded(child: header),
-        slot,
-      ];
+      children = [slot(buttonSlotWidth), Expanded(child: header)];
     } else {
-      children = [Expanded(child: header), slot];
+      children = [Expanded(child: header), slot(rightSlotWidth)];
     }
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -801,7 +807,8 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
               ),
             ),
             if (topCol.pin == GridColumnPin.left)
-              Icon(Icons.check, size: checkIconSize, color: theme.colorScheme.primary),
+              Icon(Icons.check,
+                  size: checkIconSize, color: theme.colorScheme.primary),
           ],
         ),
       ),
@@ -834,7 +841,8 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
               ),
             ),
             if (topCol.pin == GridColumnPin.right)
-              Icon(Icons.check, size: checkIconSize, color: theme.colorScheme.primary),
+              Icon(Icons.check,
+                  size: checkIconSize, color: theme.colorScheme.primary),
           ],
         ),
       ),
@@ -858,7 +866,8 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
               ),
             ),
             if (topCol.pin == GridColumnPin.none)
-              Icon(Icons.check, size: checkIconSize, color: theme.colorScheme.primary),
+              Icon(Icons.check,
+                  size: checkIconSize, color: theme.colorScheme.primary),
           ],
         ),
       ),
@@ -1025,4 +1034,118 @@ TextAlign _textAlignFromAlignment(Alignment alignment) {
   } else {
     return TextAlign.center;
   }
+}
+
+/// Lays out a centered header label with the menu button slot on its right.
+///
+/// The label is centered in the whole cell while its natural width fits
+/// between two [slotWidth] margins. When it doesn't, the empty left margin
+/// shrinks first and the label sits against the slot, so it is only cut
+/// short once it is wider than all the space beside the slot.
+class _CenteredHeaderWithMenuSlot extends MultiChildRenderObjectWidget {
+  _CenteredHeaderWithMenuSlot({
+    required this.slotWidth,
+    required Widget header,
+    required Widget slot,
+  }) : super(children: [header, slot]);
+
+  final double slotWidth;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderCenteredHeaderWithMenuSlot(slotWidth: slotWidth);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderCenteredHeaderWithMenuSlot renderObject,
+  ) {
+    renderObject.slotWidth = slotWidth;
+  }
+}
+
+class _MenuSlotParentData extends ContainerBoxParentData<RenderBox> {}
+
+class _RenderCenteredHeaderWithMenuSlot extends RenderBox
+    with
+        ContainerRenderObjectMixin<RenderBox, _MenuSlotParentData>,
+        RenderBoxContainerDefaultsMixin<RenderBox, _MenuSlotParentData> {
+  _RenderCenteredHeaderWithMenuSlot({required double slotWidth})
+      : _slotWidth = slotWidth;
+
+  double _slotWidth;
+  set slotWidth(double value) {
+    if (value == _slotWidth) return;
+    _slotWidth = value;
+    markNeedsLayout();
+  }
+
+  RenderBox get _header => firstChild!;
+  RenderBox get _slot => lastChild!;
+
+  @override
+  void setupParentData(RenderBox child) {
+    if (child.parentData is! _MenuSlotParentData) {
+      child.parentData = _MenuSlotParentData();
+    }
+  }
+
+  @override
+  double computeMinIntrinsicWidth(double height) => _slotWidth;
+
+  @override
+  double computeMaxIntrinsicWidth(double height) =>
+      _header.getMaxIntrinsicWidth(height) + _slotWidth * 2;
+
+  @override
+  double computeMinIntrinsicHeight(double width) => math.max(
+        _header.getMinIntrinsicHeight(math.max(0.0, width - _slotWidth)),
+        _slot.getMinIntrinsicHeight(_slotWidth),
+      );
+
+  @override
+  double computeMaxIntrinsicHeight(double width) => math.max(
+        _header.getMaxIntrinsicHeight(math.max(0.0, width - _slotWidth)),
+        _slot.getMaxIntrinsicHeight(_slotWidth),
+      );
+
+  @override
+  void performLayout() {
+    final height = constraints.maxHeight.isFinite
+        ? constraints.maxHeight
+        : constraints.minHeight;
+    final naturalHeaderWidth = _header.getMaxIntrinsicWidth(height);
+    final width = constraints.hasBoundedWidth
+        ? constraints.maxWidth
+        : naturalHeaderWidth + _slotWidth * 2;
+
+    final slotWidth = math.min(_slotWidth, width);
+    _slot.layout(BoxConstraints.tightFor(width: slotWidth, height: height));
+    (_slot.parentData! as _MenuSlotParentData).offset =
+        Offset(width - slotWidth, 0);
+
+    final besideSlot = width - slotWidth;
+    final betweenSlots = math.max(0.0, width - slotWidth * 2);
+    final double headerWidth;
+    final double headerLeft;
+    if (naturalHeaderWidth <= betweenSlots) {
+      headerWidth = betweenSlots;
+      headerLeft = slotWidth;
+    } else {
+      headerWidth = math.min(naturalHeaderWidth, besideSlot);
+      headerLeft = besideSlot - headerWidth;
+    }
+    _header.layout(BoxConstraints.tightFor(width: headerWidth, height: height));
+    (_header.parentData! as _MenuSlotParentData).offset = Offset(headerLeft, 0);
+
+    size = constraints.constrain(Size(width, height));
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) =>
+      defaultPaint(context, offset);
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) =>
+      defaultHitTestChildren(result, position: position);
 }
