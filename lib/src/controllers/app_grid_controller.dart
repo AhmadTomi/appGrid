@@ -1039,10 +1039,10 @@ class AppGridController<T> extends ChangeNotifier {
     final columnsById = {for (final col in _columns) col.id: col};
 
     // 1. Column order
-    final order = <String>[
+    final order = <String>{
       for (final id in layout.columnOrder)
         if (columnsById.containsKey(id)) id,
-    ].toSet().toList();
+    }.toList();
     for (var i = 0; i < _columns.length; i++) {
       final id = _columns[i].id;
       if (!order.contains(id)) {

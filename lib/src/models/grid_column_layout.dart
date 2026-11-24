@@ -34,9 +34,8 @@ class GridColumnLayout {
     final rawVisibility = map['columnVisibility'];
     final rawSort = map['sortCriteria'];
 
-    final order = rawOrder is List
-        ? rawOrder.whereType<String>().toList()
-        : <String>[];
+    final order =
+        rawOrder is List ? rawOrder.whereType<String>().toList() : <String>[];
 
     final visibility = <String, bool>{};
     if (rawVisibility is Map) {

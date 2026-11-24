@@ -51,7 +51,8 @@ void main() {
       expect(controller.exportLayout(), layout);
     });
 
-    test('applyLayout drops unknown ids and keeps new columns at default position',
+    test(
+        'applyLayout drops unknown ids and keeps new columns at default position',
         () {
       final controller = _controller();
       controller.applyLayout(const GridColumnLayout(

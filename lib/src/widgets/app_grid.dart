@@ -17,6 +17,8 @@ import 'app_grid_header.dart';
 import 'app_grid_footer.dart';
 import 'app_grid_empty_rows.dart';
 import 'app_grid_column_dialog.dart';
+import '../persistence/app_grid_layout_scope.dart';
+import '../persistence/grid_layout_store.dart';
 
 import '../models/data_fetch_mode.dart';
 import 'app_grid_pagination_bar.dart';
@@ -133,6 +135,15 @@ class AppGrid<T> extends StatefulWidget {
   /// Optional clock provider (defaults to [DateTime.now]).
   final DateTime Function()? clock;
 
+  /// Key under which this grid's column order, visibility and sort are
+  /// stored in the [GridLayoutStore] of the nearest [AppGridLayoutScope].
+  ///
+  /// When set and a scope exists, the stored layout is applied when the grid
+  /// is attached (or receives a new controller), every user change is written
+  /// back, and the Manage Columns panel offers "Reset to Default".
+  /// Ignored in compact mode. Grids sharing a key share one layout.
+  final String? persistenceKey;
+
   const AppGrid({
     super.key,
     required this.controller,
@@ -162,6 +173,7 @@ class AppGrid<T> extends StatefulWidget {
     this.physics,
     this.clock,
     this.onRowReorder,
+    this.persistenceKey,
   });
 
   /// Row height in logical pixels.
@@ -259,6 +271,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
   bool _ownsVerticalController = false;
   bool _ownsHorizontalController = false;
   bool _ownsFocusNode = false;
+  GridLayoutStore? _layoutStore;
+  bool _isLayoutAttached = false;
 
   @override
   void initState() {
@@ -343,6 +357,11 @@ class _AppGridState<T> extends State<AppGrid<T>> {
         rowEquality: widget.rowEquality,
       );
     }
+    if (oldWidget.controller != widget.controller ||
+        oldWidget.persistenceKey != widget.persistenceKey) {
+      oldWidget.controller.layoutRevision.removeListener(_onLayoutRevision);
+      _attachLayout();
+    }
     if (oldWidget.controller != widget.controller) {
       oldWidget.controller.removeListener(_onControllerChanged);
       oldWidget.controller.layoutManager.removeListener(_onLayoutChanged);
@@ -372,7 +391,46 @@ class _AppGridState<T> extends State<AppGrid<T>> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _layoutStore = AppGridLayoutScope.maybeOf(context);
+    if (!_isLayoutAttached) {
+      _isLayoutAttached = true;
+      _attachLayout();
+    }
+  }
+
+  bool get _isLayoutPersisted =>
+      widget.persistenceKey != null &&
+      _layoutStore != null &&
+      !widget.controller.compactMode;
+
+  /// Applies the stored layout to the current controller, then starts
+  /// writing its layout changes back to the store.
+  void _attachLayout() {
+    if (_isLayoutPersisted) {
+      final stored = _layoutStore!.read(widget.persistenceKey!);
+      if (stored != null) widget.controller.applyLayout(stored);
+    }
+    widget.controller.layoutRevision.addListener(_onLayoutRevision);
+  }
+
+  void _onLayoutRevision() {
+    if (!_isLayoutPersisted) return;
+    final key = widget.persistenceKey!;
+    final store = _layoutStore!;
+    store.write(
+        key, widget.controller.exportLayout().mergedOnto(store.read(key)));
+  }
+
+  void _resetLayout() {
+    widget.controller.resetLayout();
+    if (_isLayoutPersisted) _layoutStore!.remove(widget.persistenceKey!);
+  }
+
+  @override
   void dispose() {
+    widget.controller.layoutRevision.removeListener(_onLayoutRevision);
     widget.controller.removeListener(_onControllerChanged);
     _focusNode.removeListener(_onFocusChanged);
     _layoutManager.removeListener(_onLayoutChanged);
@@ -719,8 +777,9 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                               targetInfo: targetInfo,
                               layout: computedLayout,
                               innerWidth: innerWidth,
-                              indicatorHeight:
-                                  effectiveHeaderHeight + viewportHeight + footerH,
+                              indicatorHeight: effectiveHeaderHeight +
+                                  viewportHeight +
+                                  footerH,
                               leftWidth: leftWidth,
                               centerWidth: centerWidth,
                               rightWidth: rightWidth,
@@ -734,6 +793,8 @@ class _AppGridState<T> extends State<AppGrid<T>> {
                             child: AppGridColumnChooserOverlay<T>(
                               controller: widget.controller,
                               onClose: widget.controller.closeColumnChooser,
+                              onResetToDefault:
+                                  _isLayoutPersisted ? _resetLayout : null,
                               iconSize: _effectiveStyle.iconSize,
                             ),
                           ),

@@ -13,6 +13,7 @@ typedef StatePersistenceDemo = StatePersistencePage;
 
 class _StatePersistencePageState extends State<StatePersistencePage> {
   late final AppGridController<Map<String, dynamic>> _controller;
+  final GridLayoutStore _layoutStore = InMemoryGridLayoutStore();
   String _savedJson = '';
 
   @override
@@ -107,8 +108,14 @@ class _StatePersistencePageState extends State<StatePersistencePage> {
           ],
           const SizedBox(height: 12),
           Expanded(
-            child: AppGrid<Map<String, dynamic>>(
-              controller: _controller,
+            // Automatic persistence: the layout is written to the store on every
+            // change and "Reset to Default" appears in Manage Columns.
+            child: AppGridLayoutScope(
+              store: _layoutStore,
+              child: AppGrid<Map<String, dynamic>>(
+                controller: _controller,
+                persistenceKey: 'state_persistence_demo',
+              ),
             ),
           ),
         ],

@@ -77,7 +77,8 @@ void main() {
       expect(merged.columnOrder, ['a', 'x', 'b', 'c']);
     });
 
-    test('mergedOnto inserts stored-only ids after their previous stored neighbour',
+    test(
+        'mergedOnto inserts stored-only ids after their previous stored neighbour',
         () {
       const current = GridColumnLayout(
         columnOrder: ['c', 'a', 'b'],

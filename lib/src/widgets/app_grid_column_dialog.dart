@@ -20,6 +20,10 @@ class AppGridColumnChooserOverlay<T> extends StatelessWidget {
   final AppGridController<T> controller;
   final VoidCallback? onClose;
 
+  /// Restores the grid's default column layout. When null, the
+  /// "Reset to Default" button is not shown.
+  final VoidCallback? onResetToDefault;
+
   /// Optional size for modal dialog icons.
   final double? iconSize;
 
@@ -27,6 +31,7 @@ class AppGridColumnChooserOverlay<T> extends StatelessWidget {
     super.key,
     required this.controller,
     this.onClose,
+    this.onResetToDefault,
     this.iconSize,
   });
 
@@ -222,18 +227,36 @@ class AppGridColumnChooserOverlay<T> extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            // Done button
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: FilledButton(
-                                style: FilledButton.styleFrom(
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
+                            // Reset to Default & Done buttons
+                            Row(
+                              children: [
+                                if (onResetToDefault != null)
+                                  TextButton.icon(
+                                    style: TextButton.styleFrom(
+                                      visualDensity: VisualDensity.compact,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8),
+                                    ),
+                                    onPressed: onResetToDefault,
+                                    icon: Icon(Icons.restart_alt,
+                                        size: iconSize != null
+                                            ? (iconSize! * 0.8)
+                                                .clamp(10.0, 28.0)
+                                            : 16),
+                                    label: const Text('Reset to Default',
+                                        style: TextStyle(fontSize: 12)),
+                                  ),
+                                const Spacer(),
+                                FilledButton(
+                                  style: FilledButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 16, vertical: 8),
+                                  ),
+                                  onPressed: closeHandler,
+                                  child: const Text('Done'),
                                 ),
-                                onPressed: closeHandler,
-                                child: const Text('Done'),
-                              ),
+                              ],
                             ),
                           ],
                         ),
