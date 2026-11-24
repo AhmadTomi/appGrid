@@ -5,6 +5,7 @@ import '../models/row_index_info.dart';
 import '../models/grid_column.dart';
 import '../models/sort_criteria.dart';
 import '../models/grid_state.dart';
+import '../models/grid_column_layout.dart';
 import '../models/data_fetch_mode.dart';
 import '../models/column_drag_target_info.dart';
 import '../rendering_engine/grid_builders.dart';
@@ -108,6 +109,10 @@ class AppGridController<T> extends ChangeNotifier {
   /// Row count threshold above which sorting is automatically offloaded to a background Isolate.
   int isolateSortThreshold;
 
+  late final GridColumnLayout _defaultLayout;
+  late GridColumnLayout _lastLayout;
+  final ValueNotifier<int> _layoutRevision = ValueNotifier<int>(0);
+
   AppGridController({
     List<T> initialData = const [],
     List<GridColumn> columns = const [],
@@ -147,6 +152,8 @@ class AppGridController<T> extends ChangeNotifier {
     }
 
     _dualIndexMap.reset(_data.length);
+    _defaultLayout = exportLayout();
+    _lastLayout = _defaultLayout;
   }
 
   // ==================== GETTERS ====================
@@ -639,11 +646,13 @@ class AppGridController<T> extends ChangeNotifier {
       _sortCriteria = null;
       _recomputeIndices();
       notifyListeners();
+      _bumpLayoutIfChanged();
       return;
     }
 
     _sortCriteria =
         SortCriteria(columnId: columnId, direction: targetDirection);
+    _bumpLayoutIfChanged();
     final valueGetter = _resolveValueGetter(col);
 
     // Offload heavy sorting to a background Isolate for large datasets (native platforms only)
@@ -827,6 +836,7 @@ class AppGridController<T> extends ChangeNotifier {
     final colId = _columnOrder.removeAt(oldIndex);
     _columnOrder.insert(newIndex, colId);
     notifyListeners();
+    _bumpLayoutIfChanged();
   }
 
   /// Reorders a group of columns (e.g. a merged compact pair) together to the position of [targetColumnId].
@@ -850,6 +860,7 @@ class AppGridController<T> extends ChangeNotifier {
       _columnOrder.addAll(draggedIds);
     }
     notifyListeners();
+    _bumpLayoutIfChanged();
   }
 
   /// Sets visibility of a column.
@@ -869,6 +880,7 @@ class AppGridController<T> extends ChangeNotifier {
     if (_columnVisibility[columnId] != isVisible) {
       _columnVisibility[columnId] = isVisible;
       notifyListeners();
+      _bumpLayoutIfChanged();
     }
   }
 
@@ -993,6 +1005,100 @@ class AppGridController<T> extends ChangeNotifier {
 
     _recomputeIndices();
     notifyListeners();
+    _bumpLayoutIfChanged();
+  }
+
+  // ==================== COLUMN LAYOUT PERSISTENCE ====================
+
+  /// Column layout defined by the column definitions at construction:
+  /// definition order, each column's [GridColumn.isVisible], and no sort.
+  GridColumnLayout get defaultLayout => _defaultLayout;
+
+  /// Increments whenever the column order, column visibility or sort changes.
+  ///
+  /// Data updates never change it, so it is safe to persist on every change.
+  ValueListenable<int> get layoutRevision => _layoutRevision;
+
+  /// Exports the current column order, visibility and sort.
+  GridColumnLayout exportLayout() {
+    return GridColumnLayout(
+      columnOrder: List<String>.from(_columnOrder),
+      columnVisibility: Map<String, bool>.from(_columnVisibility),
+      sortCriteria: _sortCriteria,
+    );
+  }
+
+  /// Applies a column [layout], leaving compact mode untouched.
+  ///
+  /// Unknown column ids are dropped, columns missing from [layout] keep their
+  /// definition index and default visibility, columns that cannot be hidden
+  /// stay visible, and at least one column always stays visible. A sort on
+  /// an unknown or non-sortable column, or any sort in compact mode, is
+  /// dropped.
+  void applyLayout(GridColumnLayout layout) {
+    final columnsById = {for (final col in _columns) col.id: col};
+
+    // 1. Column order
+    final order = <String>[
+      for (final id in layout.columnOrder)
+        if (columnsById.containsKey(id)) id,
+    ].toSet().toList();
+    for (var i = 0; i < _columns.length; i++) {
+      final id = _columns[i].id;
+      if (!order.contains(id)) {
+        order.insert(i.clamp(0, order.length), id);
+      }
+    }
+
+    // 2. Visibility
+    final visibility = <String, bool>{};
+    for (final col in _columns) {
+      final requested = layout.columnVisibility[col.id] ?? col.isVisible;
+      visibility[col.id] = requested || !col.canHide;
+    }
+    if (order.isNotEmpty && !visibility.values.any((visible) => visible)) {
+      visibility[order.first] = true;
+    }
+
+    // 3. Sort
+    SortCriteria? sort = layout.sortCriteria;
+    if (sort != null) {
+      final col = columnsById[sort.columnId];
+      if (_compactMode ||
+          col == null ||
+          !col.isSortable ||
+          sort.direction == SortDirection.none) {
+        sort = null;
+      }
+    }
+
+    final next = GridColumnLayout(
+      columnOrder: order,
+      columnVisibility: visibility,
+      sortCriteria: sort,
+    );
+    if (next == exportLayout()) return;
+
+    _columnOrder
+      ..clear()
+      ..addAll(order);
+    _columnVisibility
+      ..clear()
+      ..addAll(visibility);
+    _sortCriteria = sort;
+    _recomputeIndices();
+    notifyListeners();
+    _bumpLayoutIfChanged();
+  }
+
+  /// Restores [defaultLayout]: definition order, default visibility, no sort.
+  void resetLayout() => applyLayout(_defaultLayout);
+
+  void _bumpLayoutIfChanged() {
+    final current = exportLayout();
+    if (current == _lastLayout) return;
+    _lastLayout = current;
+    _layoutRevision.value++;
   }
 
   void _syncRowNotifiers() {
@@ -1012,6 +1118,7 @@ class AppGridController<T> extends ChangeNotifier {
 
   @override
   void dispose() {
+    _layoutRevision.dispose();
     activeColumnDragTarget.dispose();
     layoutManager.dispose();
     _streamingThrottler.dispose();
