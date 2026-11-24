@@ -42,6 +42,7 @@ class AppGridStyle {
   final TextStyle? headerTextStyle;
 
   /// Optional padding applied to column header labels / cells.
+  /// Defaults to 4px on the left and right when null.
   final EdgeInsetsGeometry? headerPadding;
 
   // --- Menu Styling ---

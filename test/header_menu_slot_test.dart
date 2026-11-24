@@ -8,6 +8,7 @@ void main() {
     WidgetTester tester,
     List<GridColumn> columns, {
     bool autoStretch = true,
+    AppGridStyle style = const AppGridStyle(),
   }) async {
     final controller = AppGridController<Map<String, dynamic>>(
       initialData: [
@@ -25,6 +26,7 @@ void main() {
             child: AppGrid<Map<String, dynamic>>(
               controller: controller,
               autoStretch: autoStretch,
+              style: style,
             ),
           ),
         ),
@@ -155,6 +157,38 @@ void main() {
 
       expect(paragraph.didExceedMaxLines, isFalse);
       expect(label.right, lessThanOrEqualTo(icon.left));
+    },
+  );
+
+  testWidgets(
+    'the default header label padding leaves room for short labels '
+    'in narrow columns',
+    (tester) async {
+      await pumpGrid(
+        tester,
+        [
+          GridColumn(
+            id: 'open',
+            label: 'Open',
+            initialWidth: 70,
+            valueGetter: (r) => r['price'],
+          ),
+        ],
+        autoStretch: false,
+        // The test font draws each glyph as wide as the font size: 32px.
+        style: const AppGridStyle(headerTextStyle: TextStyle(fontSize: 8)),
+      );
+
+      // 70px cell minus the 1px grid line and the 26px icon slot leaves 43px:
+      // enough for the 32px label with 4px on each side, not with 16px.
+      final paragraph = tester.renderObject<RenderParagraph>(
+        find.text('Open'),
+      );
+      expect(paragraph.didExceedMaxLines, isFalse);
+      expect(
+        labelRect(tester, 'Open').right,
+        lessThanOrEqualTo(menuIconRect(tester, 0).left),
+      );
     },
   );
 }

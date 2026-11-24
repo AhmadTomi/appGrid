@@ -11,6 +11,12 @@ import '../column_layout/column_layout_manager.dart';
 import '../controllers/app_grid_controller.dart';
 import '../rendering_engine/grid_builders.dart';
 
+/// Label padding used when [AppGridStyle.headerPadding] is not set.
+///
+/// Kept small because the menu icon slot already separates the label from
+/// the icon, and narrow columns need every pixel for the label.
+const EdgeInsets _defaultHeaderPadding = EdgeInsets.symmetric(horizontal: 4.0);
+
 /// Renders column headers with interactive drag-reordering, drag-resizing,
 /// auto-fit on double-click, and sorting toggles.
 /// Supports both standard and compact (two-level paired) modes.
@@ -179,8 +185,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
         onTap: allowSort ? onSortToggle : null,
         child: Container(
           alignment: col.headerAlignment,
-          padding:
-              headerPadding ?? const EdgeInsets.symmetric(horizontal: 16.0),
+          padding: headerPadding ?? _defaultHeaderPadding,
           child: Text(
             col.label,
             style: effectiveHeaderTextStyle,
@@ -364,8 +369,7 @@ class _AppGridHeaderCellState<T> extends State<AppGridHeaderCell<T>> {
               child: Container(
                 width: widget.width,
                 height: widget.height,
-                padding: widget.headerPadding ??
-                    const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: widget.headerPadding ?? _defaultHeaderPadding,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(
