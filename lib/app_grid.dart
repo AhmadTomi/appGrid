@@ -19,6 +19,7 @@ export 'src/models/compact_column_group.dart';
 export 'src/models/row_index_info.dart';
 export 'src/models/sort_criteria.dart';
 export 'src/models/grid_state.dart';
+export 'src/models/grid_column_layout.dart';
 export 'src/models/data_fetch_mode.dart';
 export 'src/models/app_grid_header_config.dart';
 export 'src/models/app_grid_style.dart';
